@@ -1,0 +1,276 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-RENEPAY" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-renepay -- Command for sending a payment to a BOLT11 invoice
+.SH
+SYNOPSIS
+.LP
+\fBrenepay\fR \fIinvstring\fR [\fIamount_msat\fR] [\fImaxfee\fR] [\fImaxdelay\fR] [\fIretry_for\fR] [\fIdescription\fR] [\fIlabel\fR] [\fIexclude\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.08.
+.PP
+\fBrenepay\fR is a new payment plugin based on Pickhardt-Richter optimization method for Multi-Path-Payments. This implementation has not been thoroughly tested and it should be used with caution.
+.PP
+The response will occur when the payment fails or succeeds. Once a payment has succeeded, calls to \fBrenepay\fR with the same \fIinvstring\fR will not lead to a new payment attempt, but instead it will succeed immediately.
+.PP
+When using \fI$ lightning-cli\fR, you may skip optional parameters by using \fInull\fR. Alternatively, use \fB-k\fR option to provide parameters by name.
+.IP "\(bu" 2
+\fBinvstring\fR (string): Bolt11 invoice which the RPC command attempts to pay. Currently, \fBrenepay\fR supports bolt11 invoices only.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat, optional): If the \fIinvstring\fR does not contain an amount, \fIamount_msat\fR is required, otherwise if it is specified it must be \fInull\fR. in millisatoshi precision; it can be a whole number, or a whole number with suffix \fImsat\fR or \fIsat\fR, or a three decimal point number with suffix \fIsat\fR, or an 1 to 11 decimal point number suffixed by \fIbtc\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmaxfee\fR (msat, optional): \fImaxfee\fR is a hard bound, in the sense that the command will never attempt a payment when the fees exceed that value.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmaxdelay\fR (u32, optional): Overrides the value of \fCmax-locktime-blocks\fR for this payment. It serves to limit the locktime of funds in the payment HTLC measured in blocks.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBretry_for\fR (u32, optional): Measured in seconds specifies how much time it is allowed for the command to keep retrying the payment. The default is 60 seconds.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdescription\fR (string, optional): Only required for bolt11 invoices which do not contain a description themselves, but contain a description hash: in this case \fIdescription\fR is required. \fIdescription\fR is then checked against the hash inside the invoice before it will be paid.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlabel\fR (string, optional): Used to attach a label to payments, and is returned in lightning-listpays(7) and lightning-listsendpays(7).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexclude\fR (array, optional): \fIexclude\fR is a JSON array of short-channel-id/direction (e.g. [ '564334x877x1/0', '564195x1292x0/1' ]) or pubkey which should be excluded from consideration for routing. The default is not to exclude any channels or nodes. \fI(added v24.08)\fR:
+.RS
+.IP "\(bu" 2
+(short_channel_id_dir)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(pubkey)
+.RE
+.SH
+OPTIMALITY
+.LP
+\fBrenepay\fR is based on the work by Pickhardt-Richter's \fIOptimally Reliable & Cheap Payment Flows on the Lightning Network\fR. Which means the payment command will prefer routes that have a higher probability of success while keeping fees low.
+.PP
+The algorithm records some partial knowledge of the state of the Network deduced from the responses obtained after evey payment attempt. This knowledge is kept through different payment requests, but decays with time to account for the dynamics of the Network (after 1 hour all previous knowledge will be erased). Knowledge from previous payment attempts increases the reliability for subsequent ones.
+.PP
+Higher probabilities of success and lower fees cannot generally by optimized at once. Hence \fBrenepay\fR combines the two in different amounts seeking solutions that satisfy \fImaxfee\fR bound and a target for 90% probability of success. \fImaxfee\fR is a hard bound, in the sense that the command will never attempt a payment when the fees exceed that value. While the probability target is not compulsory (but desirable), i.e. if the best route does not satisfy the 90% probability target it will be tried anyways.
+.PP
+When \fImaxfee\fR and the 90% probability bounds are satified, the algorithm will optimize the fees to its lowest value.
+.SH
+RANDOMIZATION
+.LP
+To protect user privacy, the payment algorithm performs \fIshadow route\fR randomization. Which means the payment algorithm will virtually extend the route by adding delays and fees along it, making it appear to intermediate nodes that the route is longer than it actually is. This prevents intermediate nodes from reliably guessing their distance from the payee.
+.PP
+Route randomization will never exceed \fImaxfee\fR of the payment. Route randomization and shadow routing will not take routes that would exceed \fImaxdelay\fR.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBpayment_preimage\fR (secret): The proof of payment: SHA256 of this \fBpayment_hash\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpayment_hash\fR (hash): The hash of the \fIpayment_preimage\fR which will prove payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcreated_at\fR (number): The UNIX timestamp showing when this payment was initiated.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBparts\fR (u32): How many attempts this took.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat): Amount the recipient received.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_sent_msat\fR (msat): Total amount we sent (including fees).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstatus\fR (string) (one of \(dqcomplete\(dq, \(dqpending\(dq, \(dqfailed\(dq): Status of payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdestination\fR (pubkey, optional): The final destination of the payment.
+.LP
+You can monitor the progress and retries of a payment using the lightning-renepaystatus(7) command.
+.SH
+ERRORS
+.LP
+The following error codes may occur:
+.IP "\(bu" 2
+-1: Catchall nonspecific error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+200: Other payment attempts are in progress.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+203: Permanent failure at destination.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+205: Unable to find a route.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+206: Payment routes are too expensive.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+207: Invoice expired. Payment took too long before expiration, or already expired at the time you initiated payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+210: Payment timed out without a payment in progress.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+212: Invoice is invalid.
+.SH
+AUTHOR
+.LP
+Eduardo Quintana-Miranda <\fIeduardo.quintana@pm.me\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-renepaystatus(7), lightning-listpays(7), lightning-invoice(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.PP
+Pickhardt R. and Richter S., \fIOptimally Reliable & Cheap Payment Flows on the Lightning Network\fR \fIhttps://arxiv.org/abs/2107.05322\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli renepay -k \(dqinvstring\(dq=\(dqlnbcrt1pn2s3xxsp5xvccgadvepzypat5v8u8tstwdvn9ez4908h7ntl4s0ggx76ug4cqpp50qwurth9swdlzphjvjc2qm8sws8jcu0u28y4vt5s7nhr3js0c3vsdqcdserzgryv4ekxunfwp6xjmmwxqyjw5qcqp9rzjqdwjkyvjm7apxnssu4qgwhfkd67ghs6n6k48v6uqczgt88p6tky96qqqduqqqqgqqqqqqqqpqqqqqzsqqc9qxpqysgqw4qfxj30wqn2m2qmcfz2gs6ttszdhkc0kjqk0mgg59tj2cy90wcke4tjzmzakrkvcgqgf3367j47q5g2ruuw67cxaqxm2t4m42yecsqp92jzs7\(dq \(dqamount_msat\(dq=400000
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:renepay#1\(dq,
+  \(dqmethod\(dq: \(dqrenepay\(dq,
+  \(dqparams\(dq: {
+    \(dqinvstring\(dq: \(dqlnbcrt1pn2s3xxsp5xvccgadvepzypat5v8u8tstwdvn9ez4908h7ntl4s0ggx76ug4cqpp50qwurth9swdlzphjvjc2qm8sws8jcu0u28y4vt5s7nhr3js0c3vsdqcdserzgryv4ekxunfwp6xjmmwxqyjw5qcqp9rzjqdwjkyvjm7apxnssu4qgwhfkd67ghs6n6k48v6uqczgt88p6tky96qqqduqqqqgqqqqqqqqpqqqqqzsqqc9qxpqysgqw4qfxj30wqn2m2qmcfz2gs6ttszdhkc0kjqk0mgg59tj2cy90wcke4tjzmzakrkvcgqgf3367j47q5g2ruuw67cxaqxm2t4m42yecsqp92jzs7\(dq,
+    \(dqamount_msat\(dq: 400000
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqbolt11\(dq: \(dqlnbcrt1pn2s3xxsp5xvccgadvepzypat5v8u8tstwdvn9ez4908h7ntl4s0ggx76ug4cqpp50qwurth9swdlzphjvjc2qm8sws8jcu0u28y4vt5s7nhr3js0c3vsdqcdserzgryv4ekxunfwp6xjmmwxqyjw5qcqp9rzjqdwjkyvjm7apxnssu4qgwhfkd67ghs6n6k48v6uqczgt88p6tky96qqqduqqqqgqqqqqqqqpqqqqqzsqqc9qxpqysgqw4qfxj30wqn2m2qmcfz2gs6ttszdhkc0kjqk0mgg59tj2cy90wcke4tjzmzakrkvcgqgf3367j47q5g2ruuw67cxaqxm2t4m42yecsqp92jzs7\(dq,
+  \(dqamount_msat\(dq: 400000,
+  \(dqpayment_hash\(dq: \(dq781dc1aee5839bf106f264b0a06cf0740f2c71fc51c9562e90f4ee38ca0fc459\(dq,
+  \(dqdestination\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+  \(dqcreated_at\(dq: 1722303718.0730329,
+  \(dqgroupid\(dq: 1,
+  \(dqparts\(dq: 2,
+  \(dqstatus\(dq: \(dqcomplete\(dq,
+  \(dqpayment_preimage\(dq: \(dqaf67b48518e78e157db404d13cb42987c31e034634203d10b224302b05fc6c90\(dq,
+  \(dqamount_sent_msat\(dq: 400000
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli renepay -k \(dqinvstring\(dq=\(dqlnbcrt40n1pn2s3xxsp5j329vez86jvxw6543zlcla2fusm7v6h74pf7ftmmyfv6zm9uedlspp5j6xpxmq8cwd305vj2dvd6dh4mkr0s6guvehvyleymedgf4vsm3ysdqaveskjmr9vssxgetnvdexjur5d9hkuxqyjw5qcqp9rzjqgkjyd3q5dv6gllh77kygly9c3kfy0d9xwyjyxsq2nq3c83u5vw4jqqqduqqqqgqqqqqqqqpqqqqqzsqqc9qxpqysgqk6uwy8pkv42jzhdna3z4vxpwkapdzzpn2tcpjnqj738nlpkjc583l9v72vlskt8y33rr4z3jma32xx7ve0jfy7anvn6r98cr5flhcuqqhr4shx\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:renepay#2\(dq,
+  \(dqmethod\(dq: \(dqrenepay\(dq,
+  \(dqparams\(dq: {
+    \(dqinvstring\(dq: \(dqlnbcrt40n1pn2s3xxsp5j329vez86jvxw6543zlcla2fusm7v6h74pf7ftmmyfv6zm9uedlspp5j6xpxmq8cwd305vj2dvd6dh4mkr0s6guvehvyleymedgf4vsm3ysdqaveskjmr9vssxgetnvdexjur5d9hkuxqyjw5qcqp9rzjqgkjyd3q5dv6gllh77kygly9c3kfy0d9xwyjyxsq2nq3c83u5vw4jqqqduqqqqgqqqqqqqqpqqqqqzsqqc9qxpqysgqk6uwy8pkv42jzhdna3z4vxpwkapdzzpn2tcpjnqj738nlpkjc583l9v72vlskt8y33rr4z3jma32xx7ve0jfy7anvn6r98cr5flhcuqqhr4shx\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqbolt11\(dq: \(dqlnbcrt40n1pn2s3xxsp5j329vez86jvxw6543zlcla2fusm7v6h74pf7ftmmyfv6zm9uedlspp5j6xpxmq8cwd305vj2dvd6dh4mkr0s6guvehvyleymedgf4vsm3ysdqaveskjmr9vssxgetnvdexjur5d9hkuxqyjw5qcqp9rzjqgkjyd3q5dv6gllh77kygly9c3kfy0d9xwyjyxsq2nq3c83u5vw4jqqqduqqqqgqqqqqqqqpqqqqqzsqqc9qxpqysgqk6uwy8pkv42jzhdna3z4vxpwkapdzzpn2tcpjnqj738nlpkjc583l9v72vlskt8y33rr4z3jma32xx7ve0jfy7anvn6r98cr5flhcuqqhr4shx\(dq,
+  \(dqamount_msat\(dq: 4000,
+  \(dqpayment_hash\(dq: \(dq968c136c07c39b17d1925358dd36f5dd86f8691c666ec27f24de5a84d590dc49\(dq,
+  \(dqdestination\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+  \(dqcreated_at\(dq: 1722303719.1643083,
+  \(dqgroupid\(dq: 1,
+  \(dqparts\(dq: 2,
+  \(dqstatus\(dq: \(dqcomplete\(dq,
+  \(dqpayment_preimage\(dq: \(dq8815ee921dba644c076f9f879abb520d8539a6913856a439752eaaadff1e21ac\(dq,
+  \(dqamount_sent_msat\(dq: 4000
+}
+.EE
+.PP

@@ -1,0 +1,93 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-RECOVER" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-recover -- Reinitialize Your Node for Recovery
+.SH
+SYNOPSIS
+.LP
+\fBrecover\fR \fIhsmsecret\fR 
+.SH
+DESCRIPTION
+.LP
+The \fBrecover\fR RPC command wipes your node and restarts it with the \fC--recover\fR option. This is only permitted if the node is unused: no channels, no bitcoin addresses issued (you can use \fCcheck\fR to see if recovery is possible).
+.PP
+\fIhsmsecret\fR is either a codex32 secret starting with \(dqcl1\(dq as returned by \fChsmtool getcodexsecret\fR, or a raw 64 character hex string.
+.PP
+NOTE: this command only currently works with the \fCsqlite3\fR database backend.
+.IP "\(bu" 2
+\fBhsmsecret\fR (string): Either a codex32 secret starting with \fCcl1\fR as returned by \fChsmtool getcodexsecret\fR, or a raw 64 character hex string.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBresult\fR (string) (always \(dqRecovery restart in progress\(dq) \fI(added v24.05)\fR
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@blockstream.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-hsmtool(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli recover -k \(dqhsmsecret\(dq=\(dq6c696768746e696e672d36000000000000000000000000000000000000000000\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:recover#1\(dq,
+  \(dqmethod\(dq: \(dqrecover\(dq,
+  \(dqparams\(dq: {
+    \(dqhsmsecret\(dq: \(dq6c696768746e696e672d36000000000000000000000000000000000000000000\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqresult\(dq: \(dqRecovery restart in progress\(dq
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli recover -k \(dqhsmsecret\(dq=\(dqcl10leetsd35kw6r5de5kueedxyesqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqluplcg0lxenqd\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:recover#2\(dq,
+  \(dqmethod\(dq: \(dqrecover\(dq,
+  \(dqparams\(dq: {
+    \(dqhsmsecret\(dq: \(dqcl10leetsd35kw6r5de5kueedxyesqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqluplcg0lxenqd\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqresult\(dq: \(dqRecovery restart in progress\(dq
+}
+.EE
+.PP

@@ -1,0 +1,132 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-ASKRENE-LISTLAYERS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-askrene-listlayers -- Command to display information about layers (EXPERIMENTAL)
+.SH
+SYNOPSIS
+.LP
+\fBaskrene-listlayers\fR [\fIlayer\fR] 
+.SH
+DESCRIPTION
+.LP
+WARNING: experimental, so API may change.
+.PP
+The \fBaskrene-listlayers\fR RPC command reports any modifications each layer (or, the layer specified) would make to the topology, if it were used for \fIgetroutes\fR.
+.IP "\(bu" 2
+\fBlayer\fR (string, optional): The name of the layer to report on.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBlayers\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBlayer\fR (string): The name of the layer.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdisabled_nodes\fR (array of pubkeys):
+.RS
+.IP "\(bu" 2
+(pubkey, optional): The id of the disabled node.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcreated_channels\fR (array of objects):
+.RS
+.IP "\(bu" 2
+\fBsource\fR (pubkey): The source node id for the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdestination\fR (pubkey): The destination node id for the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id): The short channel id for the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcapacity_msat\fR (msat): The capacity (onchain size) of the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_minimum_msat\fR (msat): The minimum value allowed in this direction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_maximum_msat\fR (msat): The maximum value allowed in this direction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_base_msat\fR (msat): The base fee to apply to use the channel in this direction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_proportional_millionths\fR (u32): The proportional fee (in parts per million) to apply to use the channel in this direction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdelay\fR (u16): The CLTV delay required for this direction.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBconstraints\fR (array of objects):
+.RS
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id): The short channel id.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdirection\fR (u32): The direction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmaximum_msat\fR (msat, optional): The maximum value which this channel could pass.  This or \fIminimum_msat\fR will be present, but not both.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBminimum_msat\fR (msat, optional): The minimum value which this channel could pass.  This or \fIminimum_msat\fR will be present, but not both.
+.RE
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-getroutes(7), lightning-askrene-disable-node(7), lightning-askrene-create-channel(7), lightning-askrene-inform-channel(7), lightning-askrene-age(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR

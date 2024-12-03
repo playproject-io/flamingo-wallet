@@ -1,0 +1,110 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-SIGNPSBT" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-signpsbt -- Command to sign a wallet's inputs on a provided bitcoin transaction (PSBT).
+.SH
+SYNOPSIS
+.LP
+\fBsignpsbt\fR \fIpsbt\fR [\fIsignonly\fR] 
+.SH
+DESCRIPTION
+.LP
+\fBsignpsbt\fR is a low-level RPC command which signs a PSBT as defined by BIP-174.
+.PP
+By default, all known inputs are signed, and others ignored: with \fIsignonly\fR, only those inputs are signed, and an error is returned if one of them cannot be signed.
+.PP
+Note that the command will fail if there are no inputs to sign, or if the inputs to be signed were not previously reserved.
+.IP "\(bu" 2
+\fBpsbt\fR (string): The psbt to be signed.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsignonly\fR (array of u32s, optional): Input numbers to sign.:
+.RS
+.IP "\(bu" 2
+(u32, optional)
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBsigned_psbt\fR (string): The fully signed PSBT.
+.SH
+ERRORS
+.LP
+On failure, one of the following error codes may be returned:
+.IP "\(bu" 2
+-32602: Error in given parameters, or there aren't wallet's inputs to sign, or we couldn't sign all of \fIsignonly\fR, or inputs are not reserved.
+.SH
+AUTHOR
+.LP
+Vincenzo Palazzo <\fIvincenzo.palazzo@protonmail.com\fR> wrote the initial version of this man page,
+but many others did the hard work of actually implementing this rpc command.
+.SH
+SEE ALSO
+.LP
+lightning-fundpsbt(7), lightning-sendpsbt(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli signpsbt -k \(dqpsbt\(dq=\(dqcHNidP8BAgQCAAAAAQMEmAAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAGXS8Ixc7e8qbBg2sEqvRuxWOjtaaPnTU9q9ZGbFfV3LAAAAAAA/f///wJ6H/TSAAAAABYAFJq4HdQFbYJVeXL2XWxTpoyZUCr4AMLrCwAAAAAWABQDz+yHFeH0BKNuwBHkI4+GMp+QnJcAAAABAR8AwusLAAAAABYAFAPP7IcV4fQEo27AEeQjj4Yyn5CcAQ4gswU80whDZOoIHS/lfyxwmHh5USHBwbcjWHaJ9/XU+78BDwQBAAAAARAE/f///wz8CWxpZ2h0bmluZwEIQCsNB0i02NIAAQMIQVncCwAAAAABBCJRIDvhN+WjzUt2EEWojAco0yQ1GDbwTtWd/aN5uNhGRlK3DPwJbGlnaHRuaW5nAQgwkgFDAVpmeAABAwhAQg8AAAAAAAEEIgAgybxcBjyu+/emx4FEB7Vie0+BqLVuy+kyxoL5y6wNGd8M/AlsaWdodG5pbmcBCI9GsPn+O/M0AA==\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:signpsbt#1\(dq,
+  \(dqmethod\(dq: \(dqsignpsbt\(dq,
+  \(dqparams\(dq: {
+    \(dqpsbt\(dq: \(dqcHNidP8BAgQCAAAAAQMEmAAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAGXS8Ixc7e8qbBg2sEqvRuxWOjtaaPnTU9q9ZGbFfV3LAAAAAAA/f///wJ6H/TSAAAAABYAFJq4HdQFbYJVeXL2XWxTpoyZUCr4AMLrCwAAAAAWABQDz+yHFeH0BKNuwBHkI4+GMp+QnJcAAAABAR8AwusLAAAAABYAFAPP7IcV4fQEo27AEeQjj4Yyn5CcAQ4gswU80whDZOoIHS/lfyxwmHh5USHBwbcjWHaJ9/XU+78BDwQBAAAAARAE/f///wz8CWxpZ2h0bmluZwEIQCsNB0i02NIAAQMIQVncCwAAAAABBCJRIDvhN+WjzUt2EEWojAco0yQ1GDbwTtWd/aN5uNhGRlK3DPwJbGlnaHRuaW5nAQgwkgFDAVpmeAABAwhAQg8AAAAAAAEEIgAgybxcBjyu+/emx4FEB7Vie0+BqLVuy+kyxoL5y6wNGd8M/AlsaWdodG5pbmcBCI9GsPn+O/M0AA==\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqsigned_psbt\(dq: \(dqcHNidP8BAgQCAAAAAQMEmAAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAGXS8Ixc7e8qbBg2sEqvRuxWOjtaaPnTU9q9ZGbFfV3LAAAAAAA/f///wJ6H/TSAAAAABYAFJq4HdQFbYJVeXL2XWxTpoyZUCr4AMLrCwAAAAAWABQDz+yHFeH0BKNuwBHkI4+GMp+QnJcAAAABAR8AwusLAAAAABYAFAPP7IcV4fQEo27AEeQjj4Yyn5CcIgICRz15z0oQ57qDTAJqrEPqGLCn+3Xs2lGEv6+oxGYV9rdHMEQCIHlCL2oKhnYn6hhaUG8+V+8D6GHFlI61OM507VB6aBwoAiACA2d5TnCdlJ1j2rF/EIHkxl3W0hBp3QqweO7hEul9aQEiBgJHPXnPShDnuoNMAmqsQ+oYsKf7dezaUYS/r6jEZhX2twgDz+yHAAAAAAEOILMFPNMIQ2TqCB0v5X8scJh4eVEhwcG3I1h2iff11Pu/AQ8EAQAAAAEQBP3///8M/AlsaWdodG5pbmcBCEArDQdItNjSAAEDCEFZ3AsAAAAAAQQiUSA74Tflo81LdhBFqIwHKNMkNRg28E7Vnf2jebjYRkZStyEHE0cioCqqq2UZ2npxQi9Q6DXNZheODM6F4GjHHS3XScEJAG/ctUwEAAAADPwJbGlnaHRuaW5nAQgwkgFDAVpmeAABAwhAQg8AAAAAAAEEIgAgybxcBjyu+/emx4FEB7Vie0+BqLVuy+kyxoL5y6wNGd8M/AlsaWdodG5pbmcBCI9GsPn+O/M0AA==\(dq
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli signpsbt \(dqcHNidP8BAgQCAAAAAQMEmAAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAGXS8Ixc7e8qbBg2sEqvRuxWOjtaaPnTU9q9ZGbFfV3LAAAAAAA/f///wJ6H/TSAAAAABYAFJq4HdQFbYJVeXL2XWxTpoyZUCr4AMLrCwAAAAAWABQDz+yHFeH0BKNuwBHkI4+GMp+QnJcAAAABAR8AwusLAAAAABYAFAPP7IcV4fQEo27AEeQjj4Yyn5CcAQ4gswU80whDZOoIHS/lfyxwmHh5USHBwbcjWHaJ9/XU+78BDwQBAAAAARAE/f///wz8CWxpZ2h0bmluZwEIwRR1uu1r8GoAAQMIgIQeAAAAAAABBCIAIMm8XAY8rvv3pseBRAe1YntPgai1bsvpMsaC+cusDRnfDPwJbGlnaHRuaW5nAQjdRD+FoUsRIAABAwhiDc0LAAAAAAEEIlEgyRg+3pEh88b9FJiCLEenYCcyJ2ackJUIhDusW72BP2gM/AlsaWdodG5pbmcBCPN/JmOnjFW4AA==\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:signpsbt#2\(dq,
+  \(dqmethod\(dq: \(dqsignpsbt\(dq,
+  \(dqparams\(dq: [
+    \(dqcHNidP8BAgQCAAAAAQMEmAAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAGXS8Ixc7e8qbBg2sEqvRuxWOjtaaPnTU9q9ZGbFfV3LAAAAAAA/f///wJ6H/TSAAAAABYAFJq4HdQFbYJVeXL2XWxTpoyZUCr4AMLrCwAAAAAWABQDz+yHFeH0BKNuwBHkI4+GMp+QnJcAAAABAR8AwusLAAAAABYAFAPP7IcV4fQEo27AEeQjj4Yyn5CcAQ4gswU80whDZOoIHS/lfyxwmHh5USHBwbcjWHaJ9/XU+78BDwQBAAAAARAE/f///wz8CWxpZ2h0bmluZwEIwRR1uu1r8GoAAQMIgIQeAAAAAAABBCIAIMm8XAY8rvv3pseBRAe1YntPgai1bsvpMsaC+cusDRnfDPwJbGlnaHRuaW5nAQjdRD+FoUsRIAABAwhiDc0LAAAAAAEEIlEgyRg+3pEh88b9FJiCLEenYCcyJ2ackJUIhDusW72BP2gM/AlsaWdodG5pbmcBCPN/JmOnjFW4AA==\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqsigned_psbt\(dq: \(dqcHNidP8BAgQCAAAAAQMEmAAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAGXS8Ixc7e8qbBg2sEqvRuxWOjtaaPnTU9q9ZGbFfV3LAAAAAAA/f///wJ6H/TSAAAAABYAFJq4HdQFbYJVeXL2XWxTpoyZUCr4AMLrCwAAAAAWABQDz+yHFeH0BKNuwBHkI4+GMp+QnJcAAAABAR8AwusLAAAAABYAFAPP7IcV4fQEo27AEeQjj4Yyn5CcIgICRz15z0oQ57qDTAJqrEPqGLCn+3Xs2lGEv6+oxGYV9rdHMEQCIA8+zCzZ59t2OEFHWefZeTypY89RRQ8dMQCjtGWw6gskAiArELH1MvjW6j1G1CKnLZdV+/oabLDU48ingGSPFDOYxwEiBgJHPXnPShDnuoNMAmqsQ+oYsKf7dezaUYS/r6jEZhX2twgDz+yHAAAAAAEOILMFPNMIQ2TqCB0v5X8scJh4eVEhwcG3I1h2iff11Pu/AQ8EAQAAAAEQBP3///8M/AlsaWdodG5pbmcBCMEUdbrta/BqAAEDCICEHgAAAAAAAQQiACDJvFwGPK7796bHgUQHtWJ7T4GotW7L6TLGgvnLrA0Z3wz8CWxpZ2h0bmluZwEI3UQ/haFLESAAAQMIYg3NCwAAAAABBCJRIMkYPt6RIfPG/RSYgixHp2AnMidmnJCVCIQ7rFu9gT9oIQeffk+gJsmVIxDZ8UKPKgJB9CLvaUr9xqOEogpzJx1hbAkAEioNzwUAAAAM/AlsaWdodG5pbmcBCPN/JmOnjFW4AA==\(dq
+}
+.EE
+.PP

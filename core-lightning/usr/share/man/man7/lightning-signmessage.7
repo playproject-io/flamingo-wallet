@@ -1,0 +1,107 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-SIGNMESSAGE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-signmessage -- Command to create a signature from this node
+.SH
+SYNOPSIS
+.LP
+\fBsignmessage\fR \fImessage\fR 
+.SH
+DESCRIPTION
+.LP
+The \fBsignmessage\fR RPC command creates a digital signature of \fImessage\fR using this node's secret key. A receiver who knows your node's \fIid\fR and the \fImessage\fR can be sure that the resulting signature could only be created by something with access to this node's secret key.
+.IP "\(bu" 2
+\fBmessage\fR (string): Less than 65536 characters long message to be signed by the node.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBsignature\fR (hex) (always 128 characters): The signature.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrecid\fR (hex) (always 2 characters): The recovery id (0, 1, 2 or 3).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBzbase\fR (string): \fIsignature\fR and \fIrecid\fR encoded in a style compatible with \fBlnd\fR's \fBSignMessageRequest\fR <\fIhttps://api.lightning.community/#grpc-request- signmessagerequest\fR>.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-checkmessage(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.PP
+\fBSignMessageRequest\fR <\fIhttps://api.lightning.community/#grpc-request-signmessagerequest\fR>
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli signmessage -k \(dqmessage\(dq=\(dqthis is a test!\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:signmessage#1\(dq,
+  \(dqmethod\(dq: \(dqsignmessage\(dq,
+  \(dqparams\(dq: {
+    \(dqmessage\(dq: \(dqthis is a test!\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqsignature\(dq: \(dq9ea05929890e40489edbd5fe0552d22bcffe00bbd29da4fcf93ed5d8f1973e421509071a64935231a126637e3615225ddda86d2d0926ae537d9c3be149f9b21f\(dq,
+  \(dqrecid\(dq: \(dq00\(dq,
+  \(dqzbase\(dq: \(dqd6xkysjjtr8ry1r65xk9hbk14eih99oyzxjj5j8h9r9pms8t1h9rrfejyhpgjr41ggo1ca56gak1rzq7ibs14njgi3jz58b5hfr9uco9\(dq
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli signmessage -k \(dqmessage\(dq=\(dqmessage for you\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:signmessage#2\(dq,
+  \(dqmethod\(dq: \(dqsignmessage\(dq,
+  \(dqparams\(dq: {
+    \(dqmessage\(dq: \(dqmessage for you\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqsignature\(dq: \(dq8149401781108c1c2fda12d91969bfe2306afe06c387394d47a83a85a14702a16b6fcd0060693da436ff1c2b25cc470d7db68fe45d833733d8dca660a3f4d67d\(dq,
+  \(dqrecid\(dq: \(dq00\(dq,
+  \(dqzbase\(dq: \(dqd6yw1oyzoreea8bx5ejp1gmjz9tdy4z6y5baqqkpe6wdibpbehbkn45x3wygy4j7wo5x68bmrzgrqdm7s486ezcdgh37tzfgcnt9jiu7\(dq
+}
+.EE
+.PP

@@ -1,0 +1,419 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-LISTCHANNELS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-listchannels -- Command to query active lightning channels in the entire network
+.SH
+SYNOPSIS
+.LP
+\fBlistchannels\fR [\fIshort_channel_id\fR] [\fIsource\fR] [\fIdestination\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBlistchannels\fR RPC command returns data on channels that are known to the node. Because channels may be bidirectional, up to 2 objects will be returned for each channel (one for each direction).
+.PP
+Only one of \fIshort_channel_id\fR, \fIsource\fR or \fIdestination\fR can be supplied. If nothing is supplied, data on all lightning channels known to this node, are returned. These can be local channels or public channels broadcast on the gossip network.
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id, optional): If short_channel_id is a short channel id, then only known channels with a matching short_channel_id are returned. Otherwise, it must be null.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (pubkey, optional): If source is a node id, then only channels leading from that node id are returned.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdestination\fR (pubkey, optional): If destination is a node id, then only channels leading to that node id are returned.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBchannels\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBsource\fR (pubkey): The source node.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdestination\fR (pubkey): The destination node.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id): Short channel id of channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdirection\fR (u32): Direction (0 if source < destination, 1 otherwise).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpublic\fR (boolean): True if this is announced (from \fIv24.02\fR, being false is deprecated).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat): The total capacity of this channel (always a whole number of satoshis).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmessage_flags\fR (u8): As defined by BOLT #7.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_flags\fR (u8): As defined by BOLT #7.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBactive\fR (boolean): True unless source has disabled it (or (deprecated in \fIv24.02\fR) it's a local channel and the peer is disconnected or it's still opening or closing).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlast_update\fR (u32): UNIX timestamp on the last channel_update from \fIsource\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbase_fee_millisatoshi\fR (u32): Base fee changed by \fIsource\fR to use this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_per_millionth\fR (u32): Proportional fee changed by \fIsource\fR to use this channel, in parts-per-million.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdelay\fR (u32): The number of blocks delay required by \fIsource\fR to use this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_minimum_msat\fR (msat): The smallest payment \fIsource\fR will allow via this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeatures\fR (hex): BOLT #9 features bitmap for this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_maximum_msat\fR (msat, optional): The largest payment \fIsource\fR will allow via this channel.
+.LP
+If one of \fIshort_channel_id\fR, \fIsource\fR or \fIdestination\fR is supplied and no matching channels are found, a 'channels' object with an empty list is returned.
+.SH
+ERRORS
+.LP
+On error the returned object will contain \fCcode\fR and \fCmessage\fR properties, with \fCcode\fR being one of the following:
+.IP "\(bu" 2
+-32602: If the given parameters are wrong.
+.SH
+AUTHOR
+.LP
+Michael Hawkins <\fImichael.hawkins@protonmail.com\fR>.
+.SH
+SEE ALSO
+.LP
+lightning-fundchannel(7), lightning-listnodes(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.PP
+BOLT #7: \fIhttps://github.com/lightning/bolts/blob/master/07-routing-gossip.md\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listchannels -k \(dqshort_channel_id\(dq=\(dq109x1x1\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listchannels#1\(dq,
+  \(dqmethod\(dq: \(dqlistchannels\(dq,
+  \(dqparams\(dq: {
+    \(dqshort_channel_id\(dq: \(dq109x1x1\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqchannels\(dq: [
+    {
+      \(dqsource\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqdestination\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqdirection\(dq: 0,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 0,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303662,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+      \(dqdestination\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 1,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303662,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listchannels
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listchannels#2\(dq,
+  \(dqmethod\(dq: \(dqlistchannels\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqchannels\(dq: [
+    {
+      \(dqsource\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqdestination\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqdirection\(dq: 0,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 0,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303662,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+      \(dqdestination\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 1,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303662,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqdestination\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqshort_channel_id\(dq: \(dq111x1x0\(dq,
+      \(dqdirection\(dq: 0,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 2,
+      \(dqactive\(dq: false,
+      \(dqlast_update\(dq: 1722303692,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqdestination\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqshort_channel_id\(dq: \(dq111x1x0\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 1,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303669,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqdestination\(dq: \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+      \(dqshort_channel_id\(dq: \(dq113x1x1\(dq,
+      \(dqdirection\(dq: 0,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 0,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303669,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+      \(dqdestination\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqshort_channel_id\(dq: \(dq113x1x1\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 1,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303669,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqdestination\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqshort_channel_id\(dq: \(dq123x1x1\(dq,
+      \(dqdirection\(dq: 0,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 0,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303711,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqdestination\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqshort_channel_id\(dq: \(dq123x1x1\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 1,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303711,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqdestination\(dq: \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+      \(dqshort_channel_id\(dq: \(dq125x1x1\(dq,
+      \(dqdirection\(dq: 0,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 0,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303714,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    },
+    {
+      \(dqsource\(dq: \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+      \(dqdestination\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqshort_channel_id\(dq: \(dq125x1x1\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqpublic\(dq: true,
+      \(dqamount_msat\(dq: 1000000000,
+      \(dqmessage_flags\(dq: 1,
+      \(dqchannel_flags\(dq: 1,
+      \(dqactive\(dq: true,
+      \(dqlast_update\(dq: 1722303714,
+      \(dqbase_fee_millisatoshi\(dq: 1,
+      \(dqfee_per_millionth\(dq: 10,
+      \(dqdelay\(dq: 6,
+      \(dqhtlc_minimum_msat\(dq: 0,
+      \(dqhtlc_maximum_msat\(dq: 990000000,
+      \(dqfeatures\(dq: \(dq\(dq
+    }
+  ]
+}
+.EE
+.PP

@@ -1,0 +1,52 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-ASKRENE-UNRESERVE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-askrene-unreserve -- Command for informing askrene that you are no longer trying a path (EXPERIMENTAL)
+.SH
+SYNOPSIS
+.LP
+\fBaskrene-unreserve\fR \fIpath\fR 
+.SH
+DESCRIPTION
+.LP
+WARNING: experimental, so API may change.
+.PP
+The \fBaskrene-unreserve\fR RPC command tells askrene that a path attempt has finished: it should only be called after a successful \fBaskrene-reserve\fR call.
+.PP
+Note that additional properties inside the \fIpath\fR elements are ignored, which is useful when used with the result of \fIgetroutes\fR.
+.IP "\(bu" 2
+\fBpath\fR (array of objects):
+.RS
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id): The channel joining these nodes.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdirection\fR (u32): 0 if this channel is traversed from lesser to greater \fBid\fR, otherwise 1.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat): The amount to send into this hop.
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an empty object is returned.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-getroutes(7), lightning-askrene-reserve(7), lightning-askrene-disable-node(7), lightning-askrene-create-channel(7), lightning-askrene-inform-channel(7), lightning-askrene-listlayers(7), lightning-askrene-age(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR

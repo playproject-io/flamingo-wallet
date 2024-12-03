@@ -1,0 +1,245 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-LISTCLOSEDCHANNELS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-listclosedchannels -- Get data on our closed historical channels
+.SH
+SYNOPSIS
+.LP
+\fBlistclosedchannels\fR [\fIid\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.05.
+.PP
+The \fBlistclosedchannels\fR RPC command returns data on channels which are otherwise forgotten (more than 100 blocks after they're completely resolved onchain).
+.IP "\(bu" 2
+\fBid\fR (pubkey, optional): If no \fIid\fR is supplied, then channel data on all historical channels are given. Supplying \fIid\fR will filter the results to only match channels to that peer. Note that prior to v23.05, old peers were forgotten.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBclosedchannels\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBchannel_id\fR (hash): The full channel_id (funding txid Xored with output number).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBopener\fR (string) (one of \(dqlocal\(dq, \(dqremote\(dq): Who initiated the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBprivate\fR (boolean): If True, we will not announce this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtotal_local_commitments\fR (u64): Number of commitment transaction we made.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtotal_remote_commitments\fR (u64): Number of commitment transaction they made.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtotal_htlcs_sent\fR (u64): Number of HTLCs we ever sent.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_txid\fR (txid): ID of the funding transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_outnum\fR (u32): The 0-based output number of the funding transaction which opens the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBleased\fR (boolean): Whether this channel was leased from \fCopener\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtotal_msat\fR (msat): Total amount in the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfinal_to_us_msat\fR (msat): Our balance in final commitment transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmin_to_us_msat\fR (msat): Least amount owed to us ever. If the peer were to successfully steal from us, this is the amount we would still retain.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax_to_us_msat\fR (msat): Most amount owed to us ever. If we were to successfully steal from the peer, this is the amount we could potentially get.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBclose_cause\fR (string) (one of \(dqunknown\(dq, \(dqlocal\(dq, \(dquser\(dq, \(dqremote\(dq, \(dqprotocol\(dq, \(dqonchain\(dq): What caused the channel to close.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpeer_id\fR (pubkey, optional): Peer public key (can be missing with pre-v23.05 closes!).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id, optional): The short_channel_id.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBalias\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBlocal\fR (short_channel_id, optional): An alias assigned by this node to this channel, used for outgoing payments.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBremote\fR (short_channel_id, optional): An alias assigned by the remote node to this channel, usable in routehints and invoices.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcloser\fR (string, optional) (one of \(dqlocal\(dq, \(dqremote\(dq): Who initiated the channel close (only present if closing).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_type\fR (object, optional): Channel_type as negotiated with peer.:
+.RS
+.IP "\(bu" 2
+\fBbits\fR (array of u32s): Each bit set in this channel_type.:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(u32, optional): Bit number.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnames\fR (array of strings): Feature name for each bit set in this channel_type. Note that \fIanchors_zero_fee_htlc_tx\fR is a deprecated synonym for \fIanchors\fR.:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(string, optional) (one of \(dqstatic_remotekey/even\(dq, \(dqanchor_outputs/even\(dq, \(dqanchors/even\(dq, \(dqanchors_zero_fee_htlc_tx/even\(dq, \(dqscid_alias/even\(dq, \(dqzeroconf/even\(dq): Name of feature bit.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_fee_paid_msat\fR (msat, optional): How much we paid to lease the channel (iff \fCleased\fR is true and \fCopener\fR is local).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_fee_rcvd_msat\fR (msat, optional): How much they paid to lease the channel (iff \fCleased\fR is true and \fCopener\fR is remote).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_pushed_msat\fR (msat, optional): How much \fCopener\fR pushed immediate (if non-zero).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlast_commitment_txid\fR (hash, optional): The final commitment tx's txid (or mutual close, if we accepted it). Not present for some very old, small channels pre-0.7.0.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlast_commitment_fee_msat\fR (msat, optional): The fee on \fClast_commitment_txid\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlast_stable_connection\fR (u64, optional): Last time we reestablished the open channel and stayed connected for 1 minute. \fI(added v24.02)\fR
+.SH
+ERRORS
+.LP
+On error the returned object will contain \fCcode\fR and \fCmessage\fR properties, with \fCcode\fR being one of the following:
+.IP "\(bu" 2
+-32602: If the given parameters are wrong.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@blockstream.com\fR>.
+.SH
+SEE ALSO
+.LP
+lightning-listpeerchannels(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listclosedchannels
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listclosedchannels#1\(dq,
+  \(dqmethod\(dq: \(dqlistclosedchannels\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqclosedchannels\(dq: []
+}
+.EE
+.PP

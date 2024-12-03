@@ -1,0 +1,149 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-RESERVEINPUTS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-reserveinputs -- Construct a transaction and reserve the UTXOs it spends
+.SH
+SYNOPSIS
+.LP
+\fBreserveinputs\fR \fIpsbt\fR [\fIexclusive\fR] [\fIreserve\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBreserveinputs\fR RPC command places (or increases) reservations on any inputs specified in \fIpsbt\fR which are known to lightningd. It will fail with an error if any of the inputs are known to be spent, and ignore inputs which are unknown.
+.PP
+Normally the command will fail (with no reservations made) if an input is already reserved.
+.IP "\(bu" 2
+\fBpsbt\fR (string): The PSBT to reserve inputs from.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexclusive\fR (boolean, optional): If set to \fIFalse\fR, existing reservations are simply extended, rather than causing failure.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreserve\fR (u32, optional): The number of blocks to reserve. By default, reservations are for the next 72 blocks (approximately 6 hours).
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBreservations\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBtxid\fR (txid): The input transaction id.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvout\fR (u32): The input index output number which was reserved.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBwas_reserved\fR (boolean): Whether the input was already reserved.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreserved\fR (boolean) (always \fItrue\fR): Whether the input is now reserved.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreserved_to_block\fR (u32): What blockheight the reservation will expire.
+.SH
+ERRORS
+.LP
+On failure, an error is reported and no UTXOs are reserved.
+.IP "\(bu" 2
+-32602: Invalid parameter, such as specifying a spent/reserved input in \fIpsbt\fR.
+.SH
+AUTHOR
+.LP
+Lisa Neigut <\fIniftynei@gmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-unreserveinputs(7), lightning-signpsbt(7), lightning-sendpsbt(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli reserveinputs -k \(dqpsbt\(dq=\(dqcHNidP8BADMCAAAAAfcJ+tPRXly5UFuX2jOOOBUcBBjfDGAC8vLWfrkJf/O2AQAAAAD9////AAAAAAAAAA==\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:reserveinputs#1\(dq,
+  \(dqmethod\(dq: \(dqreserveinputs\(dq,
+  \(dqparams\(dq: {
+    \(dqpsbt\(dq: \(dqcHNidP8BADMCAAAAAfcJ+tPRXly5UFuX2jOOOBUcBBjfDGAC8vLWfrkJf/O2AQAAAAD9////AAAAAAAAAA==\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqreservations\(dq: [
+    {
+      \(dqtxid\(dq: \(dqb6f37f09b97ed6f2f202600cdf18041c15388e33da975b50b95c5ed1d3fa09f7\(dq,
+      \(dqvout\(dq: 1,
+      \(dqwas_reserved\(dq: false,
+      \(dqreserved\(dq: true,
+      \(dqreserved_to_block\(dq: 226
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli reserveinputs -k \(dqpsbt\(dq=\(dqcHNidP8BADMCAAAAAQmU87pv4WOONFOqae6XAQBHIi5fZ4Ztyt0vn1YASZntAAAAAAD9////AAAAAAAAAA==\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:reserveinputs#2\(dq,
+  \(dqmethod\(dq: \(dqreserveinputs\(dq,
+  \(dqparams\(dq: {
+    \(dqpsbt\(dq: \(dqcHNidP8BADMCAAAAAQmU87pv4WOONFOqae6XAQBHIi5fZ4Ztyt0vn1YASZntAAAAAAD9////AAAAAAAAAA==\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqreservations\(dq: [
+    {
+      \(dqtxid\(dq: \(dqed994900569f2fddca6d86675f2e2247000197ee69aa53348e63e16fbaf39409\(dq,
+      \(dqvout\(dq: 0,
+      \(dqwas_reserved\(dq: false,
+      \(dqreserved\(dq: true,
+      \(dqreserved_to_block\(dq: 226
+    }
+  ]
+}
+.EE
+.PP

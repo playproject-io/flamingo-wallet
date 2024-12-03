@@ -1,0 +1,170 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-INVOICEREQUEST" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-invoicerequest -- Command for offering payments
+.SH
+SYNOPSIS
+.LP
+\fB(WARNING: experimental-offers only)\fR
+.PP
+\fBinvoicerequest\fR \fIamount\fR \fIdescription\fR [\fIissuer\fR] [\fIlabel\fR] [\fIabsolute_expiry\fR] [\fIsingle_use\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v22.11.
+.PP
+The \fBinvoicerequest\fR RPC command creates an \fCinvoice_request\fR to send payments: it automatically enables the processing of an incoming invoice, and payment of it. The reader of the resulting \fCinvoice_request\fR can use lightning-sendinvoice(7) to collect their payment.
+.IP "\(bu" 2
+\fBamount\fR (msat): A positive value in millisatoshi precision; it can be a whole number, or a whole number ending in \fImsat\fR or \fIsat\fR, or a number with three decimal places ending in \fIsat\fR, or a number with 1 to 11 decimal places ending in \fIbtc\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdescription\fR (string): A short description of purpose of the payment, e.g. \fIATM withdrawl\fR. This value is encoded into the resulting \fCinvoice_request\fR and is viewable by anyone you expose it to. It must be UTF-8, and cannot use \fI\eu\fR JSON escape codes.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBissuer\fR (string, optional): Who is issuing it (i.e. you) if appropriate.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlabel\fR (string, optional): An internal-use name for the offer, which can be any UTF-8 string.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBabsolute_expiry\fR (u64, optional): The time the offer is valid until, in seconds since the first day of 1970 UTC. If not set, the \fCinvoice_request\fR remains valid (though it can be deactivated by the issuer of course). This is encoded in the \fCinvoice_request\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsingle_use\fR (boolean, optional): Indicates that the \fCinvoice_request\fR is only valid once; we may attempt multiple payments, but as soon as one is successful no more invoices are accepted (i.e. only one person can take the money). The default is True.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBinvreq_id\fR (hash): The SHA256 hash of all invoice_request fields less than 160.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBactive\fR (boolean) (always \fItrue\fR): Whether the invoice_request is currently active.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsingle_use\fR (boolean): Whether the invoice_request will become inactive after we pay an invoice for it.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbolt12\fR (string): The bolt12 string starting with lnr.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBused\fR (boolean) (always \fIfalse\fR): Whether the invoice_request has already been used.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlabel\fR (string, optional): The label provided when creating the invoice_request.
+.SH
+ERRORS
+.LP
+On failure, an error is returned and no \fCinvoice_request\fR is created. If the lightning process fails before responding, the caller should use lightning-listinvoicerequests(7) to query whether it was created or not.
+.IP "\(bu" 2
+-1: Catchall nonspecific error.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-listinvoicerequests(7), lightning-disableinvoicerequest(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli invoicerequest -k \(dqamount\(dq=1000000 \(dqdescription\(dq=\(dqSimple test\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:invoicerequest#1\(dq,
+  \(dqmethod\(dq: \(dqinvoicerequest\(dq,
+  \(dqparams\(dq: {
+    \(dqamount\(dq: 1000000,
+    \(dqdescription\(dq: \(dqSimple test\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqinvreq_id\(dq: \(dq93f193cd2432d292f8b64af08942989d71c0a0366fb52d57ddb688c8fb066399\(dq,
+  \(dqactive\(dq: true,
+  \(dqsingle_use\(dq: true,
+  \(dqbolt12\(dq: \(dqlnr1qqgypua5g7rp293k00s66ayvnv26czst2d5k6urvv5s8getnw3gzqp3zderpzxstt8927ynqg044h0egcd8n5h3n9g0u0v4h8ncc3yg02gps7sjqtqssytfzxcs2xkdy0lml0tzy0jzugmyj8kjn8zfzrgq9fsgurc72x82e7pq947t0ks7a4yejz8w79x4zj25s3pu6zrnw2e0v2ugdescpcqsq307z4p2dlxe92fv7xd43qut0pjkg4y094hupqyhsj8dlhvmmfng6sv\(dq,
+  \(dqused\(dq: false
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli invoicerequest -k \(dqamount\(dq=\(dq10000sat\(dq \(dqdescription\(dq=\(dqRequesting for invoice\(dq \(dqissuer\(dq=\(dqclightning store\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:invoicerequest#2\(dq,
+  \(dqmethod\(dq: \(dqinvoicerequest\(dq,
+  \(dqparams\(dq: {
+    \(dqamount\(dq: \(dq10000sat\(dq,
+    \(dqdescription\(dq: \(dqRequesting for invoice\(dq,
+    \(dqissuer\(dq: \(dqclightning store\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqinvreq_id\(dq: \(dqa621a0e8e8ea9aa97fd47ab9b140e413be7f4ea45377617e693eb7afe5a3dbf9\(dq,
+  \(dqactive\(dq: true,
+  \(dqsingle_use\(dq: true,
+  \(dqbolt12\(dq: \(dqlnr1qqgx5t5hcw5ru9fgkhgxj4thjq4ugzsk2fjhzat9wd6xjmn8ypnx7u3qd9h8vmmfvdj3yyrrd35kw6r5de5kueeqwd6x7un92qsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzr6jqwvfdqzcyypz6g3kyz34nfrl7lm6c3rushzxey3a55ecjgs6qp2vz8q78j336k0sgpvamrunx5t6vdaeu7nmmlh5u6f0dnscasy2alyxq79f5wnc043gxrzyqt640dmuj7c94644j5ae6wfse7tsejwqnmc575ly9t38h4hf\(dq,
+  \(dqused\(dq: false
+}
+.EE
+.PP

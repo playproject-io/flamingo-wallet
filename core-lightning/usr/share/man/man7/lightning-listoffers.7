@@ -1,0 +1,150 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-LISTOFFERS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-listoffers -- Command for listing offers
+.SH
+SYNOPSIS
+.LP
+\fB(WARNING: experimental-offers only)\fR
+.PP
+\fBlistoffers\fR [\fIoffer_id\fR] [\fIactive_only\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBlistoffers\fR RPC command list all offers, or with \fCoffer_id\fR, only the offer with that offer_id (if it exists).
+.IP "\(bu" 2
+\fBoffer_id\fR (hash, optional): Offer_id to get details for (if it exists).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBactive_only\fR (boolean, optional): If set and is true, only offers with \fCactive\fR true are returned.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBoffers\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBoffer_id\fR (hash): The id of this offer (merkle hash of non-signature fields).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBactive\fR (boolean): Whether this can still be used.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsingle_use\fR (boolean): Whether this expires as soon as it's paid.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbolt12\fR (string): The bolt12 encoding of the offer.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBused\fR (boolean): True if an associated invoice has been paid.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlabel\fR (string, optional): The (optional) user-specified label.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-offer(7), lightning-listoffers(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listoffers -k \(dqactive_only\(dq=True
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listoffers#1\(dq,
+  \(dqmethod\(dq: \(dqlistoffers\(dq,
+  \(dqparams\(dq: {
+    \(dqactive_only\(dq: true
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqoffers\(dq: [
+    {
+      \(dqoffer_id\(dq: \(dqdca9774ba2925b48c42eb12e599c09389d9d80d44445c4d0c944556c7228746e\(dq,
+      \(dqactive\(dq: true,
+      \(dqsingle_use\(dq: false,
+      \(dqbolt12\(dq: \(dqlno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrcgqgn3qzs2ge5hx6pqwdskcefpzcssytfzxcs2xkdy0lml0tzy0jzugmyj8kjn8zfzrgq9fsgurc72x82e\(dq,
+      \(dqused\(dq: false
+    },
+    {
+      \(dqoffer_id\(dq: \(dqf901018768e13ea2da95f437749e24d22d47b2a6ea3030ef66ae0281df49d94b\(dq,
+      \(dqactive\(dq: true,
+      \(dqsingle_use\(dq: false,
+      \(dqbolt12\(dq: \(dqlno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrcgqv85ysq2qepk7enxv4j3gqg2zcssytfzxcs2xkdy0lml0tzy0jzugmyj8kjn8zfzrgq9fsgurc72x82e\(dq,
+      \(dqused\(dq: false
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listoffers \(dqb791f88cebf775853112c30828e116487f4d6c252d669372532b468bc7de8a24\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listoffers#2\(dq,
+  \(dqmethod\(dq: \(dqlistoffers\(dq,
+  \(dqparams\(dq: [
+    \(dqb791f88cebf775853112c30828e116487f4d6c252d669372532b468bc7de8a24\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqoffers\(dq: [
+    {
+      \(dqoffer_id\(dq: \(dqb791f88cebf775853112c30828e116487f4d6c252d669372532b468bc7de8a24\(dq,
+      \(dqactive\(dq: false,
+      \(dqsingle_use\(dq: false,
+      \(dqbolt12\(dq: \(dqlno1qgsqvgnwgcg35z6ee2h3yczraddm72xrfua9uve2rlrm9deu7xyfzrcgqv0gfqq2zp8kven9wgs8gmeqg35hxctzd3j3vggz953rvg9rtxj8lalh43z8epwydjfrmffn3y3p5qz5cywpu09rr4vs\(dq,
+      \(dqused\(dq: false
+    }
+  ]
+}
+.EE
+.PP

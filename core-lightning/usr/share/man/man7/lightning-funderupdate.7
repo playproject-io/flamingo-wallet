@@ -1,0 +1,329 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-FUNDERUPDATE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-funderupdate -- Command for adjusting node funding v2 channels
+.SH
+SYNOPSIS
+.LP
+\fBfunderupdate\fR [\fIpolicy\fR] [\fIpolicy_mod\fR] [\fIleases_only\fR] [\fImin_their_funding_msat\fR] [\fImax_their_funding_msat\fR] [\fIper_channel_min_msat\fR] [\fIper_channel_max_msat\fR] [\fIreserve_tank_msat\fR] [\fIfuzz_percent\fR] [\fIfund_probability\fR] [\fIlease_fee_base_msat\fR] [\fIlease_fee_basis\fR] [\fIfunding_weight\fR] [\fIchannel_fee_max_base_msat\fR] [\fIchannel_fee_max_proportional_thousandths\fR] [\fIcompact_lease\fR] 
+.SH
+DESCRIPTION
+.LP
+NOTE: Must have --experimental-dual-fund enabled for these settings to take effect.
+.PP
+For channel open requests using dual funding.
+.PP
+Note: to maximize channel leases, best policy setting is (match, 100).
+.PP
+Setting any of the 5 options from \fIlease_fee_base_msat\fR, \fIlease_fee_basis\fR, \fIfunding_weight\fR, \fIchannel_fee_max_base_msat\fR and, \fIchannel_fee_max_proportional_thousandths\fR will activate channel leases for this node, and advertise these values via the lightning gossip network. If any one is set, the other values will be the default.
+.IP "\(bu" 2
+\fBpolicy\fR (string, optional) (one of \(dqmatch\(dq, \(dqavailable\(dq, \(dqfixed\(dq): Funder plugin will use to decide how much capital to commit to a v2 open channel request.
+There are three policy options, detailed below:
+.RS
+.IP "\(bu" 2
+\fCmatch\fR -- Contribute \fIpolicy_mod\fR percent of their requested funds. Valid \fIpolicy_mod\fR values are 0 to 200. If this is a channel lease request, we match based on their requested funds. If it is not a channel lease request (and \fIlease_only\fR is false), then we match their funding amount. Note: any lease match less than 100 will likely fail, as clients will not accept a lease less than their request.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCavailable\fR -- Contribute \fIpolicy_mod\fR percent of our available node wallet funds. Valid \fIpolicy_mod\fR values are 0 to 100.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfixed\fR -- Contributes a fixed  \fIpolicy_mod\fR sats to v2 channel open requests. The default is fixed.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpolicy_mod\fR (msat, optional): Number or 'modification' to apply to the policy. The default is 0sats.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBleases_only\fR (boolean, optional): Only contribute funds to \fCoption_will_fund\fR requests which pay to lease funds. It will fund any v2 open request using \fIpolicy\fR even if it's they're not seeking to lease funds. Note that \fCoption_will_fund\fR commits funds for 4032 blocks (\(ti1mo). Must also set \fIlease_fee_base_msat\fR, \fIlease_fee_basis\fR, \fIfunding_weight\fR, \fIchannel_fee_max_base_msat\fR, and \fIchannel_fee_max_proportional_thousandths\fR to advertise available channel leases. The default is False.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmin_their_funding_msat\fR (msat, optional): Minimum funding sats that we require in order to activate our contribution policy to the v2 open. The default is 10k sats.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax_their_funding_msat\fR (msat, optional): Maximum funding sats that we will consider to activate our contribution policy to the v2 open. Any channel open above this will not be funded. The default is no max (\fCUINT_MAX\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBper_channel_min_msat\fR (msat, optional): Minimum amount that we will contribute to a channel open. The default is 10k sats.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBper_channel_max_msat\fR (msat, optional): Maximum amount that we will contribute to a channel open. The default is no max (\fCUINT_MAX\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreserve_tank_msat\fR (msat, optional): Amount of sats to leave available in the node wallet. The default is zero sats.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfuzz_percent\fR (u32, optional): A percentage to fuzz the resulting contribution amount by. Valid values are 0 to 100. Note that turning this on with (match, 100) policy will randomly fail \fCoption_will_fund\fR leases, as most clients expect an exact or greater match of their \fCrequested_funds\fR. The default is 0% (no fuzz).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfund_probability\fR (u32, optional): The percent of v2 channel open requests to apply our policy to. Valid values are integers from 0 (fund 0% of all open requests) to 100 (fund every request). Useful for randomizing opens that receive funds. Useful for randomizing opens that receive funds. The default is 100.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlease_fee_base_msat\fR (msat, optional): Flat fee for a channel lease. Node will receive this much extra added to their channel balance, paid by the opening node. Note that the minimum is 1sat. The default is 2k sats.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlease_fee_basis\fR (u32, optional): A basis fee that's calculated as 1/10k of the total requested funds the peer is asking for. Node will receive the total of \fIlease_fee_basis\fR times requested funds / 10k satoshis added to their channel balance, paid by the opening node. The default is 0.65% (65 basis points).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_weight\fR (u32, optional): To calculate the fee the peer will compensate your node for its contributing inputs to the funding transaction. The total fee is calculated as the \fCopen_channel2\fR.\fCfunding_feerate_perkw\fR times this \fIfunding_weight\fR divided by 1000. Node will have this funding fee added to their channel balance, paid by the opening node. The default is 2 inputs + 1 P2WPKH output.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_fee_max_base_msat\fR (msat, optional): A commitment to a maximum \fCchannel_fee_base_msat\fR that your node will charge for routing payments over this leased channel during the lease duration. The default is 5k sats.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_fee_max_proportional_thousandths\fR (u32, optional): A commitment to a maximum \fCchannel_fee_proportional_millionths\fR that your node will charge for routing payments over this leased channel during the lease duration. Note that it's denominated in 'thousandths'. A setting of \fC1\fR is equal to 1k ppm; \fC5\fR is 5k ppm, etc. The default is 100 (100k ppm).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcompact_lease\fR (hex, optional): A compact description of the channel lease params. When opening a channel, passed in to \fCfundchannel\fR to indicate the terms we expect from the peer.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBsummary\fR (string): Summary of the current funding policy e.g. (match 100).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpolicy\fR (string) (one of \(dqmatch\(dq, \(dqavailable\(dq, \(dqfixed\(dq): Policy funder plugin will use to decide how much capital to commit to a v2 open channel request.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpolicy_mod\fR (u32): The \fIpolicy_mod\fR is the number or 'modification' to apply to the policy.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBleases_only\fR (boolean): Only contribute funds to \fCoption_will_fund\fR lease requests.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmin_their_funding_msat\fR (msat): The minimum funding sats that we require from peer to activate our funding policy.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax_their_funding_msat\fR (msat): The maximum funding sats that we'll allow from peer to activate our funding policy.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBper_channel_min_msat\fR (msat): The minimum amount that we will fund a channel open with.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBper_channel_max_msat\fR (msat): The maximum amount that we will fund a channel open with.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreserve_tank_msat\fR (msat): Amount of sats to leave available in the node wallet.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfuzz_percent\fR (u32): Percentage to fuzz our funding amount by.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfund_probability\fR (u32): Percent of opens to consider funding. 100 means we'll consider funding every requested open channel request.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlease_fee_base_msat\fR (msat, optional): Flat fee to charge for a channel lease.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlease_fee_basis\fR (u32, optional): Proportional fee to charge for a channel lease, calculated as 1/10,000th of requested funds.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_weight\fR (u32, optional): Transaction weight the channel opener will pay us for a leased funding transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_fee_max_base_msat\fR (msat, optional): Maximum channel_fee_base_msat we'll charge for routing funds leased on this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_fee_max_proportional_thousandths\fR (u32, optional): Maximum channel_fee_proportional_millitionths we'll charge for routing funds leased on this channel, in thousandths.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcompact_lease\fR (hex, optional): Compact description of the channel lease parameters.
+.SH
+ERRORS
+.LP
+The following error code may occur:
+.IP "\(bu" 2
+-32602: If the given parameters are invalid.
+.SH
+AUTHOR
+.LP
+Lisa Neigut <\fIniftynei@gmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-fundchannel(7), lightning-listfunds(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli funderupdate
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:funderupdate#1\(dq,
+  \(dqmethod\(dq: \(dqfunderupdate\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqsummary\(dq: \(dqfixed (0sat)\(dq,
+  \(dqpolicy\(dq: \(dqfixed\(dq,
+  \(dqpolicy_mod\(dq: 0,
+  \(dqleases_only\(dq: true,
+  \(dqmin_their_funding_msat\(dq: 10000000,
+  \(dqmax_their_funding_msat\(dq: 4294967295000,
+  \(dqper_channel_min_msat\(dq: 10000000,
+  \(dqper_channel_max_msat\(dq: 4294967295000,
+  \(dqreserve_tank_msat\(dq: 0,
+  \(dqfuzz_percent\(dq: 0,
+  \(dqfund_probability\(dq: 100
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli funderupdate -k \(dqpolicy\(dq=\(dqfixed\(dq \(dqpolicy_mod\(dq=\(dq50000sat\(dq \(dqmin_their_funding_msat\(dq=1000 \(dqper_channel_min_msat\(dq=\(dq1000sat\(dq \(dqper_channel_max_msat\(dq=\(dq500000sat\(dq \(dqfund_probability\(dq=100 \(dqfuzz_percent\(dq=0 \(dqleases_only\(dq=False
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:funderupdate#2\(dq,
+  \(dqmethod\(dq: \(dqfunderupdate\(dq,
+  \(dqparams\(dq: {
+    \(dqpolicy\(dq: \(dqfixed\(dq,
+    \(dqpolicy_mod\(dq: \(dq50000sat\(dq,
+    \(dqmin_their_funding_msat\(dq: 1000,
+    \(dqper_channel_min_msat\(dq: \(dq1000sat\(dq,
+    \(dqper_channel_max_msat\(dq: \(dq500000sat\(dq,
+    \(dqfund_probability\(dq: 100,
+    \(dqfuzz_percent\(dq: 0,
+    \(dqleases_only\(dq: false
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqsummary\(dq: \(dqfixed (50000sat)\(dq,
+  \(dqpolicy\(dq: \(dqfixed\(dq,
+  \(dqpolicy_mod\(dq: 50000,
+  \(dqleases_only\(dq: false,
+  \(dqmin_their_funding_msat\(dq: 1000,
+  \(dqmax_their_funding_msat\(dq: 4294967295000,
+  \(dqper_channel_min_msat\(dq: 1000000,
+  \(dqper_channel_max_msat\(dq: 500000000,
+  \(dqreserve_tank_msat\(dq: 0,
+  \(dqfuzz_percent\(dq: 0,
+  \(dqfund_probability\(dq: 100
+}
+.EE
+.PP

@@ -1,0 +1,107 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-OPENCHANNEL_ABORT" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-openchannel_abort -- Command to abort a channel to a peer
+.SH
+SYNOPSIS
+.LP
+\fBopenchannel_abort\fR \fIchannel_id\fR 
+.SH
+DESCRIPTION
+.LP
+\fCopenchannel_init\fR is a low level RPC command which initiates a channel open with a specified peer. It uses the openchannel protocol which allows for interactive transaction construction.
+.IP "\(bu" 2
+\fBchannel_id\fR (hash): Channel id of the channel to be aborted.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBchannel_id\fR (hash): The channel id of the aborted channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_canceled\fR (boolean): Whether this is completely canceled (there may be remaining in-flight transactions).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreason\fR (string): Usually \(dqAbort requested\(dq, but if it happened to fail at the same time it could be different.
+.SH
+ERRORS
+.LP
+On error the returned object will contain \fCcode\fR and \fCmessage\fR properties, with \fCcode\fR being one of the following:
+.IP "\(bu" 2
+-32602: If the given parameters are wrong.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+-1: Catchall nonspecific error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+305: Peer is not connected.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+311: Unknown channel id.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+312: Channel in an invalid state
+.SH
+AUTHOR
+.LP
+Lisa Neigut <\fIniftynei@gmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-openchannel_init(7), lightning-openchannel_update(7), lightning-openchannel_signed(7), lightning-openchannel_bump(7), lightning-fundchannel_start(7), lightning-fundchannel_complete(7), lightning-fundchannel(7), lightning-fundpsbt(7), lightning-utxopsbt(7), lightning-multifundchannel(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli openchannel_abort -k \(dqchannel_id\(dq=\(dqb020c1c6818daf024954c9ee578caad058cbcae7dd75b2c4d38b8f6f81901ff5\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:openchannel_abort#1\(dq,
+  \(dqmethod\(dq: \(dqopenchannel_abort\(dq,
+  \(dqparams\(dq: {
+    \(dqchannel_id\(dq: \(dqb020c1c6818daf024954c9ee578caad058cbcae7dd75b2c4d38b8f6f81901ff5\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqchannel_id\(dq: \(dqb020c1c6818daf024954c9ee578caad058cbcae7dd75b2c4d38b8f6f81901ff5\(dq,
+  \(dqchannel_canceled\(dq: false,
+  \(dqreason\(dq: \(dqAbort requested\(dq
+}
+.EE
+.PP

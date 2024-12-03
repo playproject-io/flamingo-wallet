@@ -1,0 +1,2227 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-SQL" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-sql -- Command to do complex queries on list commands
+.SH
+SYNOPSIS
+.LP
+\fBsql\fR \fIquery\fR 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.02.
+.PP
+The \fBsql\fR RPC command runs the given query across a sqlite3 database created from various list commands.
+.PP
+When tables are accessed, it calls the below commands, so it's no faster than any other local access (though it goes to great length to cache \fClistnodes\fR and \fClistchannels\fR) which then processes the results.
+.PP
+It is, however faster for remote access if the result of the query is much smaller than the list commands would be.
+.PP
+Note that you may need to use \fC-o\fR if you use queries which contain \fC=\fR (which make $ lightning-cli(1) default to keyword style)
+.IP "\(bu" 2
+\fBquery\fR (string): The standard sqlite3 query to run.
+Note that queries like \(dqSELECT *\(dq are fragile, as columns will change across releases; see lightning-listsqlschemas(7).
+.SH
+PERMITTED SQLITE3 FUNCTIONS
+.LP
+Writing to the database is not permitted, and limits are placed on various other query parameters.
+.PP
+Additionally, only the following functions are allowed:
+.IP "\(bu" 2
+abs
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+avg
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+coalesce
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+count
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+date
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+datetime
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+julianday
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+hex
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+quote
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+length
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+like
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+lower
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+upper
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+min
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+max
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+strftime
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+sum
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+time
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+timediff
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+total
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+unixepoch
+.SH
+TREATMENT OF TYPES
+.LP
+The following types are supported in schemas, and this shows how they are presented in the database. This matters: a JSON boolean is represented as an integer in the database, so a query will return 0 or 1, not true or false.
+.IP "\(bu" 2
+\fIhex\fR. A hex string.
+.RS
+.IP "\(bu" 2
+JSON: a string
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+sqlite3: BLOB
+.RE
+.IP "\(bu" 2
+\fIhash\fR/\fIsecret\fR/\fIpubkey\fR/\fItxid\fR: just like \fIhex\fR.
+.IP "\(bu" 2
+\fImsat\fR/\fIinteger\fR/\fIu64\fR/\fIu32\fR/\fIu16\fR/\fIu8\fR. Normal numbers.
+.RS
+.IP "\(bu" 2
+JSON: an unsigned integer
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+sqlite3: INTEGER
+.RE
+.IP "\(bu" 2
+\fIboolean\fR. True or false.
+.RS
+.IP "\(bu" 2
+JSON: literal \fBtrue\fR or \fBfalse\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+sqlite3: INTEGER
+.RE
+.IP "\(bu" 2
+\fInumber\fR. A floating point number (used for times in some places).
+.RS
+.IP "\(bu" 2
+JSON: number
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+sqlite3: REAL
+.RE
+.IP "\(bu" 2
+\fIstring\fR. Text.
+.RS
+.IP "\(bu" 2
+JSON: string
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+sqlite3: TEXT
+.RE
+.IP "\(bu" 2
+\fIshort_channel_id\fR. A short-channel-id of form 1x2x3.
+.RS
+.IP "\(bu" 2
+JSON: string
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+sqlite3: TEXT
+.RE
+.SH
+TABLES
+.LP
+Note that the first column of every table is a unique integer called \fCrowid\fR: this is used for related tables to refer to specific rows in their parent. sqlite3 usually has this as an implicit column, but we make it explicit as the implicit version is not allowed to be used as a foreign key.
+.PP
+The following tables are currently supported:
+- \fCbkpr_accountevents\fR (see lightning-bkpr-listaccountevents(7))
+- \fCaccount\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+- \fCtype\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+- \fCtag\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+- \fCcredit_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+- \fCdebit_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+- \fCcurrency\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+- \fCtimestamp\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+- \fCoutpoint\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+- \fCblockheight\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+- \fCorigin\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+- \fCpayment_id\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+- \fCtxid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+- \fCdescription\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+- \fCfees_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+- \fCis_rebalance\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+- \fCpart_id\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.IP "\(bu" 2
+\fCbkpr_income\fR (see lightning-bkpr-listincome(7))
+.RS
+.IP "\(bu" 2
+\fCaccount\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtag\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcredit_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdebit_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcurrency\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtimestamp\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdescription\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoutpoint\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtxid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpayment_id\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.RE
+.IP "\(bu" 2
+\fCchannels\fR indexed by \fCshort_channel_id\fR (see lightning-listchannels(7))
+.RS
+.IP "\(bu" 2
+\fCsource\fR (type \fCpubkey\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdestination\fR (type \fCpubkey\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCshort_channel_id\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdirection\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpublic\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmessage_flags\fR (type \fCu8\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCchannel_flags\fR (type \fCu8\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCactive\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_update\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbase_fee_millisatoshi\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfee_per_millionth\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdelay\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fChtlc_minimum_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fChtlc_maximum_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfeatures\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.RE
+.IP "\(bu" 2
+\fCclosedchannels\fR (see lightning-listclosedchannels(7))
+.RS
+.IP "\(bu" 2
+\fCpeer_id\fR (type \fCpubkey\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCchannel_id\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCshort_channel_id\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCalias_local\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR, from JSON object \fCalias\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCalias_remote\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR, from JSON object \fCalias\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCopener\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcloser\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCprivate\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCclosedchannels_channel_type_bits\fR, from JSON object \fCchannel_type\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCclosedchannels_channel_type.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbits\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCclosedchannels_channel_type_names\fR, from JSON object \fCchannel_type\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCclosedchannels_channel_type.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCnames\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtotal_local_commitments\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtotal_remote_commitments\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtotal_htlcs_sent\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_txid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_outnum\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCleased\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_fee_paid_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_fee_rcvd_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_pushed_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtotal_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfinal_to_us_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmin_to_us_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmax_to_us_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_commitment_txid\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_commitment_fee_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCclose_cause\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_stable_connection\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.RE
+.IP "\(bu" 2
+\fCforwards\fR indexed by \fCin_channel and in_htlc_id\fR (see lightning-listforwards(7))
+.RS
+.IP "\(bu" 2
+\fCcreated_index\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCin_channel\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCin_htlc_id\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCin_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstatus\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCreceived_time\fR (type \fCnumber\fR, sqltype \fCREAL\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCout_channel\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCout_htlc_id\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCupdated_index\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstyle\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfee_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCout_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCresolved_time\fR (type \fCnumber\fR, sqltype \fCREAL\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfailcode\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfailreason\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.RE
+.IP "\(bu" 2
+\fChtlcs\fR indexed by \fCshort_channel_id and id\fR (see lightning-listhtlcs(7))
+.RS
+.IP "\(bu" 2
+\fCshort_channel_id\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCid\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCexpiry\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdirection\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpayment_hash\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstate\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.RE
+.IP "\(bu" 2
+\fCinvoices\fR indexed by \fCpayment_hash\fR (see lightning-listinvoices(7))
+.RS
+.IP "\(bu" 2
+\fClabel\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdescription\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpayment_hash\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstatus\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCexpires_at\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbolt11\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbolt12\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocal_offer_id\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCinvreq_payer_note\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcreated_index\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCupdated_index\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpay_index\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_received_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpaid_at\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpaid_outpoint_txid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR, from JSON object \fCpaid_outpoint\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpaid_outpoint_outnum\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCpaid_outpoint\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpayment_preimage\fR (type \fCsecret\fR, sqltype \fCBLOB\fR)
+.RE
+.IP "\(bu" 2
+\fCnodes\fR indexed by \fCnodeid\fR (see lightning-listnodes(7))
+.RS
+.IP "\(bu" 2
+\fCnodeid\fR (type \fCpubkey\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_timestamp\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCalias\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcolor\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfeatures\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCnodes_addresses\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCnodes.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtype\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCport\fR (type \fCu16\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCaddress\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_will_fund_lease_fee_base_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCoption_will_fund\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_will_fund_lease_fee_basis\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCoption_will_fund\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_will_fund_funding_weight\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCoption_will_fund\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_will_fund_channel_fee_max_base_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCoption_will_fund\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_will_fund_channel_fee_max_proportional_thousandths\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCoption_will_fund\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_will_fund_compact_lease\fR (type \fChex\fR, sqltype \fCBLOB\fR, from JSON object \fCoption_will_fund\fR)
+.RE
+.IP "\(bu" 2
+\fCoffers\fR indexed by \fCoffer_id\fR (see lightning-listoffers(7))
+.RS
+.IP "\(bu" 2
+\fCoffer_id\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCactive\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCsingle_use\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbolt12\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCused\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClabel\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.RE
+.IP "\(bu" 2
+\fCpeerchannels\fR indexed by \fCpeer_id\fR (see lightning-listpeerchannels(7))
+.RS
+.IP "\(bu" 2
+\fCpeer_id\fR (type \fCpubkey\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpeer_connected\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCreestablished\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstate\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCscratch_txid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeerchannels_channel_type_bits\fR, from JSON object \fCchannel_type\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeerchannels_channel_type.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbits\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeerchannels_channel_type_names\fR, from JSON object \fCchannel_type\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeerchannels_channel_type.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCnames\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocal_htlc_minimum_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.local\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocal_htlc_maximum_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.local\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocal_cltv_expiry_delta\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.local\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocal_fee_base_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.local\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocal_fee_proportional_millionths\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.local\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCremote_htlc_minimum_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.remote\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCremote_htlc_maximum_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.remote\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCremote_cltv_expiry_delta\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.remote\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCremote_fee_base_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.remote\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCremote_fee_proportional_millionths\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCupdates.remote\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCignore_fee_limits\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClost_state\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfeerate_perkw\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCfeerate\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfeerate_perkb\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON object \fCfeerate\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCowner\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCshort_channel_id\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCchannel_id\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_txid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_outnum\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCinitial_feerate\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_feerate\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCnext_feerate\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCnext_fee_step\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeerchannels_inflight\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeerchannels.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_txid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_outnum\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfeerate\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtotal_funding_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCsplice_amount\fR (type \fCinteger\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCour_funding_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCscratch_txid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCclose_to\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCprivate\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCopener\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcloser\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeerchannels_features\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeerchannels.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfeatures\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_pushed_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCfunding\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_local_funds_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCfunding\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_remote_funds_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCfunding\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_fee_paid_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCfunding\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfunding_fee_rcvd_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR, from JSON object \fCfunding\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCto_us_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmin_to_us_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmax_to_us_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtotal_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfee_base_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfee_proportional_millionths\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdust_limit_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmax_total_htlc_in_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtheir_reserve_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCour_reserve_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCspendable_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCreceivable_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCminimum_htlc_in_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCminimum_htlc_out_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmaximum_htlc_out_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtheir_to_self_delay\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCour_to_self_delay\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmax_accepted_htlcs\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCalias_local\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR, from JSON object \fCalias\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCalias_remote\fR (type \fCshort_channel_id\fR, sqltype \fCTEXT\fR, from JSON object \fCalias\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeerchannels_state_changes\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeerchannels.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtimestamp\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCold_state\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCnew_state\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcause\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCmessage\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeerchannels_status\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeerchannels.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstatus\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCin_payments_offered\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCin_offered_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCin_payments_fulfilled\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCin_fulfilled_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCout_payments_offered\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCout_offered_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCout_payments_fulfilled\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCout_fulfilled_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_stable_connection\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeerchannels_htlcs\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeerchannels.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdirection\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCid\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCexpiry\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpayment_hash\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocal_trimmed\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstatus\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstate\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCclose_to_addr\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClast_tx_fee_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdirection\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.RE
+.IP "\(bu" 2
+\fCpeers\fR indexed by \fCid\fR (see lightning-listpeers(7))
+.RS
+.IP "\(bu" 2
+\fCid\fR (type \fCpubkey\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCconnected\fR (type \fCboolean\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCnum_channels\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCpeers_netaddr\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCpeers.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCnetaddr\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCremote_addr\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfeatures\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.RE
+.IP "\(bu" 2
+\fCsendpays\fR indexed by \fCpayment_hash\fR (see lightning-listsendpays(7))
+.RS
+.IP "\(bu" 2
+\fCcreated_index\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCid\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCgroupid\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpartid\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpayment_hash\fR (type \fChash\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCupdated_index\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCstatus\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdestination\fR (type \fCpubkey\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcreated_at\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_sent_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClabel\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbolt11\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCdescription\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCbolt12\fR (type \fCstring\fR, sqltype \fCTEXT\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCcompleted_at\fR (type \fCu64\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpayment_preimage\fR (type \fCsecret\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCerroronion\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.RE
+.IP "\(bu" 2
+\fCtransactions\fR indexed by \fChash\fR (see lightning-listtransactions(7))
+.RS
+.IP "\(bu" 2
+\fChash\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrawtx\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCblockheight\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtxindex\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fClocktime\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCversion\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCtransactions_inputs\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCtransactions.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCtxid\fR (type \fCtxid\fR, sqltype \fCBLOB\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCidx\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON field \fCindex\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCsequence\fR (type \fCu32\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+related table \fCtransactions_outputs\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCrow\fR (reference to \fCtransactions.rowid\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCarrindex\fR (index within array, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCidx\fR (type \fCu32\fR, sqltype \fCINTEGER\fR, from JSON field \fCindex\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCamount_msat\fR (type \fCmsat\fR, sqltype \fCINTEGER\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCscriptPubKey\fR (type \fChex\fR, sqltype \fCBLOB\fR)
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBrows\fR is returned. It is an array. Each array entry contains an array of values, each an integer, real number, string or \fInull\fR, depending on the sqlite3 type.
+.PP
+The object may contain \fBwarning_db_failure\fR if the database fails partway through its operation.
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBrows\fR (array of arrays):
+.RS
+.IP "\(bu" 2
+(array)
+.RE
+.LP
+The following warnings may also be returned:
+.IP "\(bu" 2
+\fBwarning_db_failure\fR: A message if the database encounters an error partway through.
+.SH
+ERRORS
+.LP
+On failure, an error is returned.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-listtransactions(7), lightning-listchannels(7), lightning-listpeers(7), lightning-listnodes(7), lightning-listforwards(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: A simple peers selection query:
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli sql -k \(dqquery\(dq=\(dqSELECT id FROM peers\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:sql#1\(dq,
+  \(dqmethod\(dq: \(dqsql\(dq,
+  \(dqparams\(dq: {
+    \(dqquery\(dq: \(dqSELECT id FROM peers\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrows\(dq: [
+    [
+      \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq
+    ]
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: A statement containing \fC=\fR needs \fC-o\fR in shell:
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli sql -o 'SELECT nodeid,last_timestamp FROM nodes WHERE last_timestamp>=1669578892'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:sql#2\(dq,
+  \(dqmethod\(dq: \(dqsql\(dq,
+  \(dqparams\(dq: [
+    \(dqSELECT nodeid,last_timestamp FROM nodes WHERE last_timestamp>=1669578892\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrows\(dq: [
+    [
+      \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      1722303662
+    ],
+    [
+      \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+      1722303662
+    ],
+    [
+      \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      1722303669
+    ],
+    [
+      \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+      1722303669
+    ]
+  ]
+}
+.EE
+.PP
+\fBExample 3\fR: If you want to get specific nodeid values from the nodes table:
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli sql -o \(dqSELECT nodeid FROM nodes WHERE nodeid != x'035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d'\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:sql#3\(dq,
+  \(dqmethod\(dq: \(dqsql\(dq,
+  \(dqparams\(dq: [
+    \(dqSELECT nodeid FROM nodes WHERE nodeid != x'035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d'\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrows\(dq: [
+    [
+      \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq
+    ],
+    [
+      \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+    ],
+    [
+      \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq
+    ]
+  ]
+}
+.EE
+.PP
+\fBExample 4\fR: If you want to compare a BLOB column, \fCx'hex'\fR or \fCX'hex'\fR are needed:
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli sql \(dqSELECT nodeid FROM nodes WHERE nodeid IN (x'0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518', x'035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d')\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:sql#4\(dq,
+  \(dqmethod\(dq: \(dqsql\(dq,
+  \(dqparams\(dq: [
+    \(dqSELECT nodeid FROM nodes WHERE nodeid IN (x'0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518', x'035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d')\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrows\(dq: [
+    [
+      \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+    ],
+    [
+      \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq
+    ]
+  ]
+}
+.EE
+.PP
+\fBExample 5\fR: Related tables are usually referenced by JOIN:
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli sql -o 'SELECT peer_id, short_channel_id, to_us_msat, total_msat, peerchannels_status.status FROM peerchannels INNER JOIN peerchannels_status ON peerchannels_status.row = peerchannels.rowid'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:sql#5\(dq,
+  \(dqmethod\(dq: \(dqsql\(dq,
+  \(dqparams\(dq: [
+    \(dqSELECT peer_id, short_channel_id, to_us_msat, total_msat, peerchannels_status.status FROM peerchannels INNER JOIN peerchannels_status ON peerchannels_status.row = peerchannels.rowid\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrows\(dq: [
+    [
+      \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dq109x1x1\(dq,
+      490503792,
+      1000000000,
+      \(dqCHANNELD_NORMAL:Channel ready for use.\(dq
+    ]
+  ]
+}
+.EE
+.PP
+\fBExample 6\fR: Simple function usage, in this case COUNT. Strings inside arrays need \(dq, and ' to protect them from the shell:
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli sql \(dqSELECT COUNT(*) FROM forwards\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:sql#6\(dq,
+  \(dqmethod\(dq: \(dqsql\(dq,
+  \(dqparams\(dq: [
+    \(dqSELECT COUNT(*) FROM forwards\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrows\(dq: [
+    [
+      8
+    ]
+  ]
+}
+.EE
+.PP
+\fBExample 7\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli sql \(dqSELECT * from peerchannels_features\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:sql#7\(dq,
+  \(dqmethod\(dq: \(dqsql\(dq,
+  \(dqparams\(dq: [
+    \(dqSELECT * from peerchannels_features\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrows\(dq: [
+    [
+      23,
+      18,
+      0,
+      \(dqoption_static_remotekey\(dq
+    ],
+    [
+      24,
+      18,
+      1,
+      \(dqoption_anchors_zero_fee_htlc_tx\(dq
+    ],
+    [
+      25,
+      18,
+      2,
+      \(dqoption_anchors\(dq
+    ]
+  ]
+}
+.EE
+.PP

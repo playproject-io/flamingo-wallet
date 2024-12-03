@@ -1,0 +1,150 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-BLACKLISTRUNE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-blacklistrune -- Command to prevent a rune from working
+.SH
+SYNOPSIS
+.LP
+\fBblacklistrune\fR [\fIstart\fR [\fIend\fR]]
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.08.
+.PP
+The \fBblacklistrune\fR RPC command allows you to effectively revoke the rune you have created (and any runes derived from that rune with additional restictions). Attempting to use these runes will be resulted in a \fCBlacklisted rune\fR error message.
+.PP
+Destroy a rune like in olden times with the \fBdestroyrune\fR command.
+.PP
+All runes created by lightning have a unique sequential id within them and can be blacklisted in ranges for efficiency. The command always returns the blacklisted ranges on success. If no parameters are specified, no changes have been made. If start specified without end, that single rune is blacklisted. If end is also specified, every rune from start till end inclusive is blacklisted.
+.IP "\(bu" 2
+\fBstart\fR (u64, optional): First rune unique id to blacklist.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBend\fR (u64, optional): Final rune unique id to blacklist (defaults to start).
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBblacklist\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBstart\fR (u64): Unique id of first rune in this blacklist range.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBend\fR (u64): Unique id of last rune in this blacklist range.
+.SH
+AUTHOR
+.LP
+Shahana Farooqui <\fIsfarooqui@blockstream.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-commando-blacklist(7), lightning-showrunes(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli blacklistrune -k \(dqstart\(dq=1
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:blacklistrune#1\(dq,
+  \(dqmethod\(dq: \(dqblacklistrune\(dq,
+  \(dqparams\(dq: {
+    \(dqstart\(dq: 1
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqblacklist\(dq: [
+    {
+      \(dqstart\(dq: 1,
+      \(dqend\(dq: 3
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli blacklistrune -k \(dqstart\(dq=0 \(dqend\(dq=2
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:blacklistrune#2\(dq,
+  \(dqmethod\(dq: \(dqblacklistrune\(dq,
+  \(dqparams\(dq: {
+    \(dqstart\(dq: 0,
+    \(dqend\(dq: 2
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqblacklist\(dq: [
+    {
+      \(dqstart\(dq: 0,
+      \(dqend\(dq: 3
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 3\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli blacklistrune -k \(dqstart\(dq=3 \(dqend\(dq=4
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:blacklistrune#3\(dq,
+  \(dqmethod\(dq: \(dqblacklistrune\(dq,
+  \(dqparams\(dq: {
+    \(dqstart\(dq: 3,
+    \(dqend\(dq: 4
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqblacklist\(dq: [
+    {
+      \(dqstart\(dq: 0,
+      \(dqend\(dq: 4
+    }
+  ]
+}
+.EE
+.PP

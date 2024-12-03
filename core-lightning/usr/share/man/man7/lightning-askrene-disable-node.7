@@ -1,0 +1,40 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-ASKRENE-DISABLE-NODE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-askrene-disable-node -- Command to disable all channels to/from a node in a layer (EXPERIMENTAL)
+.SH
+SYNOPSIS
+.LP
+\fBaskrene-disable-node\fR \fIlayer\fR \fInode\fR 
+.SH
+DESCRIPTION
+.LP
+WARNING: experimental, so API may change.
+.PP
+The \fBaskrene-disable-node\fR RPC command tells askrene to disable all channels connected to a node whenever the given layer is used.  This is mainly useful to force the use of alternate paths: while individual channels can be disabled using askrene-create-channel or askrene-inform-channel, that would be racy if new channels appeared.
+.IP "\(bu" 2
+\fBlayer\fR (string): The name of the layer to apply this change to.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnode\fR (pubkey): The node to disable.  It does not need to exist.
+.SH
+RETURN VALUE
+.LP
+On success, an empty object is returned.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-getroutes(7), lightning-askrene-create-channel(7), lightning-askrene-inform-channel(7), lightning-askrene-listlayers(7), lightning-askrene-age(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR

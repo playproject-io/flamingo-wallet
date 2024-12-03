@@ -1,0 +1,165 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-CLOSE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-close -- Command for closing channels with direct peers
+.SH
+SYNOPSIS
+.LP
+\fBclose\fR \fIid\fR [\fIunilateraltimeout\fR] [\fIdestination\fR] [\fIfee_negotiation_step\fR] [\fIwrong_funding\fR] [\fIforce_lease_closed\fR] [\fIfeerange\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBclose\fR RPC command attempts to close the channel cooperatively with the peer, or unilaterally after \fIunilateraltimeout\fR, and the to-local output will be sent to the address specified in \fIdestination\fR.
+.PP
+The peer needs to be live and connected in order to negotiate a mutual close. The default of unilaterally closing after 48 hours is usually a reasonable indication that you can no longer contact the peer.
+.IP "\(bu" 2
+\fBid\fR (string): Peer id, channel id or short_channel_id. If the given \fIid\fR is a peer ID (66 hex digits as a string), then it applies to the active channel of the direct peer corresponding to the given peer ID. If the given \fIid\fR is a channel ID (64 hex digits as a string, or the short channel ID \fIblockheight:txindex:outindex\fR form), then it applies to that channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBunilateraltimeout\fR (u32, optional): If it is not zero, the command will unilaterally close the channel when that number of seconds is reached. If \fIunilateraltimeout\fR is zero, then the command will wait indefinitely until the peer is online and can negotiate a mutual close. The default is 2 days (172800 seconds).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdestination\fR (string, optional): Any Bitcoin bech32 type. If the peer hasn't offered the option_shutdown_anysegwit feature, then taproot addresses (or other v1+ segwit) are not allowed. Tell your friends to upgrade! The default is a Core Lightning wallet address.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_negotiation_step\fR (string, optional): It controls how closing fee negotiation is performed assuming the peer proposes a fee that is different than our estimate. (Note that modern peers use the quick-close protocol which does not allow negotiation: see \fIfeerange\fR instead).
+.IP
+On every negotiation step we must give up some amount from our proposal towards the peer's proposal. This parameter can be an integer in which case it is interpreted as number of satoshis to step at a time. Or it can be an integer followed by \fC%\fR to designate a percentage of the interval to give up. A few examples, assuming the peer proposes a closing fee of 3000 satoshi and our estimate shows it must be 4000:
+.RS
+.IP "\(bu" 2
+\fC10\fR: our next proposal will be 4000-10=3990.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fC10%\fR: our next proposal will be 4000-(10% of (4000-3000))=3900.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\&'1': our next proposal will be 3999. This is the most extreme case when we insist on our fee as much as possible.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fC100%\fR: our next proposal will be 3000. This is the most relaxed case when we quickly accept the peer's proposal. The default is \fC50%\fR.
+.RE
+.IP "\(bu" 2
+\fBwrong_funding\fR (outpoint, optional): It can only be specified if both sides have offered the \fCshutdown_wrong_funding\fR feature (enabled by the \fBexperimental-shutdown-wrong-funding\fR option). It must be a transaction id followed by a colon then the output number. Instead of negotiating a shutdown to spend the expected funding transaction, the shutdown transaction will spend this output instead. This is only allowed if this peer opened the channel and the channel is unused: it can rescue openings which have been manually miscreated.
+.IP "\(bu" 2
+\fBforce_lease_closed\fR (boolean, optional): If the channel has funds leased to the peer (option_will_fund), we prevent initiation of a mutual close unless this flag is passed in. The default is False.
+.IP "\(bu" 2
+\fBfeerange\fR (array of feerates, optional): An optional array [ \fImin\fR, \fImax\fR ], indicating the minimum and maximum feerates to offer: the peer will obey these if it supports the quick-close protocol. \fIslow\fR and \fIunilateral_close\fR are the defaults. Note that the maximum fee will be capped at the final commitment transaction fee (unless the experimental anchor-outputs option is negotiated).:
+.RS
+.IP "\(bu" 2
+(feerate, optional)
+.RE
+.SH
+NOTES
+.LP
+Prior to 0.7.2, \fBclose\fR took two parameters: \fIforce\fR and \fItimeout\fR. \fItimeout\fR was the number of seconds before \fIforce\fR took effect (default, 30), and \fIforce\fR determined whether the result was a unilateral close or an RPC error (default). Even after the timeout, the channel would be closed if the peer reconnected.
+.SH
+NOTIFICATIONS
+.LP
+Notifications may be returned indicating what is going on, especially if the peer is offline and we are waiting.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBtype\fR (string) (one of \(dqmutual\(dq, \(dqunilateral\(dq, \(dqunopened\(dq): Whether we successfully negotiated a mutual close, closed without them, or discarded not-yet-opened channel.
+.LP
+If \fBtype\fR is \(dqmutual\(dq or \(dqunilateral\(dq:
+- \fBtx\fR (hex): The raw bitcoin transaction used to close the channel (if it was open).
+- \fBtxid\fR (txid): The transaction id of the \fItx\fR field.
+.PP
+A unilateral close may still occur at any time if the peer did not behave correctly during the close negotiation.
+.PP
+Unilateral closes will return your funds after a delay. The delay will vary based on the peer \fIto_self_delay\fR setting, not your own setting.
+.SH
+AUTHOR
+.LP
+ZmnSCPxj <\fIZmnSCPxj@protonmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-disconnect(7), lightning-fundchannel(7), lightningd-config(5)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli close -k \(dqid\(dq=\(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq \(dqunilateraltimeout\(dq=1
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:close#1\(dq,
+  \(dqmethod\(dq: \(dqclose\(dq,
+  \(dqparams\(dq: {
+    \(dqid\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+    \(dqunilateraltimeout\(dq: 1
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqtx\(dq: \(dq020000000001018304b0bbf2ea662c053e0377df4652059bb107eb5312989471c2ef7e51f023cd0000000000ffffffff020b6e07000000000022512085d72025e78fd08bb61119f0987ab0041f50561ada6e130c645343db8c44c2afe5c8070000000000225120a7583f0c421663b8ca76fa579018b40682ef8553d73fd061cd8f216ecdced6a304004730440220369e36994b74172c67b738891a22a8f7cf3ad3d6051a1c08b641277c2b129134022060b96175b5046a0e8814c03076da885e4546f11e72188582473f0ca901001a0b0147304402206733aaa116b30474dfcdcc2ce48fbc6f222ed0eae7ac6e4c95da6a6f2a2105a502200ab85229e9981e0364ab1bef38e9a581067a9c7d9fe30487e34fd8e13eff56320147522102d595ae92b3544c3250fb772f214ad8d4c51425033740a5bcc357190add6d7e7a2102d6063d022691b2490ab454dee73a57c6ff5d308352b461ece69f3c284f2c241252ae00000000\(dq,
+  \(dqtxid\(dq: \(dq70e0466dc2e74f25afe38df6a85d5e8857079873a6d5eda4732806a7ac427305\(dq,
+  \(dqtype\(dq: \(dqmutual\(dq
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli close -k \(dqid\(dq=\(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq \(dqdestination\(dq=\(dqbcrt1qwvp8fktkxp07v0fp9jyqe7yl6rcgyu585a7pzr\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:close#2\(dq,
+  \(dqmethod\(dq: \(dqclose\(dq,
+  \(dqparams\(dq: {
+    \(dqid\(dq: \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+    \(dqdestination\(dq: \(dqbcrt1qwvp8fktkxp07v0fp9jyqe7yl6rcgyu585a7pzr\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqtx\(dq: \(dq02000000000101e23fcc9e6306ce636b203217b22409bf9bab2211f9f432de781dedb6377dab5a0100000000ffffffff02746f070000000000160014730274d976305fe63d212c880cf89fd0f082728731c80700000000002251202bdd81f95d64ed2cc37d2eae725de428c91bff072d7503d87446970eedc63030040047304402205834de4c5c994a50f3ba5406534254b68e35836f98b4d5371b78225a79d087dd02201f54e1ae045e9a33dd3dd5a2b589903f305af5ead515a8e55feb2447b090415c0147304402202dd2efc52e5b4a78cbc1cf5664a0a3e3a5e67e16b0de37fc6818dbb838b6be17022062a071e81ecaec4808a44b049e091fa60b5fcf9e7f7bbdf85bc564a0a467e13601475221021c29746e4136ddff456483df3980c2d0d5f31c93ef5ded564f7294a10d7414aa2103c47b1b2afcfd68c7b86c0976adb9a4f0835bc78242fced745d78433497a867d652ae00000000\(dq,
+  \(dqtxid\(dq: \(dq2849a5c5cd182ebec02d18ba6348bb01e70a544d0ce9aa8b5533fb09d24c969e\(dq,
+  \(dqtype\(dq: \(dqmutual\(dq
+}
+.EE
+.PP

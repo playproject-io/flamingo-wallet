@@ -1,0 +1,477 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-BKPR-LISTINCOME" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-bkpr-listincome -- Command for listing all income impacting events
+.SH
+SYNOPSIS
+.LP
+\fBbkpr-listincome\fR [\fIconsolidate_fees\fR] [\fIstart_time\fR] [\fIend_time\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in pre-v0.10.1.
+.PP
+The \fBbkpr-listincome\fR RPC command is a list of all income impacting events that the bookkeeper plugin has recorded for this node.
+.IP "\(bu" 2
+\fBconsolidate_fees\fR (boolean, optional): If true, we emit a single, consolidated event for any onchain-fees for a txid and account. Otherwise, events for every update to the onchain fee calculation for this account and txid will be printed. Note that this means that the events emitted are non-stable, i.e. calling \fBlistincome\fR twice may result in different onchain fee events being emitted, depending on how much information we've logged for that transaction. The default is True.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstart_time\fR (u32, optional): UNIX timestamp (in seconds) that filters events after the provided timestamp. The default is zero.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBend_time\fR (u32, optional): UNIX timestamp (in seconds) that filters events up to and at the provided timestamp. The default is max-int.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBincome_events\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBaccount\fR (string): The account name. If the account is a channel, the channel_id.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtag\fR (string): Type of income event.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcredit_msat\fR (msat): Amount earned (income).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdebit_msat\fR (msat): Amount spent (expenses).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcurrency\fR (string): Human-readable bech32 part for this coin type.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtimestamp\fR (u32): Timestamp this event was recorded by the node. For consolidated events such as onchain_fees, the most recent timestamp.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdescription\fR (string, optional): More information about this event. If a \fCinvoice\fR type, typically the bolt11/bolt12 description.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBoutpoint\fR (string, optional): The txid:outnum for this event, if applicable.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtxid\fR (txid, optional): The txid of the transaction that created this event, if applicable.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpayment_id\fR (hex, optional): Lightning payment identifier. For an htlc, this will be the preimage.
+.SH
+AUTHOR
+.LP
+Lisa Neigut <\fIniftynei@gmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-bkpr-listaccountevents(7), lightning-listfunds(7), lightning-bkpr-listbalances(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli bkpr-listincome
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:bkpr-listincome#1\(dq,
+  \(dqmethod\(dq: \(dqbkpr-listincome\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqincome_events\(dq: [
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqdeposit\(dq,
+      \(dqcredit_msat\(dq: 200000000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303635,
+      \(dqoutpoint\(dq: \(dq386ad532212a5cffd753a39c2d7260793e0c885fc28bc1235362c2b133a4f6a4:0\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqdeposit\(dq,
+      \(dqcredit_msat\(dq: 2000000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303656,
+      \(dqoutpoint\(dq: \(dqb19a249c64f2c952b4b9a400bdec159b56af2af63939c9ecb8fd937f344a7056:0\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 500000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303673,
+      \(dqdescription\(dq: \(dqdescription send some sats l2 to l3\(dq,
+      \(dqpayment_id\(dq: \(dq7f74f064ff4528b7ec7c578df662617657cae9af4a74f5f24f68cb8465b18670\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 500000000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303675,
+      \(dqdescription\(dq: \(dqdescription send some sats l3 to l4\(dq,
+      \(dqpayment_id\(dq: \(dq365522e0e6c2fe84987153324cc9fac02986855d849bbd650426ba6064463166\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 10000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303677,
+      \(dqdescription\(dq: \(dqInvoice description l31\(dq,
+      \(dqpayment_id\(dq: \(dqd598cfc62da16b381b8fb8af9833a24005f730e54cc32c317fecc511ffc6d2a2\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 10000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303679,
+      \(dqdescription\(dq: \(dqkeysend\(dq,
+      \(dqpayment_id\(dq: \(dq80ff407792947a23f193f9a1968e9a437b071364ae3159f83631335c9a453c1b\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqrouted\(dq,
+      \(dqcredit_msat\(dq: 101,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303682,
+      \(dqpayment_id\(dq: \(dq3b80a3028343b16f8ab7261343eae40ff73ba833b0b7d4dcbfd42a3078dc322b\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 10000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303686,
+      \(dqdescription\(dq: \(dqkeysend\(dq,
+      \(dqpayment_id\(dq: \(dq0458c01fdd3aa0b9829002390301f92083e78dc27bb293bc3e7caee5d4ed7259\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 50000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303688,
+      \(dqdescription\(dq: \(dql32 description\(dq,
+      \(dqpayment_id\(dq: \(dq788aea729ede48d315a199ce5ded76169601a61dd52e9734e707eb7c52e4e79e\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 100000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303689,
+      \(dqdescription\(dq: \(dql33 description\(dq,
+      \(dqpayment_id\(dq: \(dq2c66dc1dc3e5979fb692acc135e9796f5973e44ca9dbb1d8199c6b57f6531e68\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqrouted\(dq,
+      \(dqcredit_msat\(dq: 1,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303692,
+      \(dqpayment_id\(dq: \(dqe445ebcf339db3cba6184330ccc6e4a41e0bb38d237b93c1d2f71958d5a74e13\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 102,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303693,
+      \(dqtxid\(dq: \(dq70e0466dc2e74f25afe38df6a85d5e8857079873a6d5eda4732806a7ac427305\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 4927000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303659,
+      \(dqtxid\(dq: \(dq5aab7d37b6ed1d78de32f4f91122ab9bbf0924b21732206b63ce06639ecc3fe2\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqdeposit\(dq,
+      \(dqcredit_msat\(dq: 2000000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303705,
+      \(dqoutpoint\(dq: \(dq4c4b46acfd0c9d4b8393a2c3fbc27cb70bfa9270bf47ade3348c4acd949b770b:0\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq7512083907c74ed3a045e9bf772b3d72948eb93daf84a1cee57108800451aaf2\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 6960000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303708,
+      \(dqtxid\(dq: \(dq416618f92bc774497a510c55f8aee76e80135bc0abe1933ebe473eeb07b41dee\(dq
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli bkpr-listincome -k \(dqconsolidate_fees\(dq=False
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:bkpr-listincome#2\(dq,
+  \(dqmethod\(dq: \(dqbkpr-listincome\(dq,
+  \(dqparams\(dq: {
+    \(dqconsolidate_fees\(dq: false
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqincome_events\(dq: [
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqdeposit\(dq,
+      \(dqcredit_msat\(dq: 200000000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303635,
+      \(dqoutpoint\(dq: \(dq386ad532212a5cffd753a39c2d7260793e0c885fc28bc1235362c2b133a4f6a4:0\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqdeposit\(dq,
+      \(dqcredit_msat\(dq: 2000000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303656,
+      \(dqoutpoint\(dq: \(dqb19a249c64f2c952b4b9a400bdec159b56af2af63939c9ecb8fd937f344a7056:0\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 1004927000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303659,
+      \(dqtxid\(dq: \(dq5aab7d37b6ed1d78de32f4f91122ab9bbf0924b21732206b63ce06639ecc3fe2\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 1004927000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303659,
+      \(dqtxid\(dq: \(dq5aab7d37b6ed1d78de32f4f91122ab9bbf0924b21732206b63ce06639ecc3fe2\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 4927000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303659,
+      \(dqtxid\(dq: \(dq5aab7d37b6ed1d78de32f4f91122ab9bbf0924b21732206b63ce06639ecc3fe2\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 500000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303673,
+      \(dqdescription\(dq: \(dqdescription send some sats l2 to l3\(dq,
+      \(dqpayment_id\(dq: \(dq7f74f064ff4528b7ec7c578df662617657cae9af4a74f5f24f68cb8465b18670\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 500000000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303675,
+      \(dqdescription\(dq: \(dqdescription send some sats l3 to l4\(dq,
+      \(dqpayment_id\(dq: \(dq365522e0e6c2fe84987153324cc9fac02986855d849bbd650426ba6064463166\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 10000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303677,
+      \(dqdescription\(dq: \(dqInvoice description l31\(dq,
+      \(dqpayment_id\(dq: \(dqd598cfc62da16b381b8fb8af9833a24005f730e54cc32c317fecc511ffc6d2a2\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 10000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303679,
+      \(dqdescription\(dq: \(dqkeysend\(dq,
+      \(dqpayment_id\(dq: \(dq80ff407792947a23f193f9a1968e9a437b071364ae3159f83631335c9a453c1b\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqrouted\(dq,
+      \(dqcredit_msat\(dq: 101,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303682,
+      \(dqpayment_id\(dq: \(dq3b80a3028343b16f8ab7261343eae40ff73ba833b0b7d4dcbfd42a3078dc322b\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 10000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303686,
+      \(dqdescription\(dq: \(dqkeysend\(dq,
+      \(dqpayment_id\(dq: \(dq0458c01fdd3aa0b9829002390301f92083e78dc27bb293bc3e7caee5d4ed7259\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 50000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303688,
+      \(dqdescription\(dq: \(dql32 description\(dq,
+      \(dqpayment_id\(dq: \(dq788aea729ede48d315a199ce5ded76169601a61dd52e9734e707eb7c52e4e79e\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqinvoice\(dq,
+      \(dqcredit_msat\(dq: 100000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303689,
+      \(dqdescription\(dq: \(dql33 description\(dq,
+      \(dqpayment_id\(dq: \(dq2c66dc1dc3e5979fb692acc135e9796f5973e44ca9dbb1d8199c6b57f6531e68\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqtag\(dq: \(dqrouted\(dq,
+      \(dqcredit_msat\(dq: 1,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303692,
+      \(dqpayment_id\(dq: \(dqe445ebcf339db3cba6184330ccc6e4a41e0bb38d237b93c1d2f71958d5a74e13\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 102,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303693,
+      \(dqtxid\(dq: \(dq70e0466dc2e74f25afe38df6a85d5e8857079873a6d5eda4732806a7ac427305\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqdeposit\(dq,
+      \(dqcredit_msat\(dq: 2000000000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303705,
+      \(dqoutpoint\(dq: \(dq4c4b46acfd0c9d4b8393a2c3fbc27cb70bfa9270bf47ade3348c4acd949b770b:0\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 1006960000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303708,
+      \(dqtxid\(dq: \(dq416618f92bc774497a510c55f8aee76e80135bc0abe1933ebe473eeb07b41dee\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 1006960000,
+      \(dqdebit_msat\(dq: 0,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303708,
+      \(dqtxid\(dq: \(dq416618f92bc774497a510c55f8aee76e80135bc0abe1933ebe473eeb07b41dee\(dq
+    },
+    {
+      \(dqaccount\(dq: \(dq7512083907c74ed3a045e9bf772b3d72948eb93daf84a1cee57108800451aaf2\(dq,
+      \(dqtag\(dq: \(dqonchain_fee\(dq,
+      \(dqcredit_msat\(dq: 0,
+      \(dqdebit_msat\(dq: 6960000,
+      \(dqcurrency\(dq: \(dqbcrt\(dq,
+      \(dqtimestamp\(dq: 1722303708,
+      \(dqtxid\(dq: \(dq416618f92bc774497a510c55f8aee76e80135bc0abe1933ebe473eeb07b41dee\(dq
+    }
+  ]
+}
+.EE
+.PP

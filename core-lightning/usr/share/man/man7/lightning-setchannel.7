@@ -1,0 +1,223 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-SETCHANNEL" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-setchannel -- Command for configuring fees / htlc range advertized for a channel
+.SH
+SYNOPSIS
+.LP
+\fBsetchannel\fR \fIid\fR [\fIfeebase\fR] [\fIfeeppm\fR] [\fIhtlcmin\fR] [\fIhtlcmax\fR] [\fIenforcedelay\fR] [\fIignorefeelimits\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBsetchannel\fR RPC command sets channel specific routing fees, and \fChtlc_minimum_msat\fR or \fChtlc_maximum_msat\fR as defined in BOLT #7. The channel has to be in normal or awaiting state. This can be checked by \fBlistpeers\fR reporting a \fIstate\fR of CHANNELD_NORMAL or CHANNELD_AWAITING_LOCKIN for the channel.
+.PP
+These changes (for a public channel) will be broadcast to the rest of the network (though many nodes limit the rate of such changes they will accept: we allow 2 a day, with a few extra occasionally).
+.IP "\(bu" 2
+\fBid\fR (string): Should contain a scid (short channel ID), channel id or peerid (pubkey) of the channel to be modified. If \fIid\fR is set to \fCall\fR, the updates are applied to all channels in states CHANNELD_NORMAL CHANNELD_AWAITING_LOCKIN or DUALOPEND_AWAITING_LOCKIN. If \fIid\fR is a peerid, all channels with the +peer in those states are changed.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeebase\fR (msat, optional): Value in millisatoshi that is added as base fee to any routed payment: if omitted, it is unchanged. It can be a whole number, or a whole number ending in \fImsat\fR or \fIsat\fR, or a number with three decimal places ending in \fIsat\fR, or a number with 1 to 11 decimal places ending in \fIbtc\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeeppm\fR (u32, optional): Value that is added proportionally per-millionths to any routed payment volume in satoshi. For example, if ppm is 1,000 and 1,000,000 satoshi is being routed through the channel, an proportional fee of 1,000 satoshi is added, resulting in a 0.1% fee.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlcmin\fR (msat, optional): Value that limits how small an HTLC we will forward: if omitted, it is unchanged. It can be a whole number, or a whole number ending in \fImsat\fR or \fIsat\fR, or a number with three decimal places ending in \fIsat\fR, or a number with 1 to 11 decimal places ending in \fIbtc\fR. Note that the peer also enforces a minimum for the channel: setting it below that will simply set it to that value with a warning. Also note that \fIhtlcmin\fR only applies to forwarded HTLCs: we can still send smaller payments ourselves. The default is no lower limit.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlcmax\fR (msat, optional): Value that limits how large an HTLC we will forward: if omitted, it is unchanged. It can be a whole number, or a whole number ending in \fImsat\fR or \fIsat\fR, or a number with three decimal places ending in \fIsat\fR, or a number with 1 to 11 decimal places ending in \fIbtc\fR. Note that \fIhtlcmax\fR only applies to forwarded HTLCs: we can still send larger payments ourselves. The default is no effective limit.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBenforcedelay\fR (u32, optional): Number of seconds to delay before enforcing the new fees/htlc max. This gives the network a chance to catch up with the new rates and avoids rejecting HTLCs before they do. This only has an effect if rates are increased (we always allow users to overpay fees) or \fIhtlcmax\fR is decreased, and only applied to a single rate increase per channel (we don't remember an arbitrary number of prior feerates) and if the node is restarted the updated configuration is enforced immediately. The default is 600, which is ten minutes.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBignorefeelimits\fR (boolean, optional): If set to True means to allow the peer to set the commitment transaction fees (or closing transaction fees) to any value they want. This is dangerous: they could set an exorbitant fee (so HTLCs are unenforcable), or a tiny fee (so that commitment transactions cannot be relayed), but avoids channel breakage in case of feerate disagreements. (Note: the global \fCignore_fee_limits\fR setting overrides this). \fI(added v23.08)\fR
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBchannels\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBpeer_id\fR (pubkey): The node_id of the peer.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_id\fR (hash): The channel_id of the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_base_msat\fR (msat): The resulting feebase (this is the BOLT #7 name).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_proportional_millionths\fR (u32): The resulting feeppm (this is the BOLT #7 name).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBignore_fee_limits\fR (boolean): If we are now allowing peer to set feerate on commitment transaction without restriction. \fI(added v23.08)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBminimum_htlc_out_msat\fR (msat): The resulting htlcmin we will advertize (the BOLT #7 name is htlc_minimum_msat).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmaximum_htlc_out_msat\fR (msat): The resulting htlcmax we will advertize (the BOLT #7 name is htlc_maximum_msat).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id, optional): The short_channel_id (if locked in).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+the following warnings are possible:
+.RS
+.IP "\(bu" 2
+\fBwarning_htlcmin_too_low\fR: The requested htlcmin was too low for this peer, so we set it to the minimum they will allow.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBwarning_htlcmax_too_high\fR: The requested htlcmax was greater than the channel capacity, so we set it to the channel capacity.
+.RE
+.SH
+ERRORS
+.LP
+The following error codes may occur:
+.IP "\(bu" 2
+-1: Channel is in incorrect state, i.e. Catchall nonspecific error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+-32602: JSONRPC2_INVALID_PARAMS, i.e. Given id is not a channel ID or short channel ID.
+.SH
+AUTHOR
+.LP
+Michael Schmoock <\fImichael@schmoock.net\fR> is the author of this feature.
+.SH
+SEE ALSO
+.LP
+lightningd-config(5), lightning-fundchannel(7), lightning-listchannels(7), lightning-listpeers(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli setchannel -k \(dqid\(dq=\(dq123x1x1\(dq \(dqignorefeelimits\(dq=True
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:setchannel#1\(dq,
+  \(dqmethod\(dq: \(dqsetchannel\(dq,
+  \(dqparams\(dq: {
+    \(dqid\(dq: \(dq123x1x1\(dq,
+    \(dqignorefeelimits\(dq: true
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqchannels\(dq: [
+    {
+      \(dqpeer_id\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqchannel_id\(dq: \(dqecabe6d86abdd57565b3fb7e7c5d724e60ca1a07633951769b5dbfa48dc884b3\(dq,
+      \(dqshort_channel_id\(dq: \(dq123x1x1\(dq,
+      \(dqfee_base_msat\(dq: 1,
+      \(dqfee_proportional_millionths\(dq: 10,
+      \(dqminimum_htlc_out_msat\(dq: 0,
+      \(dqmaximum_htlc_out_msat\(dq: 990000000,
+      \(dqignore_fee_limits\(dq: true
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli setchannel -k \(dqid\(dq=\(dq115x1x0\(dq \(dqfeebase\(dq=4000 \(dqfeeppm\(dq=300 \(dqenforcedelay\(dq=0
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:setchannel#2\(dq,
+  \(dqmethod\(dq: \(dqsetchannel\(dq,
+  \(dqparams\(dq: {
+    \(dqid\(dq: \(dq115x1x0\(dq,
+    \(dqfeebase\(dq: 4000,
+    \(dqfeeppm\(dq: 300,
+    \(dqenforcedelay\(dq: 0
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqchannels\(dq: [
+    {
+      \(dqpeer_id\(dq: \(dq032cf15d1ad9c4a08d26eab1918f732d8ef8fdc6abb9640bf3db174372c491304e\(dq,
+      \(dqchannel_id\(dq: \(dqf8fc83a432cbfb2fffe222cc06727fdd977b5dd10ebd6707158e799e6f522d9f\(dq,
+      \(dqshort_channel_id\(dq: \(dq115x1x0\(dq,
+      \(dqfee_base_msat\(dq: 4000,
+      \(dqfee_proportional_millionths\(dq: 300,
+      \(dqminimum_htlc_out_msat\(dq: 0,
+      \(dqmaximum_htlc_out_msat\(dq: 990000000,
+      \(dqignore_fee_limits\(dq: false
+    }
+  ]
+}
+.EE
+.PP

@@ -1,0 +1,232 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-WAITSENDPAY" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-waitsendpay -- Command for sending a payment via a route
+.SH
+SYNOPSIS
+.LP
+\fBwaitsendpay\fR \fIpayment_hash\fR [\fItimeout\fR] [\fIpartid\fR \fIgroupid\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBwaitsendpay\fR RPC command polls or waits for the status of an outgoing payment that was initiated by a previous \fBsendpay\fR invocation.
+.PP
+If the payment completed with success, this command returns with success. Otherwise, if the payment completed with failure, this command returns an error.
+.IP "\(bu" 2
+\fBpayment_hash\fR (hash): The hash of the \fIpayment_preimage\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtimeout\fR (u32, optional): A timeout in seconds, for this RPC command to return. If the \fItimeout\fR is provided and the given amount of time passes without the payment definitely succeeding or definitely failing, this command returns with a 200 error code (payment still in progress). If \fItimeout\fR is not provided this call will wait indefinitely. Indicating a \fItimeout\fR of 0 effectively makes this call a pollable query of the status of the payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpartid\fR (u64, optional): Unique ID within this (multi-part) payment. It must match that of the \fBsendpay\fR command.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBgroupid\fR (u64, optional): Grouping key to disambiguate multiple attempts to pay the same payment_hash.
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBcreated_index\fR (u64): 1-based index indicating order this payment was created in. \fI(added v23.11)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBid\fR (u64): Old synonym for created_index.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpayment_hash\fR (hash): The hash of the \fIpayment_preimage\fR which will prove payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstatus\fR (string) (always \(dqcomplete\(dq): Status of the payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcreated_at\fR (u64): The UNIX timestamp showing when this payment was initiated.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_sent_msat\fR (msat): The amount sent.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBgroupid\fR (u64, optional): Grouping key to disambiguate multiple attempts to pay an invoice or the same payment_hash.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat, optional): The amount delivered to destination (if known).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdestination\fR (pubkey, optional): The final destination of the payment if known.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBupdated_index\fR (u64, optional): 1-based index indicating order this payment was changed (only present if it has changed since creation). \fI(added v23.11)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcompleted_at\fR (number, optional): The UNIX timestamp showing when this payment was completed.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlabel\fR (string, optional): The label, if given to sendpay.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpartid\fR (u64, optional): The \fIpartid\fR, if given to sendpay.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbolt11\fR (string, optional): The bolt11 string (if pay supplied one).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbolt12\fR (string, optional): The bolt12 string (if supplied for pay: \fBexperimental-offers\fR only).
+.LP
+If \fBstatus\fR is \(dqcomplete\(dq:
+- \fBpayment_preimage\fR (secret): The proof of payment: SHA256 of this \fBpayment_hash\fR.
+.SH
+ERRORS
+.LP
+On error, and even if the error occurred from a node other than the final destination, the route table will no longer be updated. Use the \fIexclude\fR parameter of the \fCgetroute\fR command to ignore the failing route.
+.IP "\(bu" 2
+-1: Catchall nonspecific error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+200: Timed out before the payment could complete.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+202: Unparseable onion reply. The \fIdata\fR field of the error will have an \fIonionreply\fR field, a hex string representation of the raw onion reply.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+203: Permanent failure at destination. The \fIdata\fR field of the error will be routing failure object.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+204: Failure along route; retry a different route. The \fIdata\fR field of the error will be routing failure object.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+208: A payment for \fIpayment_hash\fR was never made and there is nothing to wait for.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+209: The payment already failed, but the reason for failure was not stored. This should only occur when querying failed payments on very old databases.
+.LP
+A routing failure object has the fields below:
+.PP
+\fIerring_index\fR: The index of the node along the route that reported the error. 0 for the local node, 1 for the first hop, and so on.
+\fIerring_node\fR: The hex string of the pubkey id of the node that reported the error.
+\fIerring_channel\fR: The short channel ID of the channel that has the error (or the final channel if the destination raised the error).
+\fIerring_direction\fR: The direction of traversing the \fIerring_channel\fR:
+\fIfailcode\fR: The failure code, as per BOLT #4.
+\fIfailcodename\fR: The human-readable name corresponding to \fIfailcode\fR, if known.
+.SH
+AUTHOR
+.LP
+ZmnSCPxj <\fIZmnSCPxj@protonmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-sendpay(7), lightning-pay(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli waitsendpay -k \(dqpayment_hash\(dq=\(dqd598cfc62da16b381b8fb8af9833a24005f730e54cc32c317fecc511ffc6d2a2\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:waitsendpay#1\(dq,
+  \(dqmethod\(dq: \(dqwaitsendpay\(dq,
+  \(dqparams\(dq: {
+    \(dqpayment_hash\(dq: \(dqd598cfc62da16b381b8fb8af9833a24005f730e54cc32c317fecc511ffc6d2a2\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqcreated_index\(dq: 2,
+  \(dqid\(dq: 2,
+  \(dqpayment_hash\(dq: \(dqd598cfc62da16b381b8fb8af9833a24005f730e54cc32c317fecc511ffc6d2a2\(dq,
+  \(dqgroupid\(dq: 1,
+  \(dqupdated_index\(dq: 2,
+  \(dqdestination\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+  \(dqamount_msat\(dq: 10000,
+  \(dqamount_sent_msat\(dq: 10001,
+  \(dqcreated_at\(dq: 1722303675,
+  \(dqcompleted_at\(dq: 1722303677,
+  \(dqstatus\(dq: \(dqcomplete\(dq,
+  \(dqpayment_preimage\(dq: \(dq984a10782218478cd39e1f9a16795d756c337662067023a3b690bffdb1593f76\(dq
+}
+.EE
+.PP

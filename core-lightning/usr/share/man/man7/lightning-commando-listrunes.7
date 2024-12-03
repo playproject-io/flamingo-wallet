@@ -1,0 +1,378 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-COMMANDO-LISTRUNES" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-commando-listrunes -- Command to list previously generated runes
+.SH
+SYNOPSIS
+.LP
+\fBcommando-listrunes\fR [\fIrune\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fBdeprecated in v23.08, removed after v25.02\fR.
+.PP
+Command \fIadded\fR in v23.05.
+.PP
+The \fBcommando-listrunes\fR RPC command either lists runes that we stored as we generate them (see lightning-commando-rune(7)) or decodes the rune given on the command line.
+.PP
+NOTE: Runes generated prior to v23.05 were not stored, so will not appear in this list.
+.IP "\(bu" 2
+\fBrune\fR (string, optional): Optional rune to list.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBrunes\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBrune\fR (string): Base64 encoded rune.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBunique_id\fR (string): Unique id assigned when the rune was generated; this is always a u64 for commando runes.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrestrictions\fR (array of objects): The restrictions on what commands this rune can authorize.:
+.RS
+.IP "\(bu" 2
+\fBalternatives\fR (array of objects):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfieldname\fR (string): The field this restriction applies to; see commando-rune(7).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue\fR (string): The value accepted for this field.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcondition\fR (string): The way to compare fieldname and value.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBenglish\fR (string): English readable description of this alternative.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBenglish\fR (string): English readable summary of alternatives above.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrestrictions_as_english\fR (string): English readable description of the restrictions array above.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstored\fR (boolean, optional) (always \fIfalse\fR): This is false if the rune does not appear in our datastore (only possible when \fCrune\fR is specified).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBblacklisted\fR (boolean, optional) (always \fItrue\fR): The rune has been blacklisted; see commando-blacklist(7).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlast_used\fR (number, optional): The last time this rune was successfully used. \fI(added 23.11)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBour_rune\fR (boolean, optional) (always \fIfalse\fR): This is not a rune for this node (only possible when \fCrune\fR is specified).
+.SH
+AUTHOR
+.LP
+Shahana Farooqui <\fIsfarooqui@blockstream.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-commando-rune(7), lightning-commando-blacklist(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli commando-listrunes -k \(dqrune\(dq=\(dqRXgu0DD_i0wSPEZkIDyZIWL0bSAGdhvJ_GHOQdTg04A9MSZpZF4wMjY2ZTQ1OThkMWQzYzQxNWY1NyZtZXRob2Q9bGlzdHBlZXJz\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:commando-listrunes#1\(dq,
+  \(dqmethod\(dq: \(dqcommando-listrunes\(dq,
+  \(dqparams\(dq: {
+    \(dqrune\(dq: \(dqRXgu0DD_i0wSPEZkIDyZIWL0bSAGdhvJ_GHOQdTg04A9MSZpZF4wMjY2ZTQ1OThkMWQzYzQxNWY1NyZtZXRob2Q9bGlzdHBlZXJz\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrunes\(dq: [
+    {
+      \(dqrune\(dq: \(dqRXgu0DD_i0wSPEZkIDyZIWL0bSAGdhvJ_GHOQdTg04A9MSZpZF4wMjY2ZTQ1OThkMWQzYzQxNWY1NyZtZXRob2Q9bGlzdHBlZXJz\(dq,
+      \(dqunique_id\(dq: \(dq1\(dq,
+      \(dqrestrictions\(dq: [
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqid\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f57\(dq,
+              \(dqcondition\(dq: \(dq\(ha\(dq,
+              \(dqenglish\(dq: \(dqid starts with 0266e4598d1d3c415f57\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqid starts with 0266e4598d1d3c415f57\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqmethod\(dq,
+              \(dqvalue\(dq: \(dqlistpeers\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+        }
+      ],
+      \(dqrestrictions_as_english\(dq: \(dqid starts with 0266e4598d1d3c415f57 AND method equal to listpeers\(dq
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli commando-listrunes
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:commando-listrunes#2\(dq,
+  \(dqmethod\(dq: \(dqcommando-listrunes\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqrunes\(dq: [
+    {
+      \(dqrune\(dq: \(dqzFMd1fjhrAYxUeFA54TjloZqOt8JrA_i_nYwIgXkag49MA==\(dq,
+      \(dqunique_id\(dq: \(dq0\(dq,
+      \(dqrestrictions\(dq: [],
+      \(dqrestrictions_as_english\(dq: \(dq\(dq
+    },
+    {
+      \(dqrune\(dq: \(dqRXgu0DD_i0wSPEZkIDyZIWL0bSAGdhvJ_GHOQdTg04A9MSZpZF4wMjY2ZTQ1OThkMWQzYzQxNWY1NyZtZXRob2Q9bGlzdHBlZXJz\(dq,
+      \(dqunique_id\(dq: \(dq1\(dq,
+      \(dqrestrictions\(dq: [
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqid\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f57\(dq,
+              \(dqcondition\(dq: \(dq\(ha\(dq,
+              \(dqenglish\(dq: \(dqid starts with 0266e4598d1d3c415f57\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqid starts with 0266e4598d1d3c415f57\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqmethod\(dq,
+              \(dqvalue\(dq: \(dqlistpeers\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+        }
+      ],
+      \(dqrestrictions_as_english\(dq: \(dqid starts with 0266e4598d1d3c415f57 AND method equal to listpeers\(dq
+    },
+    {
+      \(dqrune\(dq: \(dqQUJEYMLGgiaJvMDv_MhR2hiMKIBTbq-PrL-KxcIlirQ9MiZtZXRob2Q9cGF5JnBuYW1lYW1vdW50bXNhdDwxMDAwMA==\(dq,
+      \(dqunique_id\(dq: \(dq2\(dq,
+      \(dqrestrictions\(dq: [
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqmethod\(dq,
+              \(dqvalue\(dq: \(dqpay\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqmethod equal to pay\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqmethod equal to pay\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqpnameamountmsat\(dq,
+              \(dqvalue\(dq: \(dq10000\(dq,
+              \(dqcondition\(dq: \(dq<\(dq,
+              \(dqenglish\(dq: \(dqpnameamountmsat < 10000\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqpnameamountmsat < 10000\(dq
+        }
+      ],
+      \(dqrestrictions_as_english\(dq: \(dqmethod equal to pay AND pnameamountmsat < 10000\(dq
+    },
+    {
+      \(dqrune\(dq: \(dqjEx3l0c7NMZPSDYT7xnXXvNA83z5PDNBHRQTIk1BwNw9MyZpZD0wMjY2ZTQ1OThkMWQzYzQxNWY1NzJhODQ4ODgzMGI2MGY3ZTc0NGVkOTIzNWViMGIxYmE5MzI4M2IzMTVjMDM1MTgmbWV0aG9kPWxpc3RwZWVycyZwbnVtPTEmcG5hbWVpZD0wMjY2ZTQ1OThkMWQzYzQxNWY1NzJhODQ4ODgzMGI2MGY3ZTc0NGVkOTIzNWViMGIxYmE5MzI4M2IzMTVjMDM1MTh8cGFycjA9MDI2NmU0NTk4ZDFkM2M0MTVmNTcyYTg0ODg4MzBiNjBmN2U3NDRlZDkyMzVlYjBiMWJhOTMyODNiMzE1YzAzNTE4\(dq,
+      \(dqunique_id\(dq: \(dq3\(dq,
+      \(dqrestrictions\(dq: [
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqid\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqmethod\(dq,
+              \(dqvalue\(dq: \(dqlistpeers\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqpnum\(dq,
+              \(dqvalue\(dq: \(dq1\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqpnum equal to 1\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqpnum equal to 1\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqpnameid\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqpnameid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+            },
+            {
+              \(dqfieldname\(dq: \(dqparr0\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqparr0 equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqpnameid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518 OR parr0 equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+        }
+      ],
+      \(dqrestrictions_as_english\(dq: \(dqid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518 AND method equal to listpeers AND pnum equal to 1 AND pnameid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518 OR parr0 equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+    },
+    {
+      \(dqrune\(dq: \(dq8_CRIJ4arWAz72A4ILOZ46MESSJtQQQ9iQZjU28qulA9NCZpZD0wMjY2ZTQ1OThkMWQzYzQxNWY1NzJhODQ4ODgzMGI2MGY3ZTc0NGVkOTIzNWViMGIxYmE5MzI4M2IzMTVjMDM1MTgmbWV0aG9kPWxpc3RwZWVycyZwbnVtPTEmcG5hbWVpZF4wMjY2ZTQ1OThkMWQzYzQxNWY1N3xwYXJyMF4wMjY2ZTQ1OThkMWQzYzQxNWY1Nw==\(dq,
+      \(dqunique_id\(dq: \(dq4\(dq,
+      \(dqrestrictions\(dq: [
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqid\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqmethod\(dq,
+              \(dqvalue\(dq: \(dqlistpeers\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqmethod equal to listpeers\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqpnum\(dq,
+              \(dqvalue\(dq: \(dq1\(dq,
+              \(dqcondition\(dq: \(dq=\(dq,
+              \(dqenglish\(dq: \(dqpnum equal to 1\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqpnum equal to 1\(dq
+        },
+        {
+          \(dqalternatives\(dq: [
+            {
+              \(dqfieldname\(dq: \(dqpnameid\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f57\(dq,
+              \(dqcondition\(dq: \(dq\(ha\(dq,
+              \(dqenglish\(dq: \(dqpnameid starts with 0266e4598d1d3c415f57\(dq
+            },
+            {
+              \(dqfieldname\(dq: \(dqparr0\(dq,
+              \(dqvalue\(dq: \(dq0266e4598d1d3c415f57\(dq,
+              \(dqcondition\(dq: \(dq\(ha\(dq,
+              \(dqenglish\(dq: \(dqparr0 starts with 0266e4598d1d3c415f57\(dq
+            }
+          ],
+          \(dqenglish\(dq: \(dqpnameid starts with 0266e4598d1d3c415f57 OR parr0 starts with 0266e4598d1d3c415f57\(dq
+        }
+      ],
+      \(dqrestrictions_as_english\(dq: \(dqid equal to 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518 AND method equal to listpeers AND pnum equal to 1 AND pnameid starts with 0266e4598d1d3c415f57 OR parr0 starts with 0266e4598d1d3c415f57\(dq
+    }
+  ]
+}
+.EE
+.PP

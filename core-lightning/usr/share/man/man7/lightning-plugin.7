@@ -1,0 +1,343 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-PLUGIN" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-plugin -- Manage plugins with RPC
+.SH
+SYNOPSIS
+.LP
+\fBplugin\fR \fIsubcommand\fR [\fIplugin|directory\fR] [\fIoptions\fR] ...
+.SH
+DESCRIPTION
+.LP
+The \fBplugin\fR RPC command can be used to control dynamic plugins, i.e. plugins that declared themself 'dynamic' (in getmanifest).
+.IP "\(bu" 2
+\fBsubcommand\fR (string) (one of \(dqstart\(dq, \(dqstop\(dq, \(dqrescan\(dq, \(dqstartdir\(dq, \(dqlist\(dq): Determines what action is taken:
+.RS
+.IP "\(bu" 2
+\fIsubcommand\fR \fBstart\fR takes a \fIpath\fR to an executable as argument and starts it as plugin. \fIpath\fR may be an absolute path or a path relative to the plugins directory (default \fI\(ti/.lightning/plugins\fR). If the plugin is already running and the executable (checksum) has changed, the plugin is killed and restarted except if its an important (or builtin) plugin. If the plugin doesn't complete the 'getmanifest' and 'init' handshakes within 60 seconds, the command will timeout and kill the plugin. Additional \fIoptions\fR may be passed to the plugin, but requires all parameters to be passed as keyword=value pairs using the \fC-k|--keyword\fR option which is recommended. For example the following command starts the plugin helloworld.py (present in the plugin directory) with the option greeting set to 'A crazy':
+\fCshell.
+$ lightning-cli -k plugin subcommand=start plugin=helloworld.py greeting='A crazy'.
+\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fIsubcommand\fR \fBstop\fR takes a plugin executable \fIpath\fR or \fIname\fR as argument and stops the plugin. If the plugin subscribed to 'shutdown', it may take up to 30 seconds before this command returns. If the plugin is important and dynamic, this will shutdown \fClightningd\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fIsubcommand\fR \fBstartdir\fR starts all executables it can find in \fIdirectory\fR (excl. subdirectories) as plugins. Checksum and timeout behavior as in \fBstart\fR applies.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fIsubcommand\fR \fBrescan\fR starts all plugins in the default plugins directory (default \fI\(ti/.lightning/plugins\fR) that are not already running. Checksum and timeout behavior as in \fBstart\fR applies.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fIsubcommand\fR \fBlist\fR lists all running plugins (incl. non-dynamic).
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBplugin\fR (string, optional): \fIpath\fR or \fIname\fR of a plugin executable to start or stop.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdirectory\fR (string, optional): \fIpath\fR of a directory containing plugins.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBoptions\fR (array of strings, optional):
+.RS
+.IP "\(bu" 2
+(string, optional): \fIkeyword=value\fR options passed to plugin, can be repeated.
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBcommand\fR (string) (one of \(dqstart\(dq, \(dqstop\(dq, \(dqrescan\(dq, \(dqstartdir\(dq, \(dqlist\(dq): The subcommand this is responding to.
+.LP
+If \fBcommand\fR is \(dqstart\(dq, \(dqstartdir\(dq, \(dqrescan\(dq or \(dqlist\(dq:
+- \fBplugins\fR (array of objects):
+- \fBname\fR (string): Full pathname of the plugin.
+- \fBactive\fR (boolean): Status; plugin completed init and is operational, plugins are configured asynchronously.
+- \fBdynamic\fR (boolean): Plugin can be stopped or started without restarting lightningd.
+.PP
+If \fBcommand\fR is \(dqstop\(dq:
+- \fBresult\fR (string): A message saying it successfully stopped.
+.SH
+ERRORS
+.LP
+On error, the reason why the action could not be taken upon the plugin is returned.
+.SH
+AUTHOR
+.LP
+Antoine Poinsot <\fIdarosior@protonmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+$ lightning-cli(1), lightning-listconfigs(7), \fBwriting plugins\fR <\fIhttps://docs.corelightning.org/docs/plugin-development\fR>
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli plugin -k \(dqsubcommand\(dq=\(dqstart\(dq \(dqplugin\(dq=\(dq/root/lightning/tests/plugins/allow_even_msgs.py\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:plugin#1\(dq,
+  \(dqmethod\(dq: \(dqplugin\(dq,
+  \(dqparams\(dq: {
+    \(dqsubcommand\(dq: \(dqstart\(dq,
+    \(dqplugin\(dq: \(dq/root/lightning/tests/plugins/allow_even_msgs.py\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqcommand\(dq: \(dqstart\(dq,
+  \(dqplugins\(dq: [
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/autoclean\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/chanbackup\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/bcli\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/commando\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/funder\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/topology\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/keysend\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/offers\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/pay\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/recover\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/txprepare\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/cln-renepay\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/spenderp\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/sql\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/bookkeeper\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/tests/plugins/allow_even_msgs.py\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli plugin -k \(dqsubcommand\(dq=\(dqstop\(dq \(dqplugin\(dq=\(dq/root/lightning/tests/plugins/allow_even_msgs.py\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:plugin#2\(dq,
+  \(dqmethod\(dq: \(dqplugin\(dq,
+  \(dqparams\(dq: {
+    \(dqsubcommand\(dq: \(dqstop\(dq,
+    \(dqplugin\(dq: \(dq/root/lightning/tests/plugins/allow_even_msgs.py\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqcommand\(dq: \(dqstop\(dq,
+  \(dqresult\(dq: \(dqSuccessfully stopped allow_even_msgs.py.\(dq
+}
+.EE
+.PP
+\fBExample 3\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli plugin \(dqlist\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:plugin#3\(dq,
+  \(dqmethod\(dq: \(dqplugin\(dq,
+  \(dqparams\(dq: [
+    \(dqlist\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqcommand\(dq: \(dqlist\(dq,
+  \(dqplugins\(dq: [
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/autoclean\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/chanbackup\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/bcli\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/commando\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/funder\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/topology\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/keysend\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/offers\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/pay\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/recover\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/txprepare\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/cln-renepay\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/spenderp\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/sql\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: true
+    },
+    {
+      \(dqname\(dq: \(dq/root/lightning/plugins/bookkeeper\(dq,
+      \(dqactive\(dq: true,
+      \(dqdynamic\(dq: false
+    }
+  ]
+}
+.EE
+.PP

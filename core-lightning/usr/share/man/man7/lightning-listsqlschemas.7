@@ -1,0 +1,274 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-LISTSQLSCHEMAS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-listsqlschemas -- Command to example lightning-sql schemas
+.SH
+SYNOPSIS
+.LP
+\fBlistsqlschemas\fR [\fItable\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.02.
+.PP
+This allows you to examine the schemas at runtime; while they are fully documented for the current release in lightning-sql(7), as fields are added or deprecated, you can use this command to determine what fields are present.
+.PP
+If \fItable\fR is given, only that table is in the resulting list, otherwise all tables are listed.
+.IP "\(bu" 2
+\fBtable\fR (string, optional)
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBschemas\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBtablename\fR (string): The name of the table.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcolumns\fR (array of objects): The columns, in database order.:
+.RS
+.IP "\(bu" 2
+\fBname\fR (string): The name of the column.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtype\fR (string) (one of \(dqINTEGER\(dq, \(dqBLOB\(dq, \(dqTEXT\(dq, \(dqREAL\(dq): The SQL type of the column.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBindices\fR (array of arrays, optional): Any index we created to speed lookups.:
+.RS
+.IP "\(bu" 2
+(array of strings): The columns for this index.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(string, optional): The column name.
+.RE
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-sql(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listsqlschemas -k \(dqtable\(dq=\(dqoffers\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listsqlschemas#1\(dq,
+  \(dqmethod\(dq: \(dqlistsqlschemas\(dq,
+  \(dqparams\(dq: {
+    \(dqtable\(dq: \(dqoffers\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqschemas\(dq: [
+    {
+      \(dqtablename\(dq: \(dqoffers\(dq,
+      \(dqcolumns\(dq: [
+        {
+          \(dqname\(dq: \(dqrowid\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqoffer_id\(dq,
+          \(dqtype\(dq: \(dqBLOB\(dq
+        },
+        {
+          \(dqname\(dq: \(dqactive\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqsingle_use\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqbolt12\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        },
+        {
+          \(dqname\(dq: \(dqused\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqlabel\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        }
+      ],
+      \(dqindices\(dq: [
+        [
+          \(dqoffer_id\(dq
+        ]
+      ]
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listsqlschemas \(dqclosedchannels\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listsqlschemas#2\(dq,
+  \(dqmethod\(dq: \(dqlistsqlschemas\(dq,
+  \(dqparams\(dq: [
+    \(dqclosedchannels\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqschemas\(dq: [
+    {
+      \(dqtablename\(dq: \(dqclosedchannels\(dq,
+      \(dqcolumns\(dq: [
+        {
+          \(dqname\(dq: \(dqrowid\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqpeer_id\(dq,
+          \(dqtype\(dq: \(dqBLOB\(dq
+        },
+        {
+          \(dqname\(dq: \(dqchannel_id\(dq,
+          \(dqtype\(dq: \(dqBLOB\(dq
+        },
+        {
+          \(dqname\(dq: \(dqshort_channel_id\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        },
+        {
+          \(dqname\(dq: \(dqalias_local\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        },
+        {
+          \(dqname\(dq: \(dqalias_remote\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        },
+        {
+          \(dqname\(dq: \(dqopener\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        },
+        {
+          \(dqname\(dq: \(dqcloser\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        },
+        {
+          \(dqname\(dq: \(dqprivate\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqtotal_local_commitments\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqtotal_remote_commitments\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqtotal_htlcs_sent\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqfunding_txid\(dq,
+          \(dqtype\(dq: \(dqBLOB\(dq
+        },
+        {
+          \(dqname\(dq: \(dqfunding_outnum\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqleased\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqfunding_fee_paid_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqfunding_fee_rcvd_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqfunding_pushed_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqtotal_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqfinal_to_us_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqmin_to_us_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqmax_to_us_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqlast_commitment_txid\(dq,
+          \(dqtype\(dq: \(dqBLOB\(dq
+        },
+        {
+          \(dqname\(dq: \(dqlast_commitment_fee_msat\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        },
+        {
+          \(dqname\(dq: \(dqclose_cause\(dq,
+          \(dqtype\(dq: \(dqTEXT\(dq
+        },
+        {
+          \(dqname\(dq: \(dqlast_stable_connection\(dq,
+          \(dqtype\(dq: \(dqINTEGER\(dq
+        }
+      ]
+    }
+  ]
+}
+.EE
+.PP

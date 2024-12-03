@@ -1,0 +1,2238 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-LISTCONFIGS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-listconfigs -- Command to list all configuration options.
+.SH
+SYNOPSIS
+.LP
+\fBlistconfigs\fR [\fIconfig\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBlistconfigs\fR RPC command to list all configuration options, or with \fIconfig\fR only one.
+.IP "\(bu" 2
+\fBconfig\fR (string, optional): Configuration option name to restrict return.
+.SH
+RETURN VALUE
+.LP
+The returned values reflect the current configuration, including showing default values (\fCdev-\fR options are not shown unless specified as \fIconfig\fR explicitly).
+.PP
+Note: as plugins can add options, not all configuration settings are listed here! The format of each entry is as follows:
+.IP "\(bu" 2
+\fBsource\fR (string): source of configuration setting (\fCfile\fR:\fClinenum\fR)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdynamic\fR (boolean, optional): true if this option is settable via setconfig
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBplugin\fR (string, optional): set if this is from a plugin
+.LP
+Depending on the option type, exactly one of the following is present:
+.IP "\(bu" 2
+\fBset\fR (boolean, optional): for simple flag options
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string, optional): for string options
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_msat\fR (msat, optional): for msat options
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (integer, optional): for integer options
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean, optional): for boolean options
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBconfigs\fR (object, optional) \fI(added v23.08)\fR:
+.RS
+.IP "\(bu" 2
+\fBconf\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string) (always \(dqcmdline\(dq): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdeveloper\fR (object, optional) \fI(added v23.08)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBclear-plugins\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdisable-mpp\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBplugin\fR (string, optional): Plugin which registered this configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmainnet\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBregtest\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsignet\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtestnet\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBimportant-plugin\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBplugin\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBplugin-dir\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlightning-dir\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnetwork\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default (can also be changed by \fCtestnet\fR, \fCsignet\fR, \fCregtest\fR options!).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBallow-deprecated-apis\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrpc-file\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdisable-plugin\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBalways-use-proxy\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdaemon\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBwallet\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlarge-channels\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexperimental-dual-fund\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexperimental-splicing\fR (object, optional) \fI(added v23.08)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexperimental-onion-messages\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexperimental-offers\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexperimental-shutdown-wrong-funding\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexperimental-peer-storage\fR (object, optional) \fI(added v23.02)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexperimental-anchors\fR (object, optional) \fI(added v23.08)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdatabase-upgrade\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrgb\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (hex) (always 6 characters): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBalias\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpid-file\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBignore-fee-limits\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBwatchtime-blocks\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax-locktime-blocks\fR (object, optional) \fBdeprecated in v24.05, removed after v24.11\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding-confirms\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcltv-delta\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcltv-final\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcommit-time\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee-base\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrescan\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (integer): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee-per-satoshi\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax-concurrent-htlcs\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc-minimum-msat\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_msat\fR (msat): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc-maximum-msat\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_msat\fR (msat): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax-dust-htlc-exposure-msat\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_msat\fR (msat): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmin-capacity-sat\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u64): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdynamic\fR (boolean, optional) (always \fItrue\fR): Can this be set by setconfig().
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBaddr\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBannounce-addr\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbind-addr\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBoffline\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBautolisten\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBproxy\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdisable-dns\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBannounce-addr-discovered\fR (object, optional) \fI(added v23.02)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string) (one of \(dqtrue\(dq, \(dqfalse\(dq, \(dqauto\(dq): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBannounce-addr-discovered-port\fR (object, optional) \fI(added v23.02)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBencrypted-hsm\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrpc-file-mode\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlog-level\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlog-prefix\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlog-file\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlog-timestamps\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBforce-feerates\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsubdaemon\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalues_str\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Field from config or cmdline.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsources\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional): Source of configuration setting.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfetchinvoice-noconnect\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean): \fCtrue\fR if set in config or cmdline.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBplugin\fR (string, optional): Plugin which registered this configuration setting. \fI(added v23.08)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBaccept-htlc-tlv-types\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtor-service-password\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBannounce-addr-dns\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrequire-confirmed-inputs\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcommit-fee\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u64): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcommit-feerate-offset\fR (object, optional):
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (u32): Field from config or cmdline, or default.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting.
+.RE
+.IP "\(bu" 2
+\fB# version\fR (string, optional): Special field indicating the current version. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBplugins\fR (array of objects, optional) \fBdeprecated in v23.08, removed after v24.02\fR:
+.RS
+.IP "\(bu" 2
+\fBpath\fR (string): Full path of the plugin.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBname\fR (string): Short name of the plugin.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBoptions\fR (object, optional): Specific options set for this plugin.:
+.RE
+.IP "\(bu" 2
+\fBimportant-plugins\fR (array of objects, optional) \fBdeprecated in v23.08, removed after v24.02\fR:
+.RS
+.IP "\(bu" 2
+\fBpath\fR (string): Full path of the plugin.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBname\fR (string): Short name of the plugin.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBoptions\fR (object, optional): Specific options set for this plugin.:
+.RE
+.IP "\(bu" 2
+\fBconf\fR (string, optional): \fCconf\fR field from cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBlightning-dir\fR (string, optional): \fClightning-dir\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBnetwork\fR (string, optional): \fCnetwork\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBallow-deprecated-apis\fR (boolean, optional): \fCallow-deprecated-apis\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBrpc-file\fR (string, optional): \fCrpc-file\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBdisable-plugin\fR (array of strings, optional) \fBdeprecated in v23.08, removed after v24.02\fR:
+.RS
+.IP "\(bu" 2
+(string, optional): \fCdisable-plugin\fR field from config or cmdline.
+.RE
+.IP "\(bu" 2
+\fBbookkeeper-dir\fR (string, optional): \fCbookkeeper-dir\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBbookkeeper-db\fR (string, optional): \fCbookkeeper-db\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBalways-use-proxy\fR (boolean, optional): \fCalways-use-proxy\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBdaemon\fR (boolean, optional): \fCdaemon\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBwallet\fR (string, optional): \fCwallet\fR field from config or cmdline default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBlarge-channels\fR (boolean, optional): \fClarge-channels\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBexperimental-dual-fund\fR (boolean, optional): \fCexperimental-dual-fund\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBexperimental-splicing\fR (boolean, optional): \fCexperimental-splicing\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBexperimental-onion-messages\fR (boolean, optional): \fCexperimental-onion-messages\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBexperimental-offers\fR (boolean, optional): \fCexperimental-offers\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBexperimental-shutdown-wrong-funding\fR (boolean, optional): \fCexperimental-shutdown-wrong-funding\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBexperimental-peer-storage\fR (boolean, optional): \fCexperimental-peer-storage\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR \fI(added v23.02)\fR
+.IP "\(bu" 2
+\fBexperimental-quiesce\fR (boolean, optional): \fCexperimental-quiesce\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR \fI(added v23.08)\fR
+.IP "\(bu" 2
+\fBexperimental-upgrade-protocol\fR (boolean, optional): \fCexperimental-upgrade-protocol\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR \fI(added v23.08)\fR
+.IP "\(bu" 2
+\fBinvoices-onchain-fallback\fR (boolean, optional): \fCinvoices-onchain-fallback\fR field from config or cmdline, or default. \fI(added v23.11)\fR
+.IP "\(bu" 2
+\fBdatabase-upgrade\fR (boolean, optional): \fCdatabase-upgrade\fR field from config or cmdline. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBrgb\fR (hex, optional) (always 6 characters): \fCrgb\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBalias\fR (string, optional): \fCalias\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBpid-file\fR (string, optional): \fCpid-file\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBignore-fee-limits\fR (boolean, optional): \fCignore-fee-limits\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBwatchtime-blocks\fR (u32, optional): \fCwatchtime-blocks\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBmax-locktime-blocks\fR (u32, optional): \fCmax-locktime-blocks\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBfunding-confirms\fR (u32, optional): \fCfunding-confirms\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBcltv-delta\fR (u32, optional): \fCcltv-delta\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBcltv-final\fR (u32, optional): \fCcltv-final\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBcommit-time\fR (u32, optional): \fCcommit-time\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBfee-base\fR (u32, optional): \fCfee-base\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBrescan\fR (integer, optional): \fCrescan\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBfee-per-satoshi\fR (u32, optional): \fCfee-per-satoshi\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBmax-concurrent-htlcs\fR (u32, optional): \fCmax-concurrent-htlcs\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBhtlc-minimum-msat\fR (msat, optional): \fChtlc-minimum-msat\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBhtlc-maximum-msat\fR (msat, optional): \fChtlc-maximum-msat\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBmax-dust-htlc-exposure-msat\fR (msat, optional): \fCmax-dust-htlc-exposure-mast\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBmin-capacity-sat\fR (u64, optional): \fCmin-capacity-sat\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBaddr\fR (string, optional): \fCaddr\fR field from config or cmdline (can be more than one). \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBannounce-addr\fR (string, optional): \fCannounce-addr\fR field from config or cmdline (can be more than one). \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBbind-addr\fR (string, optional): \fCbind-addr\fR field from config or cmdline (can be more than one). \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBoffline\fR (boolean, optional): \fCtrue\fR if \fCoffline\fR was set in config or cmdline. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBautolisten\fR (boolean, optional): \fCautolisten\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBproxy\fR (string, optional): \fCproxy\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBdisable-dns\fR (boolean, optional): \fCtrue\fR if \fCdisable-dns\fR was set in config or cmdline. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBannounce-addr-discovered\fR (string, optional): \fCtrue\fR/\fCfalse\fR/\fCauto\fR depending on how \fCannounce-addr-discovered\fR was set in config or cmdline. \fBdeprecated in v23.08, removed after v24.02\fR \fI(added v23.02)\fR
+.IP "\(bu" 2
+\fBannounce-addr-discovered-port\fR (integer, optional): Sets the announced TCP port for dynamically discovered IPs. \fBdeprecated in v23.08, removed after v24.02\fR \fI(added v23.02)\fR
+.IP "\(bu" 2
+\fBencrypted-hsm\fR (boolean, optional): \fCtrue\fR if \fCencrypted-hsm\fR was set in config or cmdline. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBrpc-file-mode\fR (string, optional): \fCrpc-file-mode\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBlog-level\fR (string, optional): \fClog-level\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBlog-prefix\fR (string, optional): \fClog-prefix\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBlog-file\fR (string, optional): \fClog-file\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBlog-timestamps\fR (boolean, optional): \fClog-timestamps\fR field from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBforce-feerates\fR (string, optional): Force-feerate configuration setting, if any. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBsubdaemon\fR (string, optional): \fCsubdaemon\fR fields from config or cmdline if any (can be more than one). \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBfetchinvoice-noconnect\fR (boolean, optional): \fCfetchinvoice-noconnect\fR fields from config or cmdline, or default. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBaccept-htlc-tlv-types\fR (string, optional): \fCaccept-htlc-tlv-types\fR field from config or cmdline, or not present. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBtor-service-password\fR (string, optional): \fCtor-service-password\fR field from config or cmdline, if any. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBdev-allowdustreserve\fR (boolean, optional): Whether we allow setting dust reserves. \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBannounce-addr-dns\fR (boolean, optional): Whether we put DNS entries into node_announcement. \fBdeprecated in v23.08, removed after v24.02\fR \fI(added v22.11.1)\fR
+.IP "\(bu" 2
+\fBrequire-confirmed-inputs\fR (boolean, optional): Request peers to only send confirmed inputs (dual-fund only). \fBdeprecated in v23.08, removed after v24.02\fR
+.IP "\(bu" 2
+\fBdeveloper\fR (boolean, optional): Whether developer mode is enabled. \fI(added v23.08)\fR
+.IP "\(bu" 2
+\fBcommit-fee\fR (u64, optional): The percentage of the 6-block fee estimate to use for commitment transactions. \fBdeprecated in v23.08, removed after v24.02\fR \fI(added v23.05)\fR
+.IP "\(bu" 2
+\fBmin-emergency-msat\fR (msat, optional): Field from config or cmdline, or default. \fI(added v23.08)\fR
+.IP "\(bu" 2
+\fBcommit-feerate-offset\fR (u32, optional): Additional commitment feerate applied by channel owner. \fI(added v23.11)\fR
+.SH
+ERRORS
+.LP
+On failure, one of the following error codes may be returned:
+.IP "\(bu" 2
+-32602: Error in given parameters or field with \fIconfig\fR name doesn't exist.
+.SH
+AUTHOR
+.LP
+Vincenzo Palazzo <\fIvincenzo.palazzo@protonmail.com\fR> wrote the initial version of this man page,
+but many others did the hard work of actually implementing this rpc command.
+.SH
+SEE ALSO
+.LP
+lightning-getinfo(7), lightningd-config(5)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listconfigs -k \(dqconfig\(dq=\(dqnetwork\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listconfigs#1\(dq,
+  \(dqmethod\(dq: \(dqlistconfigs\(dq,
+  \(dqparams\(dq: {
+    \(dqconfig\(dq: \(dqnetwork\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqnetwork\(dq: \(dqregtest\(dq,
+  \(dqconfigs\(dq: {
+    \(dqnetwork\(dq: {
+      \(dqvalue_str\(dq: \(dqregtest\(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    }
+  }
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listconfigs -k \(dqconfig\(dq=\(dqexperimental-dual-fund\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listconfigs#2\(dq,
+  \(dqmethod\(dq: \(dqlistconfigs\(dq,
+  \(dqparams\(dq: {
+    \(dqconfig\(dq: \(dqexperimental-dual-fund\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqexperimental-dual-fund\(dq: true,
+  \(dqconfigs\(dq: {
+    \(dqexperimental-dual-fund\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    }
+  }
+}
+.EE
+.PP
+\fBExample 3\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listconfigs
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listconfigs#3\(dq,
+  \(dqmethod\(dq: \(dqlistconfigs\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dq# version\(dq: \(dqv24.05-190-g5fd2f9c-modded\(dq,
+  \(dqdeveloper\(dq: true,
+  \(dqlightning-dir\(dq: \(dq/tmp/.lightning/\(dq,
+  \(dqnetwork\(dq: \(dqregtest\(dq,
+  \(dqrpc-file\(dq: \(dqlightning-rpc\(dq,
+  \(dqallow-deprecated-apis\(dq: true,
+  \(dqplugins\(dq: [
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/cln-renepay\(dq,
+      \(dqname\(dq: \(dqcln-renepay\(dq,
+      \(dqoptions\(dq: {}
+    }
+  ],
+  \(dqimportant-plugins\(dq: [
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/autoclean\(dq,
+      \(dqname\(dq: \(dqautoclean\(dq,
+      \(dqoptions\(dq: {
+        \(dqautoclean-cycle\(dq: 3600,
+        \(dqdev-autoclean-max-batch\(dq: 10000
+      }
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/chanbackup\(dq,
+      \(dqname\(dq: \(dqchanbackup\(dq
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/bcli\(dq,
+      \(dqname\(dq: \(dqbcli\(dq,
+      \(dqoptions\(dq: {
+        \(dqbitcoin-datadir\(dq: \(dq/tmp/.lightning/\(dq,
+        \(dqbitcoin-rpcuser\(dq: \(dqrpcuser\(dq,
+        \(dqbitcoin-rpcpassword\(dq: \(dqrpcpass\(dq,
+        \(dqbitcoin-rpcport\(dq: 51251,
+        \(dqbitcoin-rpcclienttimeout\(dq: 60,
+        \(dqbitcoin-retry-timeout\(dq: 60
+      }
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/commando\(dq,
+      \(dqname\(dq: \(dqcommando\(dq
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/funder\(dq,
+      \(dqname\(dq: \(dqfunder\(dq,
+      \(dqoptions\(dq: {
+        \(dqfunder-policy\(dq: \(dqfixed\(dq,
+        \(dqfunder-policy-mod\(dq: \(dq0\(dq,
+        \(dqfunder-min-their-funding\(dq: \(dq10000sat\(dq,
+        \(dqfunder-max-their-funding\(dq: \(dq4294967295sat\(dq,
+        \(dqfunder-per-channel-min\(dq: \(dq10000sat\(dq,
+        \(dqfunder-per-channel-max\(dq: \(dq4294967295sat\(dq,
+        \(dqfunder-reserve-tank\(dq: \(dq0sat\(dq,
+        \(dqfunder-fuzz-percent\(dq: 0,
+        \(dqfunder-fund-probability\(dq: 100,
+        \(dqfunder-lease-requests-only\(dq: true
+      }
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/topology\(dq,
+      \(dqname\(dq: \(dqtopology\(dq
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/keysend\(dq,
+      \(dqname\(dq: \(dqkeysend\(dq
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/offers\(dq,
+      \(dqname\(dq: \(dqoffers\(dq,
+      \(dqoptions\(dq: {}
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/pay\(dq,
+      \(dqname\(dq: \(dqpay\(dq,
+      \(dqoptions\(dq: {}
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/recover\(dq,
+      \(dqname\(dq: \(dqrecover\(dq
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/txprepare\(dq,
+      \(dqname\(dq: \(dqtxprepare\(dq
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/spenderp\(dq,
+      \(dqname\(dq: \(dqspenderp\(dq
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/sql\(dq,
+      \(dqname\(dq: \(dqsql\(dq,
+      \(dqoptions\(dq: {}
+    },
+    {
+      \(dqpath\(dq: \(dq/root/lightning/plugins/bookkeeper\(dq,
+      \(dqname\(dq: \(dqbookkeeper\(dq,
+      \(dqoptions\(dq: {}
+    }
+  ],
+  \(dqdisable-plugin\(dq: [],
+  \(dqalways-use-proxy\(dq: false,
+  \(dqdaemon\(dq: false,
+  \(dqwallet\(dq: \(dqsqlite3:///tmp/.lightning/regtest/lightningd.sqlite3\(dq,
+  \(dqexperimental-dual-fund\(dq: true,
+  \(dqexperimental-splicing\(dq: false,
+  \(dqexperimental-offers\(dq: true,
+  \(dqexperimental-shutdown-wrong-funding\(dq: false,
+  \(dqexperimental-peer-storage\(dq: false,
+  \(dqexperimental-quiesce\(dq: false,
+  \(dqrgb\(dq: \(dq022d22\(dq,
+  \(dqalias\(dq: \(dqSILENTARTIST-190-g5fd2f9c-modded\(dq,
+  \(dqpid-file\(dq: \(dq/tmp/.lightning/lightningd-regtest.pid\(dq,
+  \(dqignore-fee-limits\(dq: false,
+  \(dqwatchtime-blocks\(dq: 5,
+  \(dqfunding-confirms\(dq: 1,
+  \(dqrequire-confirmed-inputs\(dq: false,
+  \(dqcltv-delta\(dq: 6,
+  \(dqcltv-final\(dq: 5,
+  \(dqcommit-time\(dq: 10,
+  \(dqfee-base\(dq: 1,
+  \(dqrescan\(dq: 1,
+  \(dqfee-per-satoshi\(dq: 10,
+  \(dqhtlc-minimum-msat\(dq: 0,
+  \(dqhtlc-maximum-msat\(dq: 18446744073709552000,
+  \(dqmax-concurrent-htlcs\(dq: 483,
+  \(dqmax-dust-htlc-exposure-msat\(dq: 50000000,
+  \(dqmin-capacity-sat\(dq: 10000,
+  \(dqaddr\(dq: \(dq127.0.0.1:41219\(dq,
+  \(dqannounce-addr-discovered\(dq: \(dqauto\(dq,
+  \(dqannounce-addr-discovered-port\(dq: 19846,
+  \(dqoffline\(dq: false,
+  \(dqautolisten\(dq: false,
+  \(dqdisable-dns\(dq: true,
+  \(dqencrypted-hsm\(dq: false,
+  \(dqrpc-file-mode\(dq: \(dq0600\(dq,
+  \(dqcommit-fee\(dq: 100,
+  \(dqcommit-feerate-offset\(dq: 5,
+  \(dqmin-emergency-msat\(dq: 25000000,
+  \(dqexperimental-upgrade-protocol\(dq: false,
+  \(dqinvoices-onchain-fallback\(dq: false,
+  \(dqlog-level\(dq: \(dqdebug\(dq,
+  \(dqlog-timestamps\(dq: true,
+  \(dqlog-prefix\(dq: \(dqlightningd-2 \(dq,
+  \(dqlog-file\(dq: \(dq/tmp/.lightning/log\(dq,
+  \(dqconfigs\(dq: {
+    \(dqdeveloper\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqlightning-dir\(dq: {
+      \(dqvalue_str\(dq: \(dq/tmp/.lightning/\(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqnetwork\(dq: {
+      \(dqvalue_str\(dq: \(dqregtest\(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqtestnet\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqsignet\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqmainnet\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqregtest\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqrpc-file\(dq: {
+      \(dqvalue_str\(dq: \(dqlightning-rpc\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqallow-deprecated-apis\(dq: {
+      \(dqvalue_bool\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqplugin\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqplugin-dir\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqclear-plugins\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqdisable-plugin\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqimportant-plugin\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqalways-use-proxy\(dq: {
+      \(dqvalue_bool\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqdaemon\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqexperimental-dual-fund\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqexperimental-splicing\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqexperimental-offers\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqexperimental-shutdown-wrong-funding\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqexperimental-peer-storage\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqexperimental-quiesce\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqrgb\(dq: {
+      \(dqvalue_str\(dq: \(dq022d22\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqalias\(dq: {
+      \(dqvalue_str\(dq: \(dqSILENTARTIST-190-g5fd2f9c-modded\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqpid-file\(dq: {
+      \(dqvalue_str\(dq: \(dq/tmp/.lightning/lightningd-regtest.pid\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqignore-fee-limits\(dq: {
+      \(dqvalue_bool\(dq: false,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqwatchtime-blocks\(dq: {
+      \(dqvalue_int\(dq: 5,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqfunding-confirms\(dq: {
+      \(dqvalue_int\(dq: 1,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqrequire-confirmed-inputs\(dq: {
+      \(dqvalue_bool\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqcltv-delta\(dq: {
+      \(dqvalue_int\(dq: 6,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqcltv-final\(dq: {
+      \(dqvalue_int\(dq: 5,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqcommit-time\(dq: {
+      \(dqvalue_int\(dq: 10,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqfee-base\(dq: {
+      \(dqvalue_int\(dq: 1,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqrescan\(dq: {
+      \(dqvalue_int\(dq: 1,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqfee-per-satoshi\(dq: {
+      \(dqvalue_int\(dq: 10,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqhtlc-minimum-msat\(dq: {
+      \(dqvalue_msat\(dq: 0,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqhtlc-maximum-msat\(dq: {
+      \(dqvalue_msat\(dq: 18446744073709552000,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqmax-concurrent-htlcs\(dq: {
+      \(dqvalue_int\(dq: 483,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqmax-dust-htlc-exposure-msat\(dq: {
+      \(dqvalue_msat\(dq: 50000000,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqmin-capacity-sat\(dq: {
+      \(dqvalue_int\(dq: 10000,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqdynamic\(dq: true
+    },
+    \(dqaddr\(dq: {
+      \(dqvalues_str\(dq: [
+        \(dq127.0.0.1:41219\(dq
+      ],
+      \(dqsources\(dq: [
+        \(dqcmdline\(dq
+      ]
+    },
+    \(dqbind-addr\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqannounce-addr\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqannounce-addr-discovered\(dq: {
+      \(dqvalue_str\(dq: \(dqauto\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqannounce-addr-discovered-port\(dq: {
+      \(dqvalue_int\(dq: 19846,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqoffline\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqautolisten\(dq: {
+      \(dqvalue_bool\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqaccept-htlc-tlv-type\(dq: {
+      \(dqvalues_int\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqdisable-dns\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqencrypted-hsm\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqrpc-file-mode\(dq: {
+      \(dqvalue_str\(dq: \(dq0600\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqcommit-fee\(dq: {
+      \(dqvalue_int\(dq: 100,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqcommit-feerate-offset\(dq: {
+      \(dqvalue_int\(dq: 5,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqmin-emergency-msat\(dq: {
+      \(dqvalue_msat\(dq: 25000000,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqsubdaemon\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqexperimental-upgrade-protocol\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqinvoices-onchain-fallback\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqi-promise-to-fix-broken-api-user\(dq: {
+      \(dqvalues_str\(dq: [],
+      \(dqsources\(dq: []
+    },
+    \(dqlog-level\(dq: {
+      \(dqvalue_str\(dq: \(dqdebug\(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqlog-timestamps\(dq: {
+      \(dqvalue_bool\(dq: true,
+      \(dqsource\(dq: \(dqdefault\(dq
+    },
+    \(dqlog-prefix\(dq: {
+      \(dqvalue_str\(dq: \(dqlightningd-2 \(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqlog-file\(dq: {
+      \(dqvalues_str\(dq: [
+        \(dq-\(dq,
+        \(dq/tmp/.lightning/log\(dq
+      ],
+      \(dqsources\(dq: [
+        \(dqcmdline\(dq,
+        \(dqcmdline\(dq
+      ]
+    },
+    \(dqdev-fail-on-subdaemon-fail\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqdev-bitcoind-poll\(dq: {
+      \(dqvalue_int\(dq: 3,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqdev-fast-gossip\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqdev-hsmd-no-preapprove-check\(dq: {
+      \(dqset\(dq: true,
+      \(dqsource\(dq: \(dqcmdline\(dq
+    },
+    \(dqautoclean-cycle\(dq: {
+      \(dqvalue_int\(dq: 3600,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/autoclean\(dq,
+      \(dqdynamic\(dq: true
+    },
+    \(dqdev-autoclean-max-batch\(dq: {
+      \(dqvalue_int\(dq: 10000,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/autoclean\(dq,
+      \(dqdynamic\(dq: true
+    },
+    \(dqbitcoin-datadir\(dq: {
+      \(dqvalue_str\(dq: \(dq/tmp/.lightning/\(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/bcli\(dq
+    },
+    \(dqbitcoin-rpcuser\(dq: {
+      \(dqvalue_str\(dq: \(dqrpcuser\(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/bcli\(dq
+    },
+    \(dqbitcoin-rpcpassword\(dq: {
+      \(dqvalue_str\(dq: \(dqrpcpass\(dq,
+      \(dqsource\(dq: \(dqcmdline\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/bcli\(dq
+    },
+    \(dqbitcoin-rpcport\(dq: {
+      \(dqvalue_int\(dq: 51251,
+      \(dqsource\(dq: \(dqcmdline\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/bcli\(dq
+    },
+    \(dqbitcoin-rpcclienttimeout\(dq: {
+      \(dqvalue_int\(dq: 60,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/bcli\(dq
+    },
+    \(dqbitcoin-retry-timeout\(dq: {
+      \(dqvalue_int\(dq: 60,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/bcli\(dq
+    },
+    \(dqfunder-policy\(dq: {
+      \(dqvalue_str\(dq: \(dqfixed\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-policy-mod\(dq: {
+      \(dqvalue_str\(dq: \(dq0\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-min-their-funding\(dq: {
+      \(dqvalue_str\(dq: \(dq10000sat\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-max-their-funding\(dq: {
+      \(dqvalue_str\(dq: \(dq4294967295sat\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-per-channel-min\(dq: {
+      \(dqvalue_str\(dq: \(dq10000sat\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-per-channel-max\(dq: {
+      \(dqvalue_str\(dq: \(dq4294967295sat\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-reserve-tank\(dq: {
+      \(dqvalue_str\(dq: \(dq0sat\(dq,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-fuzz-percent\(dq: {
+      \(dqvalue_int\(dq: 0,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-fund-probability\(dq: {
+      \(dqvalue_int\(dq: 100,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfunder-lease-requests-only\(dq: {
+      \(dqvalue_bool\(dq: true,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/funder\(dq
+    },
+    \(dqfetchinvoice-noconnect\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/offers\(dq
+    },
+    \(dqdev-invoice-bpath-scid\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/offers\(dq
+    },
+    \(dqdisable-mpp\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/pay\(dq
+    },
+    \(dqrenepay-debug-mcf\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/cln-renepay\(dq
+    },
+    \(dqrenepay-debug-payflow\(dq: {
+      \(dqset\(dq: false,
+      \(dqsource\(dq: \(dqdefault\(dq,
+      \(dqplugin\(dq: \(dq/root/lightning/plugins/cln-renepay\(dq
+    }
+  }
+}
+.EE
+.PP

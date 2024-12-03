@@ -1,0 +1,231 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-COMMANDO" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-commando -- Command to Send a Command to a Remote Peer
+.SH
+SYNOPSIS
+.LP
+\fBcommando\fR \fIpeer_id\fR \fImethod\fR [\fIparams\fR] [\fIrune\fR] [\fIfilter\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBcommando\fR RPC command is a homage to bad 80s movies. It also sends a directly-connected \fIpeer_id\fR a custom message, containing a request to run \fImethod\fR (with an optional dictionary of \fIparams\fR); generally the peer will only allow you to run a command if it has provided you with a \fIrune\fR which allows it.
+.IP "\(bu" 2
+\fBpeer_id\fR (pubkey): Peer to command.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmethod\fR (string): Method to invoke on peer.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBparams\fR (one of, optional):
+.RS
+.IP "\(bu" 2
+(array): Array of positional parameters.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(object): Parameters for method.:
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrune\fR (string, optional): Rune to authorize the command.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfilter\fR (object, optional): Filter to peer to apply to any successful result.:
+.SH
+RETURN VALUE
+.LP
+On success, the return depends on the \fImethod\fR invoked.
+.SH
+ERRORS
+.LP
+On failure, one of the following error codes may be returned:
+.IP "\(bu" 2
+-32600: Usually means peer is not connected
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+19535: the local commando plugin discovered an error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+19536: the remote commando plugin discovered an error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+19537: the remote commando plugin said we weren't authorized.
+.LP
+It can also fail if the peer does not respond, in which case it will simply hang awaiting a response.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> wrote the original Python commando.py plugin, the in-tree commando plugin, and this manual page.
+.PP
+Christian Decker came up with the name \(dqcommando\(dq, which almost excuses his previous adoption of the name \(dqEltoo\(dq.
+.SH
+SEE ALSO
+.LP
+lightning-commando-rune(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli commando -k \(dqpeer_id\(dq=\(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq \(dqrune\(dq=\(dq_RWaZZRI7wAYU2hqlFBmYgC_dFczcpAdI_9O87YbDpg9MCZtZXRob2RebGlzdHxtZXRob2ReZ2V0fG1ldGhvZD1zdW1tYXJ5Jm1ldGhvZC9saXN0ZGF0YXN0b3Jl\(dq \(dqmethod\(dq=\(dqgetinfo\(dq \(dqparams\(dq='{}'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:commando#1\(dq,
+  \(dqmethod\(dq: \(dqcommando\(dq,
+  \(dqparams\(dq: {
+    \(dqpeer_id\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+    \(dqrune\(dq: \(dq_RWaZZRI7wAYU2hqlFBmYgC_dFczcpAdI_9O87YbDpg9MCZtZXRob2RebGlzdHxtZXRob2ReZ2V0fG1ldGhvZD1zdW1tYXJ5Jm1ldGhvZC9saXN0ZGF0YXN0b3Jl\(dq,
+    \(dqmethod\(dq: \(dqgetinfo\(dq,
+    \(dqparams\(dq: {}
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqid\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+  \(dqalias\(dq: \(dqSILENTARTIST-190-g5fd2f9c-modded\(dq,
+  \(dqcolor\(dq: \(dq022d22\(dq,
+  \(dqnum_peers\(dq: 3,
+  \(dqnum_pending_channels\(dq: 0,
+  \(dqnum_active_channels\(dq: 3,
+  \(dqnum_inactive_channels\(dq: 1,
+  \(dqaddress\(dq: [],
+  \(dqbinding\(dq: [
+    {
+      \(dqtype\(dq: \(dqipv4\(dq,
+      \(dqaddress\(dq: \(dq127.0.0.1\(dq,
+      \(dqport\(dq: 41219
+    }
+  ],
+  \(dqversion\(dq: \(dqv24.05-190-g5fd2f9c-modded\(dq,
+  \(dqblockheight\(dq: 130,
+  \(dqnetwork\(dq: \(dqregtest\(dq,
+  \(dqfees_collected_msat\(dq: 106,
+  \(dqlightning-dir\(dq: \(dq/tmp/.lightning/regtest\(dq,
+  \(dqour_features\(dq: {
+    \(dqinit\(dq: \(dq08a0802a8a59a1\(dq,
+    \(dqnode\(dq: \(dq88a0802a8a59a1\(dq,
+    \(dqchannel\(dq: \(dq\(dq,
+    \(dqinvoice\(dq: \(dq02000002024100\(dq
+  }
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli commando -k \(dqpeer_id\(dq=\(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq \(dqrune\(dq=\(dqRXgu0DD_i0wSPEZkIDyZIWL0bSAGdhvJ_GHOQdTg04A9MSZpZF4wMjY2ZTQ1OThkMWQzYzQxNWY1NyZtZXRob2Q9bGlzdHBlZXJz\(dq \(dqmethod\(dq=\(dqlistpeers\(dq \(dqparams\(dq='[\(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq]'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:commando#2\(dq,
+  \(dqmethod\(dq: \(dqcommando\(dq,
+  \(dqparams\(dq: {
+    \(dqpeer_id\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+    \(dqrune\(dq: \(dqRXgu0DD_i0wSPEZkIDyZIWL0bSAGdhvJ_GHOQdTg04A9MSZpZF4wMjY2ZTQ1OThkMWQzYzQxNWY1NyZtZXRob2Q9bGlzdHBlZXJz\(dq,
+    \(dqmethod\(dq: \(dqlistpeers\(dq,
+    \(dqparams\(dq: [
+      \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq
+    ]
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqpeers\(dq: [
+    {
+      \(dqid\(dq: \(dq035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d\(dq,
+      \(dqconnected\(dq: true,
+      \(dqnum_channels\(dq: 2,
+      \(dqnetaddr\(dq: [
+        \(dq127.0.0.1:34785\(dq
+      ],
+      \(dqfeatures\(dq: \(dq08a0802a8a59a1\(dq
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 3\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli commando -k \(dqpeer_id\(dq=\(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq \(dqrune\(dq=\(dqQUJEYMLGgiaJvMDv_MhR2hiMKIBTbq-PrL-KxcIlirQ9MiZtZXRob2Q9cGF5JnBuYW1lYW1vdW50bXNhdDwxMDAwMA==\(dq \(dqmethod\(dq=\(dqpay\(dq \(dqparams\(dq='{\(dqbolt11\(dq: \(dqlnbcrt1pn2s38zsp5lv49w44a8tvkwtkxfxwts8rnr864u59srp7sxuua3haahdhlhtrqpp5p928w8rmsg2hjeymedcn54vxhsz372qhcedgf003nmsknhx9594sdqcdserxgryv4ekxunfwp6xjmmwxqyjw5qcqp9rzjqdwjkyvjm7apxnssu4qgwhfkd67ghs6n6k48v6uqczgt88p6tky96qqq0vqqqqgqqyqqqqqpqqqqqzsqqc9qxpqysgqt5h8te9lkn0jpdkhkmlkzs80aw7mt5kdm6jxmvddkavt3vj0vakkmfcs0hsde8y8g8za46sch2lp4jxy56u8ve25sgpgcsya0vp92sgphzw570\(dq, \(dqamount_msat\(dq: 9900}'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:commando#3\(dq,
+  \(dqmethod\(dq: \(dqcommando\(dq,
+  \(dqparams\(dq: {
+    \(dqpeer_id\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+    \(dqrune\(dq: \(dqQUJEYMLGgiaJvMDv_MhR2hiMKIBTbq-PrL-KxcIlirQ9MiZtZXRob2Q9cGF5JnBuYW1lYW1vdW50bXNhdDwxMDAwMA==\(dq,
+    \(dqmethod\(dq: \(dqpay\(dq,
+    \(dqparams\(dq: {
+      \(dqbolt11\(dq: \(dqlnbcrt1pn2s38zsp5lv49w44a8tvkwtkxfxwts8rnr864u59srp7sxuua3haahdhlhtrqpp5p928w8rmsg2hjeymedcn54vxhsz372qhcedgf003nmsknhx9594sdqcdserxgryv4ekxunfwp6xjmmwxqyjw5qcqp9rzjqdwjkyvjm7apxnssu4qgwhfkd67ghs6n6k48v6uqczgt88p6tky96qqq0vqqqqgqqyqqqqqpqqqqqzsqqc9qxpqysgqt5h8te9lkn0jpdkhkmlkzs80aw7mt5kdm6jxmvddkavt3vj0vakkmfcs0hsde8y8g8za46sch2lp4jxy56u8ve25sgpgcsya0vp92sgphzw570\(dq,
+      \(dqamount_msat\(dq: 9900
+    }
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqdestination\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+  \(dqpayment_hash\(dq: \(dq0954771c7b821579649bcb713a5586bc051f2817c65a84bdf19ee169dcc5a16b\(dq,
+  \(dqcreated_at\(dq: 1722303715.008808,
+  \(dqparts\(dq: 1,
+  \(dqamount_msat\(dq: 9900,
+  \(dqamount_sent_msat\(dq: 9900,
+  \(dqpayment_preimage\(dq: \(dqf3a3b40d63e62785f537aad60f93980914c5639872c7746299a6a1228abbc303\(dq,
+  \(dqstatus\(dq: \(dqcomplete\(dq
+}
+.EE
+.PP

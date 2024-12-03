@@ -1,0 +1,204 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-WAITINVOICE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-waitinvoice -- Command for waiting for specific payment
+.SH
+SYNOPSIS
+.LP
+\fBwaitinvoice\fR \fIlabel\fR 
+.SH
+DESCRIPTION
+.LP
+The \fBwaitinvoice\fR RPC command waits until a specific invoice is paid, then returns that single entry as per \fBlistinvoices\fR.
+.IP "\(bu" 2
+\fBlabel\fR (one of): Unique label of the invoice waiting to be paid.:
+.RS
+.IP "\(bu" 2
+(string)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(integer)
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBlabel\fR (string): Unique label supplied at invoice creation.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdescription\fR (string): Description used in the invoice.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpayment_hash\fR (hash): The hash of the \fIpayment_preimage\fR which will prove payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstatus\fR (string) (one of \(dqpaid\(dq, \(dqexpired\(dq): Whether it's paid or expired.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexpires_at\fR (u64): UNIX timestamp of when it will become / became unpayable.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcreated_index\fR (u64): 1-based index indicating order this invoice was created in. \fI(added v23.08)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat, optional): The amount required to pay this invoice.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbolt11\fR (string, optional): The BOLT11 string (always present unless \fIbolt12\fR is).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbolt12\fR (string, optional): The BOLT12 string (always present unless \fIbolt11\fR is).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBupdated_index\fR (u64, optional): 1-based index indicating order this invoice was changed (only present if it has changed since creation). \fI(added v23.08)\fR
+.LP
+If \fBstatus\fR is \(dqpaid\(dq:
+- \fBpay_index\fR (u64): Unique incrementing index for this payment.
+- \fBamount_received_msat\fR (msat): The amount actually received (could be slightly greater than \fIamount_msat\fR, since clients may overpay).
+- \fBpaid_at\fR (u64): UNIX timestamp of when it was paid.
+- \fBpayment_preimage\fR (secret): Proof of payment.
+- \fBpaid_outpoint\fR (object, optional): Outpoint this invoice was paid with. \fI(added v23.11)\fR:
+- \fBtxid\fR (txid): ID of the transaction that paid the invoice. \fI(added v23.11)\fR
+- \fBoutnum\fR (u32): The 0-based output number of the transaction that paid the invoice. \fI(added v23.11)\fR
+.SH
+ERRORS
+.LP
+On error the returned object will contain \fCcode\fR and \fCmessage\fR properties, with \fCcode\fR being one of the following:
+.IP "\(bu" 2
+-32602: If the given parameters are wrong.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+-1: If the invoice is deleted while unpaid, or the invoice does not exist.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+903: If the invoice expires before being paid, or is already expired.
+.SH
+AUTHOR
+.LP
+Christian Decker <\fIdecker.christian@gmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-waitanyinvoice(7), lightning-listinvoices(7), lightning-delinvoice(7), lightning-invoice(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli waitinvoice -k \(dqlabel\(dq=\(dqinv2\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:waitinvoice#1\(dq,
+  \(dqmethod\(dq: \(dqwaitinvoice\(dq,
+  \(dqparams\(dq: {
+    \(dqlabel\(dq: \(dqinv2\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqlabel\(dq: \(dqinv2\(dq,
+  \(dqbolt11\(dq: \(dqlnbcrt20n1pn2s38fsp55xnux6tuzuutlqhekzytnexpqj6w3q00h6e7wu08ex43rdr4xqdqpp5znq67nu5secgcf79ncjtqfdpjfqh7acaxvngcqwqsvvxwnkyl35qdq8d9h8vvsxqyjw5qcqp9rzjqdwjkyvjm7apxnssu4qgwhfkd67ghs6n6k48v6uqczgt88p6tky96qqq0vqqqqgqqyqqqqqpqqqqqzsqqc9qxpqysgq9ptnru6v58v8qd58xdqypr86utn6fhssx8rwegsspfp9d975h0t47xn0hea6qrmy2ucxt4l02nkxu7va7d5lqgy8nrqmhxqpm5qauegqjjqr02\(dq,
+  \(dqpayment_hash\(dq: \(dq14c1af4f9486708c27c59e24b025a192417f771d33268c01c08318674ec4fc68\(dq,
+  \(dqamount_msat\(dq: 2000,
+  \(dqstatus\(dq: \(dqpaid\(dq,
+  \(dqpay_index\(dq: 4,
+  \(dqamount_received_msat\(dq: 2000,
+  \(dqpaid_at\(dq: 1722303723,
+  \(dqpayment_preimage\(dq: \(dq1bda6e78384905bc476c6f50b447cf7fbba13a2644d49d85d797a826e8b9a6a0\(dq,
+  \(dqdescription\(dq: \(dqinv2\(dq,
+  \(dqexpires_at\(dq: 1722908521,
+  \(dqcreated_index\(dq: 12,
+  \(dqupdated_index\(dq: 4
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli waitinvoice \(dqinv3\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:waitinvoice#2\(dq,
+  \(dqmethod\(dq: \(dqwaitinvoice\(dq,
+  \(dqparams\(dq: [
+    \(dqinv3\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqlabel\(dq: \(dqinv3\(dq,
+  \(dqbolt11\(dq: \(dqlnbcrt30n1pn2s38fsp5syqds2z0hgqgf3dcxt9kp5m2rtywxm4u4hr4xe90r885rr609vgqpp52y0xdhlzrua5clpuyw4wcfk9duxwwauzcjxrs9nj00258njmdjnsdq8d9h8vvcxqyjw5qcqp9rzjqdwjkyvjm7apxnssu4qgwhfkd67ghs6n6k48v6uqczgt88p6tky96qqq0vqqqqgqqyqqqqqpqqqqqzsqqc9qxpqysgqkkeex45p62vc7nfjywwfle8yhk9wemyktw2m7924cfmlthk37q6ptjd8vxyaevtejfj44yp55xllqlljxv5vz6wc3gc9jlfkwrkngscqtl0xs8\(dq,
+  \(dqpayment_hash\(dq: \(dq511e66dfe21f3b4c7c3c23aaec26c56f0ce77782c48c3816727bd543ce5b6ca7\(dq,
+  \(dqamount_msat\(dq: 3000,
+  \(dqstatus\(dq: \(dqpaid\(dq,
+  \(dqpay_index\(dq: 5,
+  \(dqamount_received_msat\(dq: 3000,
+  \(dqpaid_at\(dq: 1722303725,
+  \(dqpayment_preimage\(dq: \(dq86e637cb70631a0db88cc8f6ef9a21457b1b85be30236efb769a611b356225cd\(dq,
+  \(dqdescription\(dq: \(dqinv3\(dq,
+  \(dqexpires_at\(dq: 1722908521,
+  \(dqcreated_index\(dq: 13,
+  \(dqupdated_index\(dq: 5
+}
+.EE
+.PP

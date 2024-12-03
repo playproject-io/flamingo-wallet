@@ -1,0 +1,323 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-LISTHTLCS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-listhtlcs -- Command for querying HTLCs
+.SH
+SYNOPSIS
+.LP
+\fBlisthtlcs\fR [\fIid\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBlisthtlcs\fR RPC command gets all HTLCs (which, generally, we remember for as long as a channel is open, even if they've completed long ago).
+.IP "\(bu" 2
+\fBid\fR (string, optional): A short channel id (e.g. 1x2x3) or full 64-byte hex channel id, it will only list htlcs for that channel (which must be known).
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBhtlcs\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id): The channel that contains/contained the HTLC.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBid\fR (u64): The unique, incrementing HTLC id the creator gave this.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexpiry\fR (u32): The block number where this HTLC expires/expired.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat): The value of the HTLC.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdirection\fR (string) (one of \(dqout\(dq, \(dqin\(dq): Out if we offered this to the peer, in if they offered it.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpayment_hash\fR (hash): Payment hash sought by HTLC.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstate\fR (string) (one of \(dqSENT_ADD_HTLC\(dq, \(dqSENT_ADD_COMMIT\(dq, \(dqRCVD_ADD_REVOCATION\(dq, \(dqRCVD_ADD_ACK_COMMIT\(dq, \(dqSENT_ADD_ACK_REVOCATION\(dq, \(dqRCVD_REMOVE_HTLC\(dq, \(dqRCVD_REMOVE_COMMIT\(dq, \(dqSENT_REMOVE_REVOCATION\(dq, \(dqSENT_REMOVE_ACK_COMMIT\(dq, \(dqRCVD_REMOVE_ACK_REVOCATION\(dq, \(dqRCVD_ADD_HTLC\(dq, \(dqRCVD_ADD_COMMIT\(dq, \(dqSENT_ADD_REVOCATION\(dq, \(dqSENT_ADD_ACK_COMMIT\(dq, \(dqRCVD_ADD_ACK_REVOCATION\(dq, \(dqSENT_REMOVE_HTLC\(dq, \(dqSENT_REMOVE_COMMIT\(dq, \(dqRCVD_REMOVE_REVOCATION\(dq, \(dqRCVD_REMOVE_ACK_COMMIT\(dq, \(dqSENT_REMOVE_ACK_REVOCATION\(dq): The first 10 states are for \fCin\fR, the next 10 are for \fCout\fR.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-listforwards(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listhtlcs \(dq109x1x1\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listhtlcs#1\(dq,
+  \(dqmethod\(dq: \(dqlisthtlcs\(dq,
+  \(dqparams\(dq: [
+    \(dq109x1x1\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqhtlcs\(dq: [
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 0,
+      \(dqexpiry\(dq: 126,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 500000000,
+      \(dqpayment_hash\(dq: \(dq684b5650b3deb052c93efe1fe16e7703b56272468eecdeb3daac5b81216dcb52\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 1,
+      \(dqexpiry\(dq: 136,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dqd598cfc62da16b381b8fb8af9833a24005f730e54cc32c317fecc511ffc6d2a2\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 2,
+      \(dqexpiry\(dq: 149,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq80ff407792947a23f193f9a1968e9a437b071364ae3159f83631335c9a453c1b\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 3,
+      \(dqexpiry\(dq: 155,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10000202,
+      \(dqpayment_hash\(dq: \(dq3b80a3028343b16f8ab7261343eae40ff73ba833b0b7d4dcbfd42a3078dc322b\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 4,
+      \(dqexpiry\(dq: 152,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq0458c01fdd3aa0b9829002390301f92083e78dc27bb293bc3e7caee5d4ed7259\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 5,
+      \(dqexpiry\(dq: 149,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq0458c01fdd3aa0b9829002390301f92083e78dc27bb293bc3e7caee5d4ed7259\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 6,
+      \(dqexpiry\(dq: 132,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 50001,
+      \(dqpayment_hash\(dq: \(dq788aea729ede48d315a199ce5ded76169601a61dd52e9734e707eb7c52e4e79e\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 7,
+      \(dqexpiry\(dq: 142,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 1002,
+      \(dqpayment_hash\(dq: \(dqe445ebcf339db3cba6184330ccc6e4a41e0bb38d237b93c1d2f71958d5a74e13\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 8,
+      \(dqexpiry\(dq: 137,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq968c136c07c39b17d1925358dd36f5dd86f8691c666ec27f24de5a84d590dc49\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 0,
+      \(dqexpiry\(dq: 136,
+      \(dqdirection\(dq: \(dqin\(dq,
+      \(dqamount_msat\(dq: 1000000,
+      \(dqpayment_hash\(dq: \(dqa003badd6ad30f05f56e3607fd538456b05b9aad6135a494dad5320010af5844\(dq,
+      \(dqstate\(dq: \(dqSENT_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 9,
+      \(dqexpiry\(dq: 136,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 400000,
+      \(dqpayment_hash\(dq: \(dq781dc1aee5839bf106f264b0a06cf0740f2c71fc51c9562e90f4ee38ca0fc459\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listhtlcs
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listhtlcs#2\(dq,
+  \(dqmethod\(dq: \(dqlisthtlcs\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqhtlcs\(dq: [
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 0,
+      \(dqexpiry\(dq: 126,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 500000000,
+      \(dqpayment_hash\(dq: \(dq684b5650b3deb052c93efe1fe16e7703b56272468eecdeb3daac5b81216dcb52\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 1,
+      \(dqexpiry\(dq: 136,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dqd598cfc62da16b381b8fb8af9833a24005f730e54cc32c317fecc511ffc6d2a2\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 2,
+      \(dqexpiry\(dq: 149,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq80ff407792947a23f193f9a1968e9a437b071364ae3159f83631335c9a453c1b\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 3,
+      \(dqexpiry\(dq: 155,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10000202,
+      \(dqpayment_hash\(dq: \(dq3b80a3028343b16f8ab7261343eae40ff73ba833b0b7d4dcbfd42a3078dc322b\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 4,
+      \(dqexpiry\(dq: 152,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq0458c01fdd3aa0b9829002390301f92083e78dc27bb293bc3e7caee5d4ed7259\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 5,
+      \(dqexpiry\(dq: 149,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq0458c01fdd3aa0b9829002390301f92083e78dc27bb293bc3e7caee5d4ed7259\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 6,
+      \(dqexpiry\(dq: 132,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 50001,
+      \(dqpayment_hash\(dq: \(dq788aea729ede48d315a199ce5ded76169601a61dd52e9734e707eb7c52e4e79e\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 7,
+      \(dqexpiry\(dq: 142,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 1002,
+      \(dqpayment_hash\(dq: \(dqe445ebcf339db3cba6184330ccc6e4a41e0bb38d237b93c1d2f71958d5a74e13\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 8,
+      \(dqexpiry\(dq: 137,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 10001,
+      \(dqpayment_hash\(dq: \(dq968c136c07c39b17d1925358dd36f5dd86f8691c666ec27f24de5a84d590dc49\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 0,
+      \(dqexpiry\(dq: 136,
+      \(dqdirection\(dq: \(dqin\(dq,
+      \(dqamount_msat\(dq: 1000000,
+      \(dqpayment_hash\(dq: \(dqa003badd6ad30f05f56e3607fd538456b05b9aad6135a494dad5320010af5844\(dq,
+      \(dqstate\(dq: \(dqSENT_REMOVE_ACK_REVOCATION\(dq
+    },
+    {
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqid\(dq: 9,
+      \(dqexpiry\(dq: 136,
+      \(dqdirection\(dq: \(dqout\(dq,
+      \(dqamount_msat\(dq: 400000,
+      \(dqpayment_hash\(dq: \(dq781dc1aee5839bf106f264b0a06cf0740f2c71fc51c9562e90f4ee38ca0fc459\(dq,
+      \(dqstate\(dq: \(dqRCVD_REMOVE_ACK_REVOCATION\(dq
+    }
+  ]
+}
+.EE
+.PP

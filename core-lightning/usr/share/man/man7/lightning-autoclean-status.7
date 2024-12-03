@@ -1,0 +1,242 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-AUTOCLEAN-STATUS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-autoclean-status -- Examine auto-delete of old invoices/payments/forwards
+.SH
+SYNOPSIS
+.LP
+\fBautoclean-status\fR [\fIsubsystem\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBautoclean-status\fR RPC command tells you about the status of the autclean plugin, optionally for only one subsystem.
+.IP "\(bu" 2
+\fBsubsystem\fR (string, optional) (one of \(dqsucceededforwards\(dq, \(dqfailedforwards\(dq, \(dqsucceededpays\(dq, \(dqfailedpays\(dq, \(dqpaidinvoices\(dq, \(dqexpiredinvoices\(dq): What subsystem to ask about. Currently supported subsystems are:
+.RS
+.IP "\(bu" 2
+\fCfailedforwards\fR: routed payments which did not succeed (\fCfailed\fR or \fClocal_failed\fR in listforwards \fCstatus\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCsucceededforwards\fR: routed payments which succeeded (\fCsettled\fR in listforwards \fCstatus\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCfailedpays\fR: payment attempts which did not succeed (\fCfailed\fR in listpays \fCstatus\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCsucceededpays\fR: payment attempts which succeeded (\fCcomplete\fR in listpays \fCstatus\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCexpiredinvoices\fR: invoices which were not paid (and cannot be) (\fCexpired\fR in listinvoices \fCstatus\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCpaidinvoices\fR: invoices which were paid (\fCpaid\fR in listinvoices status).
+.RE
+.SH
+RETURN VALUE
+.LP
+Note that the ages parameters are set by various \fCautoclean-...-age\fR parameters in your configuration: see lightningd-config(5).
+On success, an object containing \fBautoclean\fR is returned. It is an object containing:
+.IP "\(bu" 2
+\fBsucceededforwards\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBenabled\fR (boolean): Whether autocleaning is enabled for successful listforwards.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcleaned\fR (u64): Total number of deletions done (ever).
+.RE
+.IP
+If \fBenabled\fR is \fItrue\fR:
+- \fBage\fR (u64): Age (in seconds) to delete successful listforwards.
+.IP "\(bu" 2
+\fBfailedforwards\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBenabled\fR (boolean): Whether autocleaning is enabled for failed listforwards.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcleaned\fR (u64): Total number of deletions done (ever).
+.RE
+.IP
+If \fBenabled\fR is \fItrue\fR:
+- \fBage\fR (u64): Age (in seconds) to delete failed listforwards.
+.IP "\(bu" 2
+\fBsucceededpays\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBenabled\fR (boolean): Whether autocleaning is enabled for successful listpays/listsendpays.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcleaned\fR (u64): Total number of deletions done (ever).
+.RE
+.IP
+If \fBenabled\fR is \fItrue\fR:
+- \fBage\fR (u64): Age (in seconds) to delete successful listpays/listsendpays.
+.IP "\(bu" 2
+\fBfailedpays\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBenabled\fR (boolean): Whether autocleaning is enabled for failed listpays/listsendpays.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcleaned\fR (u64): Total number of deletions done (ever).
+.RE
+.IP
+If \fBenabled\fR is \fItrue\fR:
+- \fBage\fR (u64): Age (in seconds) to delete failed listpays/listsendpays.
+.IP "\(bu" 2
+\fBpaidinvoices\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBenabled\fR (boolean): Whether autocleaning is enabled for paid listinvoices.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcleaned\fR (u64): Total number of deletions done (ever).
+.RE
+.IP
+If \fBenabled\fR is \fItrue\fR:
+- \fBage\fR (u64): Age (in seconds) to paid listinvoices.
+.IP "\(bu" 2
+\fBexpiredinvoices\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBenabled\fR (boolean): Whether autocleaning is enabled for expired (unpaid) listinvoices.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcleaned\fR (u64): Total number of deletions done (ever).
+.RE
+.IP
+If \fBenabled\fR is \fItrue\fR:
+- \fBage\fR (u64): Age (in seconds) to expired listinvoices.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightningd-config(5), lightning-listinvoices(7), lightning-listpays(7), lightning-listforwards(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli autoclean-status -k \(dqsubsystem\(dq=\(dqexpiredinvoices\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:autoclean-status#1\(dq,
+  \(dqmethod\(dq: \(dqautoclean-status\(dq,
+  \(dqparams\(dq: {
+    \(dqsubsystem\(dq: \(dqexpiredinvoices\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqautoclean\(dq: {
+    \(dqexpiredinvoices\(dq: {
+      \(dqenabled\(dq: true,
+      \(dqage\(dq: 300,
+      \(dqcleaned\(dq: 0
+    }
+  }
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli autoclean-status
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:autoclean-status#2\(dq,
+  \(dqmethod\(dq: \(dqautoclean-status\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqautoclean\(dq: {
+    \(dqsucceededforwards\(dq: {
+      \(dqenabled\(dq: false,
+      \(dqcleaned\(dq: 0
+    },
+    \(dqfailedforwards\(dq: {
+      \(dqenabled\(dq: false,
+      \(dqcleaned\(dq: 0
+    },
+    \(dqsucceededpays\(dq: {
+      \(dqenabled\(dq: false,
+      \(dqcleaned\(dq: 7
+    },
+    \(dqfailedpays\(dq: {
+      \(dqenabled\(dq: false,
+      \(dqcleaned\(dq: 0
+    },
+    \(dqpaidinvoices\(dq: {
+      \(dqenabled\(dq: false,
+      \(dqcleaned\(dq: 0
+    },
+    \(dqexpiredinvoices\(dq: {
+      \(dqenabled\(dq: true,
+      \(dqage\(dq: 300,
+      \(dqcleaned\(dq: 0
+    }
+  }
+}
+.EE
+.PP

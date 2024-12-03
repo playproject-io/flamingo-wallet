@@ -1,0 +1,320 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-FUNDCHANNEL" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-fundchannel -- Command for establishing a lightning channel
+.SH
+SYNOPSIS
+.LP
+\fBfundchannel\fR \fIid\fR \fIamount\fR [\fIfeerate\fR] [\fIannounce\fR] [\fIminconf\fR] [\fIpush_msat\fR] [\fIclose_to\fR] [\fIrequest_amt\fR] [\fIcompact_lease\fR] [\fIutxos\fR] [\fImindepth\fR] [\fIreserve\fR] [\fIchannel_type\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBfundchannel\fR RPC command opens a payment channel with a peer by committing a funding transaction to the blockchain as defined in BOLT #2.
+.PP
+If not already connected, \fBfundchannel\fR will automatically attempt to connect if Core Lightning knows a way to contact the node (either from normal gossip, or from a previous \fBconnect\fR call).
+.PP
+This auto-connection can fail if Core Lightning does not know how to contact the target node; see lightning-connect(7).
+.PP
+Once the transaction is confirmed, normal channel operations may begin. Readiness is indicated by \fBlistpeers\fR reporting a \fIstate\fR of \fCCHANNELD_NORMAL\fR for the channel.
+.IP "\(bu" 2
+\fBid\fR (pubkey): Id is the peer id obtained from connect.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount\fR (sat_or_all): The amount in satoshis taken from the internal wallet to fund the channel (but if we have any anchor channels, this will always leave at least \fCmin-emergency- msat\fR as change). The string \fIall\fR can be used to specify all available funds (or 16777215 satoshi if more is available and large channels were not negotiated with the peer). Otherwise, it is in satoshi precision; it can be a whole number, a whole number ending in \fIsat\fR, a whole number ending in \fI000msat\fR, or a number with 1 to 8 decimal places ending in \fIbtc\fR. The value cannot be less than the dust limit, currently set to 546, nor more than 16777215 satoshi (unless large channels were negotiated with the peer).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeerate\fR (feerate, optional): Used for the opening transaction and (unless \fIoption_anchors\fR is negotiated), as initial feerate for commitment and HTLC transactions (see NOTES in lightning-feerates(7)). The default is \fInormal\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBannounce\fR (boolean, optional): Whether to announce this channel or not. An unannounced channel is considered private. The default is True.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBminconf\fR (u32, optional): The minimum number of confirmations that used outputs should have. The default is 1.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpush_msat\fR (msat, optional): The amount of millisatoshis to push to the channel peer at open. Note that this is a gift to the peer -- these satoshis are added to the initial balance of the peer at channel start and are largely unrecoverable once pushed.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBclose_to\fR (string, optional): A Bitcoin address to which the channel funds should be sent to on close. Only valid if both peers have negotiated \fCoption_upfront_shutdown_script\fR. Returns \fCclose_to\fR set to closing script iff is negotiated.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrequest_amt\fR (sat, optional): An amount of liquidity you'd like to lease from the peer. If peer supports \fCoption_will_fund\fR, indicates to them to include this much liquidity into the channel. Must also pass in \fIcompact_lease\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcompact_lease\fR (string, optional): A compact representation of the peer's expected channel lease terms. If the peer's terms don't match this set, we will fail to open the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fButxos\fR (array of outpoints, optional): The utxos to be used to fund the channel, as an array of \fCtxid:vout\fR.:
+.RS
+.IP "\(bu" 2
+(outpoint, optional)
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmindepth\fR (u32, optional): Number of confirmations required before we consider the channel active.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreserve\fR (sat, optional): The amount we want the peer to maintain on its side of the channel. It can be a whole number, a whole number ending in \fIsat\fR, a whole number ending in \fI000msat\fR, or a number with 1 to 8 decimal places ending in \fIbtc\fR. The default is 1% of the funding amount.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_type\fR (array of u32s, optional) \fI(added v24.02)\fR:
+.RS
+.IP "\(bu" 2
+(u32, optional): Represents the explicit channel type to request. There is currently no sanity checking on this value so if you use strange values and your channel breaks, you get to keep both pieces. BOLT 2 defines the following value types:
+\(ga\(ga
+The currently defined basic types are:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_static_remotekey\fR (bit 12).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCoption_anchors\fR and \fCoption_static_remotekey\fR (bits 22 and 12).
+.RE
+.IP
+Each basic type has the following variations allowed:
+- \fCoption_scid_alias\fR (bit 46).
+- \fCoption_zeroconf\fR (bit 50).
+\(ga\(ga
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBtx\fR (hex): The raw transaction which funded the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtxid\fR (txid): The txid of the transaction which funded the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBoutnum\fR (u32): The 0-based output index showing which output funded the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_id\fR (hash): The channel_id of the resulting channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_type\fR (object): Channel_type as negotiated with peer. \fI(added v24.02)\fR:
+.RS
+.IP "\(bu" 2
+\fBbits\fR (array of u32s): Each bit set in this channel_type. \fI(added v24.02)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(u32, optional): Bit number.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnames\fR (array of strings): Feature name for each bit set in this channel_type. Note that \fIanchors_zero_fee_htlc_tx\fR is a deprecated synonym for \fIanchors\fR. \fI(added v24.02)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(string, optional) (one of \(dqstatic_remotekey/even\(dq, \(dqanchor_outputs/even\(dq, \(dqanchors_zero_fee_htlc_tx/even\(dq, \(dqanchors/even\(dq, \(dqscid_alias/even\(dq, \(dqzeroconf/even\(dq): Name of feature bit.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBclose_to\fR (hex, optional): The raw scriptPubkey which mutual close will go to; only present if \fIclose_to\fR parameter was specified and peer supports \fCoption_upfront_shutdown_script\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmindepth\fR (u32, optional): Number of confirmations before we consider the channel active.
+.SH
+ERRORS
+.LP
+The following error codes may occur:
+.IP "\(bu" 2
+-1: Catchall nonspecific error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+300: The maximum allowed funding amount is exceeded.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+301: There are not enough funds in the internal wallet (including fees) to create the transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+302: The output amount is too small, and would be considered dust.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+303: Broadcasting of the funding transaction failed, the internal call to bitcoin-cli returned with an error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+313: The \fCmin-emergency-msat\fR reserve not be preserved (and we have or are opening anchor channels).
+.LP
+Failure may also occur if \fBlightningd\fR and the peer cannot agree on channel parameters (funding limits, channel reserves, fees, etc.).
+.SH
+SEE ALSO
+.LP
+lightning-connect(7), lightning-listfunds(), lightning-listpeers(7), lightning-feerates(7), lightning-multifundchannel(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli fundchannel -k \(dqid\(dq=\(dq032cf15d1ad9c4a08d26eab1918f732d8ef8fdc6abb9640bf3db174372c491304e\(dq \(dqamount\(dq=1000000 \(dqannounce\(dq=True
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:fundchannel#1\(dq,
+  \(dqmethod\(dq: \(dqfundchannel\(dq,
+  \(dqparams\(dq: {
+    \(dqid\(dq: \(dq032cf15d1ad9c4a08d26eab1918f732d8ef8fdc6abb9640bf3db174372c491304e\(dq,
+    \(dqamount\(dq: 1000000,
+    \(dqannounce\(dq: true
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqtx\(dq: \(dq02000000000101a4f6a433b1c2625323c18bc25f880c3e7960722d9ca353d7ff5c2a2132d56a380000000000fdffffff0240420f0000000000220020b41521751a8eb257315f73a531763071cc39b7cece470f630fd5149fe7b7057a816cdc0b00000000225120a5410daebf4fc3cba618a840af497fbec4c3a084534f2b7b6a7d30bf35f8f566024730440220700ee63053ba1fea998685e721016c15cf7809fd77698560230457e122566f220220181aaa01f472ec575edc532bc612c749e7a3829f5616fc3289fd4dc7d96e98d8012102c8a8f25ed135cd671c88bd4e407bb3746678cfacbcf65ce89f8efc2aa0abe53596000000\(dq,
+  \(dqtxid\(dq: \(dq8326851788c6da23bc883c960affc6126f766348c131eda53d73bc06f0bd90ff\(dq,
+  \(dqchannel_id\(dq: \(dq1267da6521b372d7c6407a74066f7a3a5bc3489bbda5eb9f0e990e1e913e2eb9\(dq,
+  \(dqchannel_type\(dq: {
+    \(dqbits\(dq: [
+      12,
+      22
+    ],
+    \(dqnames\(dq: [
+      \(dqstatic_remotekey/even\(dq,
+      \(dqanchors/even\(dq
+    ]
+  },
+  \(dqoutnum\(dq: 0
+}
+.EE
+.PP
+\fBExample 2\fR: This example shows how to to open new channel with peer 0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518 from one whole utxo c8afe317789f3ecbd52893d2ac08be7499486df5a03c95ad063e395e931eb50a:1 (you can use \fBlistfunds\fR command to get txid and vout):
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli fundchannel -k \(dqid\(dq=\(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq \(dqamount\(dq=\(dqall\(dq \(dqfeerate\(dq=\(dqnormal\(dq \(dqpush_msat\(dq=100000 \(dqutxos\(dq='[\(dqc8afe317789f3ecbd52893d2ac08be7499486df5a03c95ad063e395e931eb50a:1\(dq]'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:fundchannel#2\(dq,
+  \(dqmethod\(dq: \(dqfundchannel\(dq,
+  \(dqparams\(dq: {
+    \(dqid\(dq: \(dq0266e4598d1d3c415f572a8488830b60f7e744ed9235eb0b1ba93283b315c03518\(dq,
+    \(dqamount\(dq: \(dqall\(dq,
+    \(dqfeerate\(dq: \(dqnormal\(dq,
+    \(dqpush_msat\(dq: 100000,
+    \(dqutxos\(dq: [
+      \(dqc8afe317789f3ecbd52893d2ac08be7499486df5a03c95ad063e395e931eb50a:1\(dq
+    ]
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqtx\(dq: \(dq020000000001010ab51e935e393e06ad953ca0f56d489974be08acd29328d5cb3e9f7817e3afc80100000000fdffffff01cbb3eb0b00000000220020752dd5af63b98ff64fedf94683b0306c43f6eec74fbfe917639735b305e1b6d9024730440220431a00efd961f417160bd7180970a61b57c01b7c1e082d41429bb0c4e220d4180220542d0c9a1a59048751364b0ede571117fd8abdbf63d83d67a181c17ea3d3ef9e0121024740cce0e548f4ffe80c9914e43444d8e66ee8991dc9d93ec56dff4c56b933159a000000\(dq,
+  \(dqtxid\(dq: \(dq20bbe695f309285479e6b63b8ab4346ce66b2db7018485e09d59175cec6156b1\(dq,
+  \(dqchannel_id\(dq: \(dq222d999f537e32e9458c5db17a63e012dcced61340de06fda5bc30566270b0aa\(dq,
+  \(dqchannel_type\(dq: {
+    \(dqbits\(dq: [
+      12,
+      22
+    ],
+    \(dqnames\(dq: [
+      \(dqstatic_remotekey/even\(dq,
+      \(dqanchors/even\(dq
+    ]
+  },
+  \(dqoutnum\(dq: 0
+}
+.EE
+.PP

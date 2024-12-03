@@ -1,0 +1,153 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-BKPR-LISTBALANCES" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-bkpr-listbalances -- Command for listing current channel + wallet balances
+.SH
+SYNOPSIS
+.LP
+\fBbkpr-listbalances\fR 
+.SH
+DESCRIPTION
+.LP
+The \fBbkpr-listbalances\fR RPC command is a list of all current and historical account balances. An account is either the on-chain \fIwallet\fR or a channel balance. Any funds sent to an \fIexternal\fR account will not be accounted for here.
+.PP
+Note that any channel that was recorded will be listed. Closed channel balances will be 0msat.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBaccounts\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBaccount\fR (string): The account name. If the account is a channel, the channel_id.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBbalances\fR (array of objects):
+.RS
+.IP "\(bu" 2
+\fBbalance_msat\fR (msat): Current account balance.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcoin_type\fR (string): Coin type, same as HRP for bech32.
+.RE
+.LP
+If \fBpeer_id\fR is present:
+- \fBpeer_id\fR (pubkey): Node id for the peer this account is with.
+- \fBwe_opened\fR (boolean): Did we initiate this account open (open the channel).
+- \fBaccount_closed\fR (boolean): 
+.IP "\(bu" 2
+\fBaccount_resolved\fR (boolean): Has this channel been closed and all outputs resolved?
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBresolved_at_block\fR (u32, optional): Blockheight account resolved on chain.
+.SH
+AUTHOR
+.LP
+Lisa Neigut <\fIniftynei@gmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-bkpr-listincome(7), lightning-listfunds(7), lightning-bkpr-listaccountevents(7), lightning-bkpr-channelsapy(7), lightning-listpeers(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli bkpr-listbalances
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:bkpr-listbalances#1\(dq,
+  \(dqmethod\(dq: \(dqbkpr-listbalances\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqaccounts\(dq: [
+    {
+      \(dqaccount\(dq: \(dqwallet\(dq,
+      \(dqbalances\(dq: [
+        {
+          \(dqbalance_msat\(dq: 202498294000,
+          \(dqcoin_type\(dq: \(dqbcrt\(dq
+        }
+      ]
+    },
+    {
+      \(dqaccount\(dq: \(dqa397dd9b3e44afcb67f3f3ce1d649b74a8ade63e35505985e4cc1828634f69a2\(dq,
+      \(dqpeer_id\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqwe_opened\(dq: false,
+      \(dqaccount_closed\(dq: true,
+      \(dqaccount_resolved\(dq: true,
+      \(dqresolved_at_block\(dq: 121,
+      \(dqbalances\(dq: [
+        {
+          \(dqbalance_msat\(dq: 0,
+          \(dqcoin_type\(dq: \(dqbcrt\(dq
+        }
+      ]
+    },
+    {
+      \(dqaccount\(dq: \(dq21bd30cac60f477f2c4267220b1702a6ec5780db34f9934fa94b8c0508bf3357\(dq,
+      \(dqpeer_id\(dq: \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+      \(dqwe_opened\(dq: true,
+      \(dqaccount_closed\(dq: true,
+      \(dqaccount_resolved\(dq: false,
+      \(dqbalances\(dq: [
+        {
+          \(dqbalance_msat\(dq: 0,
+          \(dqcoin_type\(dq: \(dqbcrt\(dq
+        }
+      ]
+    },
+    {
+      \(dqaccount\(dq: \(dqecabe6d86abdd57565b3fb7e7c5d724e60ca1a07633951769b5dbfa48dc884b3\(dq,
+      \(dqpeer_id\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqwe_opened\(dq: false,
+      \(dqaccount_closed\(dq: false,
+      \(dqaccount_resolved\(dq: false,
+      \(dqbalances\(dq: [
+        {
+          \(dqbalance_msat\(dq: 0,
+          \(dqcoin_type\(dq: \(dqbcrt\(dq
+        }
+      ]
+    },
+    {
+      \(dqaccount\(dq: \(dq7512083907c74ed3a045e9bf772b3d72948eb93daf84a1cee57108800451aaf2\(dq,
+      \(dqpeer_id\(dq: \(dq0382ce59ebf18be7d84677c2e35f23294b9992ceca95491fcf8a56c6cb2d9de199\(dq,
+      \(dqwe_opened\(dq: true,
+      \(dqaccount_closed\(dq: false,
+      \(dqaccount_resolved\(dq: false,
+      \(dqbalances\(dq: [
+        {
+          \(dqbalance_msat\(dq: 1000000000,
+          \(dqcoin_type\(dq: \(dqbcrt\(dq
+        }
+      ]
+    }
+  ]
+}
+.EE
+.PP

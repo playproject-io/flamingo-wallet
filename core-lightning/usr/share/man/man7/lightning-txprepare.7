@@ -1,0 +1,159 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-TXPREPARE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-txprepare -- Command to prepare to withdraw funds from the internal wallet
+.SH
+SYNOPSIS
+.LP
+\fBtxprepare\fR \fIoutputs\fR [\fIfeerate\fR] [\fIminconf\fR] [\fIutxos\fR] 
+.SH
+DESCRIPTION
+.LP
+The \fBtxprepare\fR RPC command creates an unsigned transaction which spends funds from Core Lightning's internal wallet to the outputs specified in \fIoutputs\fR.
+.PP
+\fBtxprepare\fR is similar to the first part of a \fBwithdraw\fR command, but supports multiple outputs and uses \fIoutputs\fR as parameter. The second part is provided by \fBtxsend\fR.
+.IP "\(bu" 2
+\fBoutputs\fR (array of outputdescs): Format is like: [{destination1: amount1}, {destination2: amount2}] or [{destination: \fIall\fR}]. It supports any number of \fBconfirmed\fR outputs.:
+.RS
+.IP "\(bu" 2
+(outputdesc, optional)
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeerate\fR (feerate, optional): Used for the transaction as initial feerate. The default is \fInormal\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBminconf\fR (u32, optional): The minimum number of confirmations that used outputs should have. The default is 1.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fButxos\fR (array of outpoints, optional): To be used to fund the transaction, as an array of \fCtxid:vout\fR. These must be drawn from the node's available UTXO set.:
+.RS
+.IP "\(bu" 2
+(outpoint, optional)
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBpsbt\fR (string): The PSBT representing the unsigned transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBunsigned_tx\fR (hex): The unsigned transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtxid\fR (txid): The transaction id of \fIunsigned_tx\fR; you hand this to lightning-txsend(7) or lightning-txdiscard(7), as the inputs of this transaction are reserved.
+.SH
+ERRORS
+.LP
+On failure, an error is reported and the transaction is not created.
+.IP "\(bu" 2
+-1: Catchall nonspecific error.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+301: There are not enough funds in the internal wallet (including fees) to create the transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+302: The dust limit is not met.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-withdraw(7), lightning-txsend(7), lightning-txdiscard(7), lightning-feerates(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli txprepare \(dq[{'bcrt1q5ptrvwlgcldm2ygf3nzsl09zfpp7dmtduqlczer97xvc4x5z5zwsc2ulv4': 16777216}]\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:txprepare#1\(dq,
+  \(dqmethod\(dq: \(dqtxprepare\(dq,
+  \(dqparams\(dq: [
+    [
+      {
+        \(dqbcrt1q5ptrvwlgcldm2ygf3nzsl09zfpp7dmtduqlczer97xvc4x5z5zwsc2ulv4\(dq: 16777216
+      }
+    ]
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqunsigned_tx\(dq: \(dq0200000001974bc23173b7bca9b060dac12abd1bb158e8ed69a3e74d4f6af5919b15f5772c0100000000fdffffff020000000100000000220020a056363be8c7dbb511098cc50fbca24843e6ed6de03f816465f1998a9a82a09d4183980000000000225120f1393467c717cd50de2760167d4311141a8f750c89f54fd2c900601a7da8434c95000000\(dq,
+  \(dqtxid\(dq: \(dqcafef1e6936d05584c8406e9ec5e9631b03513fe8b2a0444c5824e1a1f3d7c67\(dq,
+  \(dqpsbt\(dq: \(dqcHNidP8BAgQCAAAAAQMElQAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAFpz79e9wou5mbmtaiB+6WfRTf8SpZxmrd6n+rIFcWewQAAAAAA/f///wLS79/eAAAAABYAFE35CMxYA4yQx9XLuFj0/q5uNmligJaYAQAAAAAWABT/hTPq8LE5vAc9KiJjjmygoIN81UsAAAABAR+AlpgBAAAAABYAFP+FM+rwsTm8Bz0qImOObKCgg3zVAQ4gl0vCMXO3vKmwYNrBKr0bsVjo7Wmj501PavWRmxX1dywBDwQBAAAAARAE/f///wABAwgAAAABAAAAAAEEIgAgoFY2O+jH27URCYzFD7yiSEPm7W3gP4FkZfGZipqCoJ0AAQMIQYOYAAAAAAABBCJRIPE5NGfHF81Q3idgFn1DERQaj3UMifVP0skAYBp9qENMAA==\(dq
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli txprepare -k \(dqoutputs\(dq='[{\(dqbcrt1q4hz6a4gtecfmy8z870cwkq2gzc0t7n9u9pu23689u55ghwewemqsv4v2zs\(dq: 16777216}]'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:txprepare#2\(dq,
+  \(dqmethod\(dq: \(dqtxprepare\(dq,
+  \(dqparams\(dq: {
+    \(dqoutputs\(dq: [
+      {
+        \(dqbcrt1q4hz6a4gtecfmy8z870cwkq2gzc0t7n9u9pu23689u55ghwewemqsv4v2zs\(dq: 16777216
+      }
+    ]
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqunsigned_tx\(dq: \(dq0200000001974bc23173b7bca9b060dac12abd1bb158e8ed69a3e74d4f6af5919b15f5772c0100000000fdffffff020000000100000000220020adc5aed50bce13b21c47f3f0eb0148161ebf4cbc2878a8e8e5e5288bbb2ecec1418398000000000022512081da0d3e3051135a89e2f9d85e2eadf661f959bfb05e671097854672cfd0ac7d95000000\(dq,
+  \(dqtxid\(dq: \(dqed6c309a10273aa036d29b71cf70202291d4d4b72be353ac410e1678ecfbf74e\(dq,
+  \(dqpsbt\(dq: \(dqcHNidP8BAgQCAAAAAQMElQAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQBxAgAAAAFpz79e9wou5mbmtaiB+6WfRTf8SpZxmrd6n+rIFcWewQAAAAAA/f///wLS79/eAAAAABYAFE35CMxYA4yQx9XLuFj0/q5uNmligJaYAQAAAAAWABT/hTPq8LE5vAc9KiJjjmygoIN81UsAAAABAR+AlpgBAAAAABYAFP+FM+rwsTm8Bz0qImOObKCgg3zVAQ4gl0vCMXO3vKmwYNrBKr0bsVjo7Wmj501PavWRmxX1dywBDwQBAAAAARAE/f///wABAwgAAAABAAAAAAEEIgAgrcWu1QvOE7IcR/Pw6wFIFh6/TLwoeKjo5eUoi7suzsEAAQMIQYOYAAAAAAABBCJRIIHaDT4wURNaieL52F4urfZh+Vm/sF5nEJeFRnLP0Kx9AA==\(dq
+}
+.EE
+.PP

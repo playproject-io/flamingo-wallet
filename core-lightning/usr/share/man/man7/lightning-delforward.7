@@ -1,0 +1,107 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-DELFORWARD" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-delforward -- Command for removing a forwarding entry
+.SH
+SYNOPSIS
+.LP
+\fBdelforward\fR \fIin_channel\fR \fIin_htlc_id\fR \fIstatus\fR 
+.SH
+DESCRIPTION
+.LP
+The \fBdelforward\fR RPC command removes a single forward from \fBlistforwards\fR, using the uniquely-identifying \fIin_channel\fR and \fIin_htlc_id\fR (and, as a sanity check, the \fIstatus\fR) given by that command.
+.PP
+This command is mainly used by the \fIautoclean\fR plugin (see lightningd- config(7)), As these database entries are only kept for your own analysis, removing them has no effect on the running of your node.
+.IP "\(bu" 2
+\fBin_channel\fR (short_channel_id): Only the matching forwards on the given inbound channel are deleted. Note: for \fBlistforwards\fR entries without an \fIin_htlc_id\fR entry (no longer created in v22.11, but can exist from older versions), a value of 18446744073709551615 can be used, but then it will delete \fIall\fR entries without \fIin_htlc_id\fR for this \fIin_channel\fR and \fIstatus\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBin_htlc_id\fR (u64): The unique HTLC id the sender gave this (not present if incoming channel was closed before upgrade to v22.11).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstatus\fR (string) (one of \(dqsettled\(dq, \(dqlocal_failed\(dq, \(dqfailed\(dq): The status of the forward to delete. You cannot delete forwards which have status \fIoffered\fR (i.e. are currently active).
+.SH
+RETURN VALUE
+.LP
+On success, an empty object is returned.
+.SH
+ERRORS
+.LP
+The following errors may be reported:
+.IP "\(bu" 2
+1401: The forward specified does not exist.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-autoclean(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli delforward -k \(dqin_channel\(dq=\(dq109x1x1\(dq \(dqin_htlc_id\(dq=4 \(dqstatus\(dq=\(dqlocal_failed\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:delforward#1\(dq,
+  \(dqmethod\(dq: \(dqdelforward\(dq,
+  \(dqparams\(dq: {
+    \(dqin_channel\(dq: \(dq109x1x1\(dq,
+    \(dqin_htlc_id\(dq: 4,
+    \(dqstatus\(dq: \(dqlocal_failed\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli delforward \(dq109x1x1\(dq \(dq19\(dq \(dqfailed\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:delforward#2\(dq,
+  \(dqmethod\(dq: \(dqdelforward\(dq,
+  \(dqparams\(dq: [
+    \(dq109x1x1\(dq,
+    19,
+    \(dqfailed\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{}
+.EE
+.PP

@@ -1,0 +1,151 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-DATASTOREUSAGE" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-datastoreusage -- Command for listing datastore usage info
+.SH
+SYNOPSIS
+.LP
+\fBdatastoreusage\fR [\fIkey\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.11.
+.PP
+The \fBdatastoreusage\fR RPC command allows the caller to fetch the total bytes that are stored under a certain \fIkey\fR (or from the root), including the size of the \fIkey\fR.
+.PP
+All descendants of the \fIkey\fR (or root) are taken into account.
+.IP "\(bu" 2
+\fBkey\fR (one of, optional):
+.RS
+.IP "\(bu" 2
+(array of strings): Key is an array of values (though a single value is treated as a one-element array). Used as the starting point to traverse the datastore.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(string, optional)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(string)
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBdatastoreusage\fR is returned. It is an object containing:
+.IP "\(bu" 2
+\fBkey\fR (string): The key from which the database was traversed. \fI(added v23.11)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtotal_bytes\fR (u64): The total bytes that are stored under the \fIkey\fR, including the all descendants data and the size of the keys themselves. \fI(added v23.11)\fR
+.SH
+AUTHOR
+.LP
+Peter Neuroth <\fIpet.v.ne@gmail.com\fR> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-datastore(7), lightning-deldatastore(7), lightning-listdatastore(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli datastoreusage
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:datastoreusage#1\(dq,
+  \(dqmethod\(dq: \(dqdatastoreusage\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqdatastoreusage\(dq: {
+    \(dqkey\(dq: \(dq[]\(dq,
+    \(dqtotal_bytes\(dq: 55
+  }
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli datastoreusage -k \(dqkey\(dq='[\(dqtest\(dq, \(dqname\(dq]'
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:datastoreusage#2\(dq,
+  \(dqmethod\(dq: \(dqdatastoreusage\(dq,
+  \(dqparams\(dq: {
+    \(dqkey\(dq: [
+      \(dqtest\(dq,
+      \(dqname\(dq
+    ]
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqdatastoreusage\(dq: {
+    \(dqkey\(dq: \(dq[test,name]\(dq,
+    \(dqtotal_bytes\(dq: 33
+  }
+}
+.EE
+.PP
+\fBExample 3\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli datastoreusage -k \(dqkey\(dq=\(dqotherkey\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:datastoreusage#3\(dq,
+  \(dqmethod\(dq: \(dqdatastoreusage\(dq,
+  \(dqparams\(dq: {
+    \(dqkey\(dq: \(dqotherkey\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqdatastoreusage\(dq: {
+    \(dqkey\(dq: \(dq[otherkey]\(dq,
+    \(dqtotal_bytes\(dq: 14
+  }
+}
+.EE
+.PP

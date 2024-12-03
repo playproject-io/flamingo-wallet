@@ -1,0 +1,163 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-SPLICE_INIT" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-splice_init -- Command to initiate a channel to a peer
+.SH
+SYNOPSIS
+.LP
+\fB(WARNING: experimental-splicing only)\fR
+.PP
+\fBsplice_init\fR \fIchannel_id\fR \fIrelative_amount\fR [\fIinitialpsbt\fR] [\fIfeerate_per_kw\fR] [\fIforce_feerate\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.08.
+.PP
+\fCsplice_init\fR is a low level RPC command which initiates a channel splice for a given channel specified by \fCchannel_id\fR.
+.IP "\(bu" 2
+\fBchannel_id\fR (hash): The channel id of the channel to be spliced.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBrelative_amount\fR (integer): A positive or negative amount of satoshis to add or subtract from the channel. Note you may need to add a double dash (--) after splice_init if using a negative \fIrelative_amount\fR so it is not interpretted as a command modifier. For example: \fCshell $ lightning-cli splice_init -- $CHANNEL_ID -100000\fR.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBinitialpsbt\fR (string, optional): The (optional) base 64 encoded PSBT to begin with. If not specified, one will be generated automatically.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeerate_per_kw\fR (u32, optional): The miner fee we promise our peer to pay for our side of the splice transaction. It is calculated by \fCfeerate_per_kw\fR * our_bytes_in_splice_tx / 1000.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBforce_feerate\fR (boolean, optional): By default splices will fail if the fee provided looks too high. This is to protect against accidentally setting your fee higher than intended. Set \fCforce_feerate\fR to true to skip this saftey check.
+.SH
+USAGE
+.LP
+Here is an example set of splice commands that will splice in 100,000 sats to the first channel that comes out of \fClistpeerchannels\fR.
+.PP
+The example assumes you already have at least one confirmed channel.
+.PP
+1: Get the channel id of the first channel.
+.LP
+.EX
+CHANNEL_ID=$(echo $(lightning-cli listpeerchannels) | jq -r \(dq.channels[0].channel_id\(dq)
+.EE
+.PP
+2: Get the PSBT from fundpsbt.
+.LP
+.EX
+INITIALPSBT=$(echo $(lightning-cli fundpsbt -k satoshi=100000sat feerate=urgent startweight=800 excess_as_change=true) | jq -r \(dq.psbt\(dq)
+.EE
+.PP
+3: Initiate the splice by passing channel id and initialpsbt received from above steps.
+.LP
+.EX
+PSBT_SPLICE_INIT=$(echo $(lightning-cli splice_init $CHANNEL_ID 100000 $INITIALPSBT) | jq -r \(dq.psbt\(dq)
+.EE
+.PP
+4: Update the PSBT with the splice_update command.
+.LP
+.EX
+PSBT_SPLICE_UPDATE=$(echo $(lightning-cli splice_update $CHANNEL_ID $PSBT_SPLICE_INIT) | jq -r \(dq.psbt\(dq)
+.EE
+.PP
+5: Sign the updated PSBT.
+.LP
+.EX
+SIGNPSBT=$(echo $(lightning-cli signpsbt -k psbt=\(dq$PSBT_SPLICE_UPDATE\(dq) | jq -r \(dq.signed_psbt\(dq)
+.EE
+.PP
+6: Finally, call splice_signed with channel id and signed PSBT parameters.
+.LP
+.EX
+$ lightning-cli splice_signed $CHANNEL_ID $SIGNPSBT
+.EE
+.SH
+RETURN VALUE
+.LP
+On success, an object is returned, containing:
+.IP "\(bu" 2
+\fBpsbt\fR (string): The (incomplete) PSBT of the splice transaction.
+.SH
+AUTHOR
+.LP
+Dusty <<@dusty_daemon>> is mainly responsible.
+.SH
+SEE ALSO
+.LP
+lightning-splice_signed(7), lightning-splice_update(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli splice_init -k \(dqchannel_id\(dq=\(dqf62126acb4e1a8113eb3ce40ed80e34a49d49b035cb9d36417b1c1333227112c\(dq \(dqrelative_amount\(dq=100000 \(dqinitialpsbt\(dq=\(dqcHNidP8BAF4CAAAAAfYhJqy04agRPrPOQO2A40pJ1JsDXLnTZBexwTMyJxEsAQAAAAD9////Ac652gsAAAAAIlEgj47URidVfbzMQq4BipxUdKmRKFeSxMqJHB9ZxWZdNGCSAAAAAAEAiQIAAAAB+fmfTbLExUIRcwBZD0qxCoNAHIDe7sEfYHguS6nfkn4AAAAAAP3///8CQEIPAAAAAAAiACCT3t0MJlvKhoV20+4uWe67sg68KW5Y9+3Kk9XursCJloFs3AsAAAAAIlEgW7Q7f9oXFdDdAUFoJaGFIqLX7LFkdbiHgOj6/Bxz74mNAAAAAQErgWzcCwAAAAAiUSBbtDt/2hcV0N0BQWgloYUiotfssWR1uIeA6Pr8HHPviQAA\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:splice_init#1\(dq,
+  \(dqmethod\(dq: \(dqsplice_init\(dq,
+  \(dqparams\(dq: {
+    \(dqchannel_id\(dq: \(dqf62126acb4e1a8113eb3ce40ed80e34a49d49b035cb9d36417b1c1333227112c\(dq,
+    \(dqrelative_amount\(dq: 100000,
+    \(dqinitialpsbt\(dq: \(dqcHNidP8BAF4CAAAAAfYhJqy04agRPrPOQO2A40pJ1JsDXLnTZBexwTMyJxEsAQAAAAD9////Ac652gsAAAAAIlEgj47URidVfbzMQq4BipxUdKmRKFeSxMqJHB9ZxWZdNGCSAAAAAAEAiQIAAAAB+fmfTbLExUIRcwBZD0qxCoNAHIDe7sEfYHguS6nfkn4AAAAAAP3///8CQEIPAAAAAAAiACCT3t0MJlvKhoV20+4uWe67sg68KW5Y9+3Kk9XursCJloFs3AsAAAAAIlEgW7Q7f9oXFdDdAUFoJaGFIqLX7LFkdbiHgOj6/Bxz74mNAAAAAQErgWzcCwAAAAAiUSBbtDt/2hcV0N0BQWgloYUiotfssWR1uIeA6Pr8HHPviQAA\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqpsbt\(dq: \(dqcHNidP8BAgQCAAAAAQMEkgAAAAEEAQIBBQECAQYBAwH7BAIAAAAAAQCJAgAAAAH5+Z9NssTFQhFzAFkPSrEKg0AcgN7uwR9geC5Lqd+SfgAAAAAA/f///wJAQg8AAAAAACIAIJPe3QwmW8qGhXbT7i5Z7ruyDrwpblj37cqT1e6uwImWgWzcCwAAAAAiUSBbtDt/2hcV0N0BQWgloYUiotfssWR1uIeA6Pr8HHPviY0AAAABASuBbNwLAAAAACJRIFu0O3/aFxXQ3QFBaCWhhSKi1+yxZHW4h4Do+vwcc++JAQ4g9iEmrLThqBE+s85A7YDjSknUmwNcudNkF7HBMzInESwBDwQBAAAAARAE/f///wz8CWxpZ2h0bmluZwEImfI55kWjFBwAAQCJAgAAAAH5+Z9NssTFQhFzAFkPSrEKg0AcgN7uwR9geC5Lqd+SfgAAAAAA/f///wJAQg8AAAAAACIAIJPe3QwmW8qGhXbT7i5Z7ruyDrwpblj37cqT1e6uwImWgWzcCwAAAAAiUSBbtDt/2hcV0N0BQWgloYUiotfssWR1uIeA6Pr8HHPviY0AAAABAStAQg8AAAAAACIAIJPe3QwmW8qGhXbT7i5Z7ruyDrwpblj37cqT1e6uwImWAQVHUiECVw7AtutUVmMwIYOmLqx10I/e62TzE1IZIGXWAcjKUh0hAmaGfDQrglCra07axtuuL95TeCtpzRcTmUn71PIISH/yUq4BDiD2ISastOGoET6zzkDtgONKSdSbA1y502QXscEzMicRLAEPBAAAAAABEAQAAAAADPwJbGlnaHRuaW5nAQijTD4R+uEvhAABAwjOudoLAAAAAAEEIlEgj47URidVfbzMQq4BipxUdKmRKFeSxMqJHB9ZxWZdNGAM/AlsaWdodG5pbmcBCI/PBFM/C09aAAEDCAAAAAAAAAAAAQQiACCT3t0MJlvKhoV20+4uWe67sg68KW5Y9+3Kk9XursCJlgz8CWxpZ2h0bmluZwEIreWkThWNrsoA\(dq
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli splice_init \(dqf62126acb4e1a8113eb3ce40ed80e34a49d49b035cb9d36417b1c1333227112c\(dq \(dq-105000\(dq \(dqcHNidP8BAgQCAAAAAQMElAAAAAEEAQABBQEBAQYBAwH7BAIAAAAAAQMIoIYBAAAAAAABBCJRIMTSgkFfmoHRjgi2GaGdEWuGVssb9JPl9UC797egWEzaAA==\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:splice_init#2\(dq,
+  \(dqmethod\(dq: \(dqsplice_init\(dq,
+  \(dqparams\(dq: [
+    \(dqf62126acb4e1a8113eb3ce40ed80e34a49d49b035cb9d36417b1c1333227112c\(dq,
+    -105000,
+    \(dqcHNidP8BAgQCAAAAAQMElAAAAAEEAQABBQEBAQYBAwH7BAIAAAAAAQMIoIYBAAAAAAABBCJRIMTSgkFfmoHRjgi2GaGdEWuGVssb9JPl9UC797egWEzaAA==\(dq
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqpsbt\(dq: \(dqcHNidP8BAgQCAAAAAQMElAAAAAEEAQEBBQECAQYBAwH7BAIAAAAAAQCyAgAAAAL2ISastOGoET6zzkDtgONKSdSbA1y502QXscEzMicRLAEAAAAA/f////YhJqy04agRPrPOQO2A40pJ1JsDXLnTZBexwTMyJxEsAAAAAAAAAAAAAs652gsAAAAAIlEgj47URidVfbzMQq4BipxUdKmRKFeSxMqJHB9ZxWZdNGDgyBAAAAAAACIAIJPe3QwmW8qGhXbT7i5Z7ruyDrwpblj37cqT1e6uwImWkgAAAAEBK+DIEAAAAAAAIgAgk97dDCZbyoaFdtPuLlnuu7IOvCluWPftypPV7q7AiZYBBUdSIQJXDsC261RWYzAhg6YurHXQj97rZPMTUhkgZdYByMpSHSECZoZ8NCuCUKtrTtrG264v3lN4K2nNFxOZSfvU8ghIf/JSrgEOIJW7FYF67zRaxARLQco1KmOXtFQY8yFwpGexdGngFEX4AQ8EAQAAAAEQBAAAAAAM/AlsaWdodG5pbmcBCF4tdoSn7LwCAAEDCAAAAAAAAAAAAQQiACCT3t0MJlvKhoV20+4uWe67sg68KW5Y9+3Kk9XursCJlgz8CWxpZ2h0bmluZwEIGQ1Quuj5CvAAAQMIoIYBAAAAAAABBCJRIMTSgkFfmoHRjgi2GaGdEWuGVssb9JPl9UC797egWEzaDPwJbGlnaHRuaW5nAQi4FyJ2dePgEAA=\(dq
+}
+.EE
+.PP

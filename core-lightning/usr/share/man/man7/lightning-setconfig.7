@@ -1,0 +1,184 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-SETCONFIG" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-setconfig -- Dynamically change some config options
+.SH
+SYNOPSIS
+.LP
+\fBsetconfig\fR \fIconfig\fR [\fIval\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.08.
+.PP
+The \fBsetconfig\fR RPC command allows you set the (dynamic) configuration option named by \fCconfig\fR: options which take a value (as separate from simple flag options) also need a \fCval\fR parameter.
+.PP
+This new value will \fIalso\fR be written at the end of the config file, for persistence across restarts (and any old value commented out).
+.PP
+You can see what options are dynamically adjustable using lightning- listconfigs(7). Note that you can also adjust existing options for stopped plugins; they will have an effect when the plugin is restarted.
+.IP "\(bu" 2
+\fBconfig\fR (string): Name of the config variable which should be set to the value of the variable.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBval\fR (one of, optional): Value of the config variable to be set or updated.:
+.RS
+.IP "\(bu" 2
+(string)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(integer)
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(boolean)
+.RE
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBconfig\fR is returned. It is an object containing:
+.IP "\(bu" 2
+\fBconfig\fR (string): Name of the config variable which was set.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsource\fR (string): Source of configuration setting (\fCfile\fR:\fClinenum\fR).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdynamic\fR (boolean) (always \fItrue\fR): Whether this option is settable via setconfig.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBplugin\fR (string, optional): The plugin this configuration setting is for.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBset\fR (boolean, optional): For simple flag options.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_str\fR (string, optional): For string options.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_msat\fR (msat, optional): For msat options.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_int\fR (integer, optional): For integer options.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBvalue_bool\fR (boolean, optional): For boolean options.
+.SH
+ERRORS
+.LP
+The following error codes may occur:
+.IP "\(bu" 2
+-32602: JSONRPC2_INVALID_PARAMS, i.e. the parameter is not dynamic, or the val was invalid.
+.SH
+AUTHOR
+.LP
+Rusty Russell <\fIrusty@rustcorp.com.au\fR> is mainly responsible for this feature.
+.SH
+SEE ALSO
+.LP
+lightningd-config(5), lightning-listconfigs(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli setconfig \(dqautoclean-expiredinvoices-age\(dq \(dq300\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:setconfig#1\(dq,
+  \(dqmethod\(dq: \(dqsetconfig\(dq,
+  \(dqparams\(dq: [
+    \(dqautoclean-expiredinvoices-age\(dq,
+    300
+  ]
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqconfig\(dq: {
+    \(dqconfig\(dq: \(dqautoclean-expiredinvoices-age\(dq,
+    \(dqvalue_int\(dq: 300,
+    \(dqsource\(dq: \(dq/tmp/.lightning/regtest/config:2\(dq,
+    \(dqplugin\(dq: \(dq/root/lightning/plugins/autoclean\(dq,
+    \(dqdynamic\(dq: true
+  }
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli setconfig -k \(dqconfig\(dq=\(dqmin-capacity-sat\(dq \(dqval\(dq=500000
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:setconfig#2\(dq,
+  \(dqmethod\(dq: \(dqsetconfig\(dq,
+  \(dqparams\(dq: {
+    \(dqconfig\(dq: \(dqmin-capacity-sat\(dq,
+    \(dqval\(dq: 500000
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqconfig\(dq: {
+    \(dqconfig\(dq: \(dqmin-capacity-sat\(dq,
+    \(dqvalue_int\(dq: 500000,
+    \(dqsource\(dq: \(dq/tmp/.lightning/regtest/config:4\(dq,
+    \(dqdynamic\(dq: true
+  }
+}
+.EE
+.PP

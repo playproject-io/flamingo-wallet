@@ -1,0 +1,1006 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.TH "LIGHTNING-LISTPEERCHANNELS" "7" "" "Core Lightning pre-v24.08" ""
+.SH
+NAME
+.LP
+lightning-listpeerchannels -- Command returning data on channels of connected lightning nodes
+.SH
+SYNOPSIS
+.LP
+\fBlistpeerchannels\fR [\fIid\fR] 
+.SH
+DESCRIPTION
+.LP
+Command \fIadded\fR in v23.02.
+.PP
+The \fBlistpeerchannels\fR RPC command returns list of this node's channels, with the possibility to filter them by peer's node id.
+.PP
+If no \fIid\fR is supplied, then channel data on all lightning nodes that are connected, or not connected but have open channels with this node, are returned.
+.IP "\(bu" 2
+\fBid\fR (pubkey, optional): If supplied, limits the channels to just the peer with the given ID, if it exists.
+.SH
+RETURN VALUE
+.LP
+On success, an object containing \fBchannels\fR is returned. It is an array of objects, where each object contains:
+.IP "\(bu" 2
+\fBpeer_id\fR (pubkey): Node Public key.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpeer_connected\fR (boolean): A boolean flag that is set to true if the peer is online.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstate\fR (string) (one of \(dqOPENINGD\(dq, \(dqCHANNELD_AWAITING_LOCKIN\(dq, \(dqCHANNELD_NORMAL\(dq, \(dqCHANNELD_SHUTTING_DOWN\(dq, \(dqCLOSINGD_SIGEXCHANGE\(dq, \(dqCLOSINGD_COMPLETE\(dq, \(dqAWAITING_UNILATERAL\(dq, \(dqFUNDING_SPEND_SEEN\(dq, \(dqONCHAIN\(dq, \(dqDUALOPEND_OPEN_INIT\(dq, \(dqDUALOPEND_AWAITING_LOCKIN\(dq, \(dqCHANNELD_AWAITING_SPLICE\(dq, \(dqDUALOPEND_OPEN_COMMITTED\(dq, \(dqDUALOPEND_OPEN_COMMIT_READY\(dq): The channel state, in particular \fCCHANNELD_NORMAL\fR means the channel can be used normally.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBopener\fR (string) (one of \(dqlocal\(dq, \(dqremote\(dq): Who initiated the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeatures\fR (array of strings):
+.RS
+.IP "\(bu" 2
+(string, optional) (one of \(dqoption_static_remotekey\(dq, \(dqoption_anchor_outputs\(dq, \(dqoption_anchors\(dq, \(dqoption_anchors_zero_fee_htlc_tx\(dq, \(dqoption_scid_alias\(dq, \(dqoption_zeroconf\(dq): BOLT #9 features which apply to this channel. Note that \fIanchors_zero_fee_htlc_tx\fR is a deprecated synonym for \fIanchors\fR.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreestablished\fR (boolean, optional): A boolean flag that is set to true if we have successfully exchanged reestablish messages with this connection. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBscratch_txid\fR (txid, optional): The txid we would use if we went onchain now.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_type\fR (object, optional): Channel_type as negotiated with peer. \fI(added v23.05)\fR:
+.RS
+.IP "\(bu" 2
+\fBbits\fR (array of u32s): Each bit set in this channel_type.:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(u32, optional): Bit number.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnames\fR (array of strings): Feature name for each bit set in this channel_type. Note that \fIanchors_zero_fee_htlc_tx\fR is a deprecated synonym for \fIanchors\fR.:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+(string, optional) (one of \(dqstatic_remotekey/even\(dq, \(dqanchor_outputs/even\(dq, \(dqanchors/even\(dq, \(dqanchors_zero_fee_htlc_tx/even\(dq, \(dqscid_alias/even\(dq, \(dqzeroconf/even\(dq): Name of feature bit.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBupdates\fR (object, optional): Latest gossip updates sent/received. \fI(added v24.02)\fR:
+.RS
+.IP "\(bu" 2
+\fBlocal\fR (object): Our gossip for channel. \fI(added v24.02)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_minimum_msat\fR (msat): Minimum msat amount we allow. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_maximum_msat\fR (msat): Maximum msat amount we allow. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcltv_expiry_delta\fR (u32): Blocks delay required between incoming and outgoing HTLCs. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_base_msat\fR (msat): Amount we charge to use the channel. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_proportional_millionths\fR (u32): Amount we charge to use the channel in parts-per-million. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBremote\fR (object, optional): Peer's gossip for channel. \fI(added v24.02)\fR:
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_minimum_msat\fR (msat): Minimum msat amount they allow. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlc_maximum_msat\fR (msat): Maximum msat amount they allow. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcltv_expiry_delta\fR (u32): Blocks delay required between incoming and outgoing HTLCs. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_base_msat\fR (msat): Amount they charge to use the channel. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_proportional_millionths\fR (u32): Amount they charge to use the channel in parts-per-million. \fI(added v24.02)\fR
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBignore_fee_limits\fR (boolean, optional): Set if we allow this peer to set fees to anything they want. \fI(added v23.08)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlost_state\fR (boolean, optional): Set if we are fallen behind i.e. lost some channel state. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeerate\fR (object, optional): Feerates for the current tx.:
+.RS
+.IP "\(bu" 2
+\fBperkw\fR (u32): Feerate per 1000 weight (i.e kSipa).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBperkb\fR (u32): Feerate per 1000 virtual bytes.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBowner\fR (string, optional): The current subdaemon controlling this connection.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBshort_channel_id\fR (short_channel_id, optional): The short_channel_id (once locked in).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBchannel_id\fR (hash, optional): The full channel_id (funding txid Xored with output number).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_txid\fR (txid, optional): ID of the funding transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_outnum\fR (u32, optional): The 0-based output number of the funding transaction which opens the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBinitial_feerate\fR (string, optional): For inflight opens, the first feerate used to initiate the channel open.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlast_feerate\fR (string, optional): For inflight opens, the most recent feerate used on the channel open.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnext_feerate\fR (string, optional): For inflight opens, the next feerate we'll use for the channel open.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnext_fee_step\fR (u32, optional): For inflight opens, the next feerate step we'll use for the channel open.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBinflight\fR (array of objects, optional): Current candidate funding transactions.:
+.RS
+.IP "\(bu" 2
+\fBfunding_txid\fR (txid): ID of the funding transaction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding_outnum\fR (u32): The 0-based output number of the funding transaction which opens the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfeerate\fR (string): The feerate for this funding transaction in per-1000-weight, with \fCkpw\fR appended.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtotal_funding_msat\fR (msat): Total amount in the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBsplice_amount\fR (integer): The amount of sats we're splicing in or out. \fI(added v23.08)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBour_funding_msat\fR (msat): Amount we have in the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBscratch_txid\fR (txid, optional): The commitment transaction txid we would use if we went onchain now.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBclose_to\fR (hex, optional): ScriptPubkey which we have to close to if we mutual close.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBprivate\fR (boolean, optional): If True, we will not announce this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcloser\fR (string, optional) (one of \(dqlocal\(dq, \(dqremote\(dq): Who initiated the channel close (only present if closing).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfunding\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBlocal_funds_msat\fR (msat): Amount of channel we funded.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBremote_funds_msat\fR (msat): Amount of channel they funded.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpushed_msat\fR (msat, optional): Amount pushed from opener to peer.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_paid_msat\fR (msat, optional): Amount we paid peer at open.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_rcvd_msat\fR (msat, optional): Amount we were paid by peer at open.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBto_us_msat\fR (msat, optional): How much of channel is owed to us.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmin_to_us_msat\fR (msat, optional): Least amount owed to us ever. If the peer were to successfully steal from us, this is the amount we would still retain.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax_to_us_msat\fR (msat, optional): Most amount owed to us ever. If we were to successfully steal from the peer, this is the amount we could potentially get.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtotal_msat\fR (msat, optional): Total amount in the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_base_msat\fR (msat, optional): Amount we charge to use the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBfee_proportional_millionths\fR (u32, optional): Amount we charge to use the channel in parts-per-million.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBdust_limit_msat\fR (msat, optional): Minimum amount for an output on the channel transactions.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax_total_htlc_in_msat\fR (msat, optional): Max amount accept in a single payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtheir_reserve_msat\fR (msat, optional): Minimum we insist they keep in channel. If they have less than this in the channel, they cannot send to us on that channel. The default is 1% of the total channel capacity.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBour_reserve_msat\fR (msat, optional): Minimum they insist we keep in channel. If you have less than this in the channel, you cannot send out via this channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBspendable_msat\fR (msat, optional): An estimate of the total we could send through channel (can be wrong because adding HTLCs requires an increase in fees paid to onchain miners, and onchain fees change dynamically according to onchain activity).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBreceivable_msat\fR (msat, optional): An estimate of the total peer could send through channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBminimum_htlc_in_msat\fR (msat, optional): The minimum amount HTLC we accept.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBminimum_htlc_out_msat\fR (msat, optional): The minimum amount HTLC we will send.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmaximum_htlc_out_msat\fR (msat, optional): The maximum amount HTLC we will send.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBtheir_to_self_delay\fR (u32, optional): The number of blocks before they can take their funds if they unilateral close.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBour_to_self_delay\fR (u32, optional): The number of blocks before we can take our funds if we unilateral close.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmax_accepted_htlcs\fR (u32, optional): Maximum number of incoming HTLC we will accept at once.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBalias\fR (object, optional):
+.RS
+.IP "\(bu" 2
+\fBlocal\fR (short_channel_id, optional): An alias assigned by this node to this channel, used for outgoing payments.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBremote\fR (short_channel_id, optional): An alias assigned by the remote node to this channel, usable in routehints and invoices.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstate_changes\fR (array of objects, optional): Prior state changes.:
+.RS
+.IP "\(bu" 2
+\fBtimestamp\fR (string): UTC timestamp of form YYYY-mm-ddTHH:MM:SS.%03dZ.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBold_state\fR (string) (one of \(dqOPENINGD\(dq, \(dqCHANNELD_AWAITING_LOCKIN\(dq, \(dqCHANNELD_NORMAL\(dq, \(dqCHANNELD_SHUTTING_DOWN\(dq, \(dqCLOSINGD_SIGEXCHANGE\(dq, \(dqCLOSINGD_COMPLETE\(dq, \(dqAWAITING_UNILATERAL\(dq, \(dqFUNDING_SPEND_SEEN\(dq, \(dqONCHAIN\(dq, \(dqDUALOPEND_OPEN_INIT\(dq, \(dqDUALOPEND_AWAITING_LOCKIN\(dq, \(dqDUALOPEND_OPEN_COMMITTED\(dq, \(dqDUALOPEND_OPEN_COMMIT_READY\(dq, \(dqCHANNELD_AWAITING_SPLICE\(dq): Previous state.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBnew_state\fR (string) (one of \(dqOPENINGD\(dq, \(dqCHANNELD_AWAITING_LOCKIN\(dq, \(dqCHANNELD_NORMAL\(dq, \(dqCHANNELD_SHUTTING_DOWN\(dq, \(dqCLOSINGD_SIGEXCHANGE\(dq, \(dqCLOSINGD_COMPLETE\(dq, \(dqAWAITING_UNILATERAL\(dq, \(dqFUNDING_SPEND_SEEN\(dq, \(dqONCHAIN\(dq, \(dqDUALOPEND_OPEN_INIT\(dq, \(dqDUALOPEND_AWAITING_LOCKIN\(dq, \(dqDUALOPEND_OPEN_COMMITTED\(dq, \(dqDUALOPEND_OPEN_COMMIT_READY\(dq, \(dqCHANNELD_AWAITING_SPLICE\(dq): New state.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBcause\fR (string) (one of \(dqunknown\(dq, \(dqlocal\(dq, \(dquser\(dq, \(dqremote\(dq, \(dqprotocol\(dq, \(dqonchain\(dq): What caused the change.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBmessage\fR (string): Human-readable explanation.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstatus\fR (array of strings, optional):
+.RS
+.IP "\(bu" 2
+(string, optional): Billboard log of significant changes.
+.RE
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBin_payments_offered\fR (u64, optional): Number of incoming payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBin_offered_msat\fR (msat, optional): Total amount of incoming payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBin_payments_fulfilled\fR (u64, optional): Number of successful incoming payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBin_fulfilled_msat\fR (msat, optional): Total amount of successful incoming payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBout_payments_offered\fR (u64, optional): Number of outgoing payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBout_offered_msat\fR (msat, optional): Total amount of outgoing payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBout_payments_fulfilled\fR (u64, optional): Number of successful outgoing payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBout_fulfilled_msat\fR (msat, optional): Total amount of successful outgoing payment attempts.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlast_stable_connection\fR (u64, optional): Last time we reestablished the open channel and stayed connected for 1 minute. \fI(added v24.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBhtlcs\fR (array of objects, optional): Current HTLCs in this channel.:
+.RS
+.IP "\(bu" 2
+\fBdirection\fR (string) (one of \(dqin\(dq, \(dqout\(dq): Whether it came from peer, or is going to peer. \fI(added v23.02)\fR
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBid\fR (u64): Unique ID for this htlc on this channel in this direction.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBamount_msat\fR (msat): Amount send/received for this HTLC.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBexpiry\fR (u32): Block this HTLC expires at (after which an \fCin\fR direction HTLC will be returned to the peer, an \fCout\fR returned to us). If this expiry is too close, lightningd(8) will automatically unilaterally close the channel in order to enforce the timeout onchain.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBpayment_hash\fR (hash): The hash of the payment_preimage which will prove payment.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBlocal_trimmed\fR (boolean, optional) (always \fItrue\fR): If this is too small to enforce onchain; it doesn't appear in the commitment transaction and will not be enforced in a unilateral close. Generally true if the HTLC (after subtracting onchain fees) is below the \fCdust_limit_msat\fR for the channel.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fBstatus\fR (string, optional): Set if this HTLC is currently waiting on a hook (and shows what plugin).
+.RE
+.IP
+If \fBdirection\fR is \(dqout\(dq:
+- \fBstate\fR (string) (one of \(dqSENT_ADD_HTLC\(dq, \(dqSENT_ADD_COMMIT\(dq, \(dqRCVD_ADD_REVOCATION\(dq, \(dqRCVD_ADD_ACK_COMMIT\(dq, \(dqSENT_ADD_ACK_REVOCATION\(dq, \(dqRCVD_REMOVE_HTLC\(dq, \(dqRCVD_REMOVE_COMMIT\(dq, \(dqSENT_REMOVE_REVOCATION\(dq, \(dqSENT_REMOVE_ACK_COMMIT\(dq, \(dqRCVD_REMOVE_ACK_REVOCATION\(dq): Status of the HTLC.
+.IP
+If \fBdirection\fR is \(dqin\(dq:
+- \fBstate\fR (string) (one of \(dqRCVD_ADD_HTLC\(dq, \(dqRCVD_ADD_COMMIT\(dq, \(dqSENT_ADD_REVOCATION\(dq, \(dqSENT_ADD_ACK_COMMIT\(dq, \(dqRCVD_ADD_ACK_REVOCATION\(dq, \(dqSENT_REMOVE_HTLC\(dq, \(dqSENT_REMOVE_COMMIT\(dq, \(dqRCVD_REMOVE_REVOCATION\(dq, \(dqRCVD_REMOVE_ACK_COMMIT\(dq, \(dqSENT_REMOVE_ACK_REVOCATION\(dq): Status of the HTLC.
+.LP
+If \fBpeer_connected\fR is \fItrue\fR:
+- \fBreestablished\fR (boolean, optional): True if we have successfully exchanged reestablish messages this connection.
+.PP
+If \fBclose_to\fR is present:
+- \fBclose_to_addr\fR (string, optional): The bitcoin address we will close to (present if close_to_addr is a standardized address).
+.PP
+If \fBscratch_txid\fR is present:
+- \fBlast_tx_fee_msat\fR (msat): Fee attached to this the current tx.
+.PP
+If \fBshort_channel_id\fR is present:
+- \fBdirection\fR (u32): 0 if we're the lesser node_id, 1 if we're the greater (as used in BOLT #7 channel_update). \fI(added v23.02)\fR
+.PP
+If \fBinflight\fR is present:
+- \fBinitial_feerate\fR (string): The feerate for the initial funding transaction in per-1000-weight, with \fCkpw\fR appended.
+- \fBlast_feerate\fR (string): The feerate for the latest funding transaction in per-1000-weight, with \fCkpw\fR appended.
+- \fBnext_feerate\fR (string): The minimum feerate for the next funding transaction in per-1000-weight, with \fCkpw\fR appended.
+.PP
+The \fIstate\fR field values (and \fIold_state\fR / \fInew_state\fR) are worth describing further:
+.IP "\(bu" 2
+\fCOPENINGD\fR: The channel funding protocol with the peer is ongoing and both sides are negotiating parameters.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCDUALOPEND_OPEN_INIT\fR: Like \fCOPENINGD\fR, but for v2 connections which are using collaborative opens.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCDUALOPEND_OPEN_COMMIT_READY\fR: Like \fCOPENINGD\fR, but for v2 connections which are using collaborative opens. You're ready to send your commitment signed to your peer.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCDUALOPEND_OPEN_COMMITTED\fR: Like \fCOPENINGD\fR, but for v2 connections which are using collaborative opens. You've gotten an initial signed commitment from your peer.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCCHANNELD_AWAITING_LOCKIN\fR / \fCDUALOPEND_AWAITING_LOCKIN\fR: The peer and you have agreed on channel parameters and are just waiting for the channel funding transaction to be confirmed deeply (original and collaborative open protocols, respectively). Both you and the peer must acknowledge the channel funding transaction to be confirmed deeply before entering the next state. Also, you can increase the onchain fee for channels in \fCDUALOPEND_AWAITING_LOCKIN\fR using lightning-openchannel_bump(7).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCCHANNELD_NORMAL\fR: The channel can be used for normal payments.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCCHANNELD_SHUTTING_DOWN\fR: A mutual close was requested (by you or peer) and both of you are waiting for HTLCs in-flight to be either failed or succeeded. The channel can no longer be used for normal payments and forwarding. Mutual close will proceed only once all HTLCs in the channel have either been fulfilled or failed.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCCLOSINGD_SIGEXCHANGE\fR: You and the peer are negotiating the mutual close onchain fee.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCCLOSINGD_COMPLETE\fR: You and the peer have agreed on the mutual close onchain fee and are awaiting the mutual close getting confirmed deeply.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCAWAITING_UNILATERAL\fR: You initiated a unilateral close, and are now waiting for the peer-selected unilateral close timeout to complete.
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCFUNDING_SPEND_SEEN\fR: You saw the funding transaction getting spent (usually the peer initiated a unilateral close) and will now determine what exactly happened (i.e. if it was a theft attempt).
+.if n \
+.sp -1
+.if t \
+.sp -0.25v
+.IP "\(bu" 2
+\fCONCHAIN\fR: You saw the funding transaction getting spent and now know what happened (i.e. if it was a proper unilateral close by the peer, or a theft attempt).
+.SH
+ERRORS
+.LP
+On error the returned object will contain \fCcode\fR and \fCmessage\fR properties, with \fCcode\fR being one of the following:
+.IP "\(bu" 2
+-32602: If the given parameters are wrong.
+.SH
+AUTHOR
+.LP
+Michael Hawkins <\fImichael.hawkins@protonmail.com\fR>.
+.SH
+SEE ALSO
+.LP
+lightning-connect(7), lightning-fundchannel_start(7)
+.SH
+RESOURCES
+.LP
+Main web site: \fIhttps://github.com/ElementsProject/lightning\fR
+Lightning RFC site (BOLT #9): 
+\fIhttps://github.com/lightningnetwork/lightning-rfc/blob/master/09-features.md\fR
+.SH
+EXAMPLES
+.LP
+\fBExample 1\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listpeerchannels -k \(dqid\(dq=\(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listpeerchannels#1\(dq,
+  \(dqmethod\(dq: \(dqlistpeerchannels\(dq,
+  \(dqparams\(dq: {
+    \(dqid\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq
+  }
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqchannels\(dq: [
+    {
+      \(dqpeer_id\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqpeer_connected\(dq: true,
+      \(dqreestablished\(dq: true,
+      \(dqchannel_type\(dq: {
+        \(dqbits\(dq: [
+          12,
+          22
+        ],
+        \(dqnames\(dq: [
+          \(dqstatic_remotekey/even\(dq,
+          \(dqanchors/even\(dq
+        ]
+      },
+      \(dqupdates\(dq: {
+        \(dqlocal\(dq: {
+          \(dqhtlc_minimum_msat\(dq: 0,
+          \(dqhtlc_maximum_msat\(dq: 990000000,
+          \(dqcltv_expiry_delta\(dq: 6,
+          \(dqfee_base_msat\(dq: 1,
+          \(dqfee_proportional_millionths\(dq: 10
+        },
+        \(dqremote\(dq: {
+          \(dqhtlc_minimum_msat\(dq: 0,
+          \(dqhtlc_maximum_msat\(dq: 990000000,
+          \(dqcltv_expiry_delta\(dq: 6,
+          \(dqfee_base_msat\(dq: 1,
+          \(dqfee_proportional_millionths\(dq: 10
+        }
+      },
+      \(dqlast_stable_connection\(dq: 1722303707,
+      \(dqstate\(dq: \(dqCHANNELD_NORMAL\(dq,
+      \(dqscratch_txid\(dq: \(dq80aa008578b3b6924f2362146907e46ad83351d5b9b056bd8537befc3f1d7d65\(dq,
+      \(dqlast_tx_fee_msat\(dq: 4221000,
+      \(dqlost_state\(dq: false,
+      \(dqfeerate\(dq: {
+        \(dqperkw\(dq: 3755,
+        \(dqperkb\(dq: 15020
+      },
+      \(dqowner\(dq: \(dqchanneld\(dq,
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqchannel_id\(dq: \(dq252d1b0a1e57895e84137f28cf19ab2c35847e284c112fefdecc7afeaa5c1de7\(dq,
+      \(dqfunding_txid\(dq: \(dq737d6835ddafd515ba9e9def733bb4e4211f6053a32b1422bf1c8cc240850f96\(dq,
+      \(dqfunding_outnum\(dq: 1,
+      \(dqclose_to_addr\(dq: \(dqbcrt1p8c0ku4mpxq3443rss8e6rjwamztvv8yxvmxtetal5d0n6v39rlwqvfqy6n\(dq,
+      \(dqclose_to\(dq: \(dq51203e1f6e576130235ac47081f3a1c9ddd896c61c8666ccbcafbfa35f3d32251fdc\(dq,
+      \(dqprivate\(dq: false,
+      \(dqopener\(dq: \(dqlocal\(dq,
+      \(dqalias\(dq: {
+        \(dqlocal\(dq: \(dq2240075x4300189x56636\(dq,
+        \(dqremote\(dq: \(dq3321841x5311416x1695\(dq
+      },
+      \(dqfeatures\(dq: [
+        \(dqoption_static_remotekey\(dq,
+        \(dqoption_anchors_zero_fee_htlc_tx\(dq,
+        \(dqoption_anchors\(dq
+      ],
+      \(dqfunding\(dq: {
+        \(dqlocal_funds_msat\(dq: 1000000000,
+        \(dqremote_funds_msat\(dq: 0,
+        \(dqpushed_msat\(dq: 0
+      },
+      \(dqto_us_msat\(dq: 490518792,
+      \(dqmin_to_us_msat\(dq: 489918792,
+      \(dqmax_to_us_msat\(dq: 1000000000,
+      \(dqtotal_msat\(dq: 1000000000,
+      \(dqfee_base_msat\(dq: 1,
+      \(dqfee_proportional_millionths\(dq: 10,
+      \(dqdust_limit_msat\(dq: 546000,
+      \(dqmax_total_htlc_in_msat\(dq: 18446744073709552000,
+      \(dqtheir_reserve_msat\(dq: 10000000,
+      \(dqour_reserve_msat\(dq: 10000000,
+      \(dqspendable_msat\(dq: 469223792,
+      \(dqreceivable_msat\(dq: 499481208,
+      \(dqminimum_htlc_in_msat\(dq: 0,
+      \(dqminimum_htlc_out_msat\(dq: 0,
+      \(dqmaximum_htlc_out_msat\(dq: 990000000,
+      \(dqtheir_to_self_delay\(dq: 5,
+      \(dqour_to_self_delay\(dq: 5,
+      \(dqmax_accepted_htlcs\(dq: 483,
+      \(dqstate_changes\(dq: [
+        {
+          \(dqtimestamp\(dq: \(dq2024-07-30T01:40:45.942Z\(dq,
+          \(dqold_state\(dq: \(dqDUALOPEND_OPEN_COMMITTED\(dq,
+          \(dqnew_state\(dq: \(dqDUALOPEND_AWAITING_LOCKIN\(dq,
+          \(dqcause\(dq: \(dquser\(dq,
+          \(dqmessage\(dq: \(dqSigs exchanged, waiting for lock-in\(dq
+        },
+        {
+          \(dqtimestamp\(dq: \(dq2024-07-30T01:40:47.619Z\(dq,
+          \(dqold_state\(dq: \(dqDUALOPEND_AWAITING_LOCKIN\(dq,
+          \(dqnew_state\(dq: \(dqCHANNELD_NORMAL\(dq,
+          \(dqcause\(dq: \(dquser\(dq,
+          \(dqmessage\(dq: \(dqLockin complete\(dq
+        }
+      ],
+      \(dqstatus\(dq: [
+        \(dqCHANNELD_NORMAL:Channel ready for use.\(dq
+      ],
+      \(dqin_payments_offered\(dq: 1,
+      \(dqin_offered_msat\(dq: 1000000,
+      \(dqin_payments_fulfilled\(dq: 1,
+      \(dqin_fulfilled_msat\(dq: 1000000,
+      \(dqout_payments_offered\(dq: 10,
+      \(dqout_offered_msat\(dq: 510501210,
+      \(dqout_payments_fulfilled\(dq: 8,
+      \(dqout_fulfilled_msat\(dq: 510481208,
+      \(dqhtlcs\(dq: []
+    }
+  ]
+}
+.EE
+.PP
+\fBExample 2\fR: 
+.PP
+Request:
+.LP
+.EX
+$ lightning-cli listpeerchannels
+.EE
+.LP
+.EX
+{
+  \(dqid\(dq: \(dqexample:listpeerchannels#2\(dq,
+  \(dqmethod\(dq: \(dqlistpeerchannels\(dq,
+  \(dqparams\(dq: {}
+}
+.EE
+.PP
+Response:
+.LP
+.EX
+{
+  \(dqchannels\(dq: [
+    {
+      \(dqpeer_id\(dq: \(dq022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59\(dq,
+      \(dqpeer_connected\(dq: true,
+      \(dqreestablished\(dq: true,
+      \(dqchannel_type\(dq: {
+        \(dqbits\(dq: [
+          12,
+          22
+        ],
+        \(dqnames\(dq: [
+          \(dqstatic_remotekey/even\(dq,
+          \(dqanchors/even\(dq
+        ]
+      },
+      \(dqupdates\(dq: {
+        \(dqlocal\(dq: {
+          \(dqhtlc_minimum_msat\(dq: 0,
+          \(dqhtlc_maximum_msat\(dq: 990000000,
+          \(dqcltv_expiry_delta\(dq: 6,
+          \(dqfee_base_msat\(dq: 1,
+          \(dqfee_proportional_millionths\(dq: 10
+        },
+        \(dqremote\(dq: {
+          \(dqhtlc_minimum_msat\(dq: 0,
+          \(dqhtlc_maximum_msat\(dq: 990000000,
+          \(dqcltv_expiry_delta\(dq: 6,
+          \(dqfee_base_msat\(dq: 1,
+          \(dqfee_proportional_millionths\(dq: 10
+        }
+      },
+      \(dqlast_stable_connection\(dq: 1722303707,
+      \(dqstate\(dq: \(dqCHANNELD_NORMAL\(dq,
+      \(dqscratch_txid\(dq: \(dq80aa008578b3b6924f2362146907e46ad83351d5b9b056bd8537befc3f1d7d65\(dq,
+      \(dqlast_tx_fee_msat\(dq: 4221000,
+      \(dqlost_state\(dq: false,
+      \(dqfeerate\(dq: {
+        \(dqperkw\(dq: 3755,
+        \(dqperkb\(dq: 15020
+      },
+      \(dqowner\(dq: \(dqchanneld\(dq,
+      \(dqshort_channel_id\(dq: \(dq109x1x1\(dq,
+      \(dqdirection\(dq: 1,
+      \(dqchannel_id\(dq: \(dq252d1b0a1e57895e84137f28cf19ab2c35847e284c112fefdecc7afeaa5c1de7\(dq,
+      \(dqfunding_txid\(dq: \(dq737d6835ddafd515ba9e9def733bb4e4211f6053a32b1422bf1c8cc240850f96\(dq,
+      \(dqfunding_outnum\(dq: 1,
+      \(dqclose_to_addr\(dq: \(dqbcrt1p8c0ku4mpxq3443rss8e6rjwamztvv8yxvmxtetal5d0n6v39rlwqvfqy6n\(dq,
+      \(dqclose_to\(dq: \(dq51203e1f6e576130235ac47081f3a1c9ddd896c61c8666ccbcafbfa35f3d32251fdc\(dq,
+      \(dqprivate\(dq: false,
+      \(dqopener\(dq: \(dqlocal\(dq,
+      \(dqalias\(dq: {
+        \(dqlocal\(dq: \(dq2240075x4300189x56636\(dq,
+        \(dqremote\(dq: \(dq3321841x5311416x1695\(dq
+      },
+      \(dqfeatures\(dq: [
+        \(dqoption_static_remotekey\(dq,
+        \(dqoption_anchors_zero_fee_htlc_tx\(dq,
+        \(dqoption_anchors\(dq
+      ],
+      \(dqfunding\(dq: {
+        \(dqlocal_funds_msat\(dq: 1000000000,
+        \(dqremote_funds_msat\(dq: 0,
+        \(dqpushed_msat\(dq: 0
+      },
+      \(dqto_us_msat\(dq: 490518792,
+      \(dqmin_to_us_msat\(dq: 489918792,
+      \(dqmax_to_us_msat\(dq: 1000000000,
+      \(dqtotal_msat\(dq: 1000000000,
+      \(dqfee_base_msat\(dq: 1,
+      \(dqfee_proportional_millionths\(dq: 10,
+      \(dqdust_limit_msat\(dq: 546000,
+      \(dqmax_total_htlc_in_msat\(dq: 18446744073709552000,
+      \(dqtheir_reserve_msat\(dq: 10000000,
+      \(dqour_reserve_msat\(dq: 10000000,
+      \(dqspendable_msat\(dq: 469223792,
+      \(dqreceivable_msat\(dq: 499481208,
+      \(dqminimum_htlc_in_msat\(dq: 0,
+      \(dqminimum_htlc_out_msat\(dq: 0,
+      \(dqmaximum_htlc_out_msat\(dq: 990000000,
+      \(dqtheir_to_self_delay\(dq: 5,
+      \(dqour_to_self_delay\(dq: 5,
+      \(dqmax_accepted_htlcs\(dq: 483,
+      \(dqstate_changes\(dq: [
+        {
+          \(dqtimestamp\(dq: \(dq2024-07-30T01:40:45.942Z\(dq,
+          \(dqold_state\(dq: \(dqDUALOPEND_OPEN_COMMITTED\(dq,
+          \(dqnew_state\(dq: \(dqDUALOPEND_AWAITING_LOCKIN\(dq,
+          \(dqcause\(dq: \(dquser\(dq,
+          \(dqmessage\(dq: \(dqSigs exchanged, waiting for lock-in\(dq
+        },
+        {
+          \(dqtimestamp\(dq: \(dq2024-07-30T01:40:47.619Z\(dq,
+          \(dqold_state\(dq: \(dqDUALOPEND_AWAITING_LOCKIN\(dq,
+          \(dqnew_state\(dq: \(dqCHANNELD_NORMAL\(dq,
+          \(dqcause\(dq: \(dquser\(dq,
+          \(dqmessage\(dq: \(dqLockin complete\(dq
+        }
+      ],
+      \(dqstatus\(dq: [
+        \(dqCHANNELD_NORMAL:Channel ready for use.\(dq
+      ],
+      \(dqin_payments_offered\(dq: 1,
+      \(dqin_offered_msat\(dq: 1000000,
+      \(dqin_payments_fulfilled\(dq: 1,
+      \(dqin_fulfilled_msat\(dq: 1000000,
+      \(dqout_payments_offered\(dq: 10,
+      \(dqout_offered_msat\(dq: 510501210,
+      \(dqout_payments_fulfilled\(dq: 8,
+      \(dqout_fulfilled_msat\(dq: 510481208,
+      \(dqhtlcs\(dq: []
+    }
+  ]
+}
+.EE
+.PP
