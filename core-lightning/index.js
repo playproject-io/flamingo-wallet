@@ -52,18 +52,59 @@ async function start () {
 
 ////////////////////////////////////////////////////////////////////
 
-// RUNNING BITCOIN DEAMON & CORE LIGHTNING NODE
+// RUNNING BITCOIN DEAMON & CORE LIGHTNING NODE (LIGHTNING CLI)
 
 ///////////////////////////////////////////////////////////////////
 
-  const btc_deamon = spawn('bitcoind', ['-daemon']) // creates .bitcoin in $HOME
-  all_processes.push(btc_deamon)
+// ------------ 1. BITCOIN DEAMON -------------
+
+// -------------- bitcoin network -------------
+
+  // const btc_deamon = spawn('bitcoind', ['-daemon']) // creates .bitcoin in $HOME
+  // all_processes.push(btc_deamon)
+
+// -------------- test network -----------------
+  /* 
+  add $HOME/.bitcoin/bitcoin.conf file
+
+  network=regtest
+  log-level=debug
+  rpc-file=lightning-rpc
+  bitcoin-rpcuser=testuser
+  bitcoin-rpcpassword=testpassword
+  bitcoin-rpcconnect=127.0.0.1
+  bitcoin-rpcport=18443
+  */
+  const btc_deamon = spawn('bitcoind', ['-regtest', '-deamon']) // creates .bitcoin in $HOME
+  const generate_blocks = spawn('bitcoin-cli', ['-regtest', 'generate', '101']) // generate blocks
+  all_processes.push(btc_deamon, generate_blocks)
+
+
   btc_deamon.stdout.on('data', data => {
-    pipe.write(JSON.stringify({ type: 'info', data: `${data.toString()}` }))
+    // pipe.write(JSON.stringify({ type: 'info', data: `${data.toString()}` }))
   })
   
-  const lightning_deamon = spawn('lightningd', ['--network=bitcoin', '--log-level=debug'])
-  // const lightning_deamon = spawn('lightningd', ['--lightning-sdir=./.lightning', '--network=testnet', '--log-level=debug'])
+
+// ------------ 2. LIGHTNING CLI -------------
+
+// -------------- bitcoin network -------------
+
+  // const lightning_deamon = spawn('lightningd', ['--network=bitcoin', '--log-level=debug'])
+
+// -------------- test network -----------------
+  /*
+  add $HOME/.lightning/config file
+
+  network=regtest
+  log-level=debug
+  rpc-file=lightning-rpc
+  bitcoin-rpcuser=testuser
+  bitcoin-rpcpassword=testpassword
+  bitcoin-rpcconnect=127.0.0.1
+  bitcoin-rpcport=18443
+  */
+
+  const lightning_deamon = spawn('lightningd', ['--network=regtest'])
 
   all_processes.push(lightning_deamon)
   lightning_deamon.stdout.on('data', data => {
@@ -78,6 +119,11 @@ async function start () {
   ///////////////////////////////////////////////////////////////////
   
   setTimeout(async () => {
+    // const btc = spawn('bitcoin-cli', ['-regtest', 'getblockchaininfo'])
+    // all_processes.push(btc)
+    // btc.stdout.on('data', data => {
+    //   pipe.write(JSON.stringify({ type: 'response', data: `${data.toString()}` }))
+    // })
     await get_nodeinfo(all_processes, pipe)
     await make_newaddr(all_processes, pipe)
     await get_listaddresses(all_processes, pipe)
