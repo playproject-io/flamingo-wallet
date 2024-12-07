@@ -16,6 +16,24 @@
       cursor: pointer;
     }
 
+    button {
+      font-size: 20px;
+      cursor: pointer;
+      padding: 5%;
+    }
+
+    .refresh {
+      color: green;
+    }
+    
+    .wallet {
+      color: red;
+    }
+
+    .wss {
+      color: blue;
+    }
+
     #bar {
       background: rgba(55, 60, 72, 0.6);
       backdrop-filter: blur(64px);
@@ -43,7 +61,11 @@
 </head>
 <body>
   <div id="bar"><pear-ctrl></pear-ctrl></div>
-  <h1>Refresh page</h1>
-  <h2>Copy socket server address</h2>
+  <button class="refresh">Refresh page</button>
+  <br>
+  <button class="wss">Copy socket server address</button>
+  <br>
+  <input class="wallet" placeholder="wallet name"></input>
+  <button class="wallet">Create new or load existing a wallet</button>
 </body>
 </html>

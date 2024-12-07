@@ -8,9 +8,10 @@ async function start () {
   const platform = Bare.platform
   const arch = Bare.arch
   // pipe.write(`{ type: 'info', data: ${platform}/${arch} }`)
-  pipe.on('data', (data) => {
-    const msg = b4a.toString(data, 'utf-8')
-    if (msg === 'stop all') kill_processes(all_processes)
+  pipe.on('data', (msg) => {
+    msg = JSON.parse(b4a.toString(msg, 'utf-8'))
+    if (msg.type === 'stop all') kill_processes(all_processes)
+    else if (msg.type === 'create_wallet') create_wallet(msg.data)
   })
   pipe.on('close', (data) => {
     kill_processes(all_processes)
@@ -75,15 +76,34 @@ async function start () {
   bitcoin-rpcconnect=127.0.0.1
   bitcoin-rpcport=18443
   */
-  const btc_deamon = spawn('bitcoind', ['-regtest', '-deamon']) // creates .bitcoin in $HOME
-  const generate_blocks = spawn('bitcoin-cli', ['-regtest', 'generate', '101']) // generate blocks
-  all_processes.push(btc_deamon, generate_blocks)
+  // const btc_deamon = spawn('bitcoind', ['-regtest', '-deamon']) // creates .bitcoin in $HOME
+  const btc_deamon = spawn('bitcoind', ['-regtest', '-daemon']) // creates .bitcoin in $HOME
 
+  all_processes.push(btc_deamon)
 
   btc_deamon.stdout.on('data', data => {
-    // pipe.write(JSON.stringify({ type: 'info', data: `${data.toString()}` }))
+    pipe.write(JSON.stringify({ type: 'info', data: `${data.toString()}` }))
   })
+  btc_deamon.stderr.on('data', data => {
+    pipe.write(JSON.stringify({ type: 'err', data: `${data.toString()}` }))
+  })
+
+  function create_wallet (name) {
+    pipe.write(JSON.stringify({ type: 'wallet', data: `starting to create` }))
+    const create_wallet = spawn('bitcoin-cli', ['-regtest', 'createwallet', `${name}`]) // create wallet  
+    create_wallet.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'wallet', data: `${data.toString()}` }))
+    })
+
+    // in test mode
+
+    const generate_blocks = spawn('bitcoin-cli', ['-regtest', 'generate', '101']) // generate blocks = creates test funds
+    generate_blocks.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'blocks', data: `${data.toString()}` }))
+    })
   
+  }
+
 
 // ------------ 2. LIGHTNING CLI -------------
 
@@ -126,7 +146,8 @@ async function start () {
     // })
     await get_nodeinfo(all_processes, pipe)
     await make_newaddr(all_processes, pipe)
-    await get_listaddresses(all_processes, pipe)
+    await get_balance(all_processes, pipe)
+    // await get_listaddresses(all_processes, pipe)
     await get_funds(all_processes, pipe)
   }, 3000)
 
@@ -139,9 +160,8 @@ start()
 
 async function get_nodeinfo (all_processes, pipe) {
   const nodeinfo = spawn('lightning-cli', ['getinfo'])
-  all_processes.push(nodeinfo)
   nodeinfo.stdout.on('data', raw_data => {
-    pipe.write(JSON.stringify({ type: 'info', data: 'Got info' }))
+    // pipe.write(JSON.stringify({ type: 'info', data: 'Got info' }))
     const data = JSON.parse(raw_data)
     const id = data['id']
     const dir = data['lightning-dir']
@@ -150,48 +170,45 @@ async function get_nodeinfo (all_processes, pipe) {
       type: 'id',
       data: `${id}`
     }))
-    pipe.write(JSON.stringify({
-      type: 'dir',
-      data: `${dir}`
-    }))
-    pipe.write(JSON.stringify({
-      type: 'active_channels',
-      data: `${active_channels}`
-    }))
+    // pipe.write(JSON.stringify({
+    //   type: 'dir',
+    //   data: `${dir}`
+    // }))
+    // pipe.write(JSON.stringify({
+    //   type: 'active_channels',
+    //   data: `${active_channels}`
+    // }))
     // pipe.write(`{ type: 'nodeinfo', data: ${raw_data.toString()} }`)
   })
 }
 async function make_newaddr (all_processes, pipe) {
   const addr = spawn('lightning-cli', ['newaddr'])
-  all_processes.push(addr)
   addr.stdout.on('data', data => {
     pipe.write(JSON.stringify({ type: 'address', data: `${data.toString()}` }))
   })
 }
 async function get_listaddresses (all_processes, pipe) {
   const list = spawn('lightning-cli', ['listaddresses'])
-  all_processes.push(list)
   list.stdout.on('data', data => {
     pipe.write(JSON.stringify({ type: 'list', data: `${data.toString()}` }))
   })
 }
 async function get_funds (all_processes, pipe) {
   const funds = spawn('lightning-cli', ['listfunds'])
-  all_processes.push(funds)
   funds.stdout.on('data', data => {
     pipe.write(JSON.stringify({ type: 'funds', data: `${data.toString()}` }))
   })
 }
-async function get_bootstrapnodes (all_processes, pipe) {
-  const nodes = spawn('dig', ['lseed.bitcoinstats.com', 'A'])
-  all_processes.push(nodes)
-  nodes.stdout.on('data', data => {
-    pipe.write(JSON.stringify({ type: 'nodes', data: `${data.toString()}` }))
+async function get_balance (all_processes, pipe) {
+  const balance = spawn('lightning-cli', ['-regtest', 'getbalance'])
+  all_processes.push(balance)
+  balance.stdout.on('data', data => {
+    pipe.write(JSON.stringify({ type: 'balance', data: `${data.toString()}` }))
   })
 }
 
 function kill_processes (all_processes) {
-  spawn('rm', ['-rf', '~/.lightning'])
+  spawn('bitcoin-cli', ['-regtest', 'stop'])
   for (var i = 0, len = all_processes.length; i < len; i++) {
     const child = all_processes[i]
     child.kill()
