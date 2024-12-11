@@ -11,7 +11,8 @@ async function start () {
   pipe.on('data', (msg) => {
     msg = JSON.parse(b4a.toString(msg, 'utf-8'))
     if (msg.type === 'stop all') kill_processes(all_processes)
-    else if (msg.type === 'create_wallet') create_wallet(msg.data)
+    else if (msg.type === 'new_wallet') create_wallet(msg.data)
+    else if (msg.type === 'load_wallet') load_wallet(msg.data)
   })
   pipe.on('close', (data) => {
     kill_processes(all_processes)
@@ -88,11 +89,35 @@ async function start () {
     pipe.write(JSON.stringify({ type: 'err', data: `${data.toString()}` }))
   })
 
+  // bitcoin cli rpc https://developer.bitcoin.org/reference/rpc/ 
+
   function create_wallet (name) {
     pipe.write(JSON.stringify({ type: 'wallet', data: `starting to create` }))
+    if (!name) name = 'my wallet'
     const create_wallet = spawn('bitcoin-cli', ['-regtest', 'createwallet', `${name}`]) // create wallet  
     create_wallet.stdout.on('data', data => {
-      pipe.write(JSON.stringify({ type: 'wallet', data: `${data.toString()}` }))
+      pipe.write(JSON.stringify({ type: 'new wallet', data: `${data.toString()}` }))
+    })
+
+    // in test mode
+
+    const generate_blocks = spawn('bitcoin-cli', ['-regtest', 'generate', '101']) // generate blocks = creates test funds
+    generate_blocks.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'blocks', data: `${data.toString()}` }))
+    })
+  
+  }
+
+  function load_wallet (name) {
+    pipe.write(JSON.stringify({ type: 'wallet', data: `starting to load ${name}` }))
+    const list = spawn('bitcoin-cli', ['-regtest', 'listwallets'])
+    list.stdout.on('data', data => {
+      if (data.includes('name')) return pipe.write(JSON.stringify({ type: 'load wallet', data: `${name} wallet is already loaded` }))
+    })
+    if (!name) name = 'my wallet'
+    const load_wallet = spawn('bitcoin-cli', ['-regtest', 'loadwallet', `${name}`]) // load wallet  
+    load_wallet.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'load wallet', data: `${data.toString()}` }))
     })
 
     // in test mode

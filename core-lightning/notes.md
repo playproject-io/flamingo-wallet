@@ -99,3 +99,13 @@
 - reports
 - backups
 - tools: thunderhub, terminal lightning engineering, 1ML, amboss.space  
+
+# API call examples
+
+BITCOIN CLI https://developer.bitcoin.org/reference/rpc/
+
+bitcoin-cli -regtest -rpcwallet=foo getwalletinfo
+
+bitcoin-cli -regtest listwallets
+
+bitcoin-cli -regtest loadwallet foo

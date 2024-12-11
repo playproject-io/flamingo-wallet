@@ -33,11 +33,17 @@ async function start () {
     wss_btn.innerHTML = `Copied ${wsUri}`
     navigator.clipboard.writeText(wsUri);
   })
-  const wallet_btn = document.querySelector('button.wallet')
-  wallet_btn.addEventListener('click', (e) => { 
+  const new_wallet_btn = document.querySelector('button.new-wallet')
+  new_wallet_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
-    const val = document.querySelector('input.wallet').value
-    pipe.write(JSON.stringify({ type: 'create_wallet', data: `${val}` }))
+    const val = document.querySelector('input.new-wallet').value
+    pipe.write(JSON.stringify({ type: 'new_wallet', data: `${val}` }))
+  })
+  const load_wallet_btn = document.querySelector('button.load-wallet')
+  load_wallet_btn.addEventListener('click', (e) => { 
+    e.stopPropagation()
+    const val = document.querySelector('input.load-wallet').value
+    pipe.write(JSON.stringify({ type: 'load_wallet', data: `${val}` }))
   })
 }
 
@@ -63,9 +69,15 @@ function start_worker (path, name) {
   return pipe
 }
 
-function parser (data) {
-  data = b4a.toString(data, 'utf-8')
-  data = JSON.parse(data)
-  console.log({type: data.type})
+function parser (msg) {
+  msg = b4a.toString(msg, 'utf-8')
+  msg = JSON.parse(msg)
+  console.log({type: msg.type})
+  if (msg.type === 'new wallet') {
+    let wallets = document.querySelector('select.wallets')
+    const el = document.createElement('option')
+    el.innerHTML = `<option>${msg.data}</option>`
+    wallets.appendChild(el)
+  }
   // console.log({data})
 }

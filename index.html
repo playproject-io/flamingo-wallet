@@ -30,6 +30,17 @@
       color: red;
     }
 
+    select {
+      font-size: 20px;
+      cursor: pointer;
+      padding: 5%;
+    }
+
+    .wallets {
+      border-color: red;
+      height: 30px;
+    }
+
     .wss {
       color: blue;
     }
@@ -62,10 +73,14 @@
 <body>
   <div id="bar"><pear-ctrl></pear-ctrl></div>
   <button class="refresh">Refresh page</button>
-  <br>
   <button class="wss">Copy socket server address</button>
   <br>
-  <input class="wallet" placeholder="wallet name"></input>
-  <button class="wallet">Create new or load existing a wallet</button>
+  <form><select class="wallets"></select></form>
+  <br>
+  <input class="new-wallet" placeholder="wallet name"></input>
+  <button class="new-wallet">Create new wallet</button>
+  <br>
+  <input class="load-wallet" placeholder="wallet name"></input>
+  <button class="load-wallet">Load existing a wallet</button>
 </body>
 </html>
