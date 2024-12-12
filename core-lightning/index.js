@@ -92,7 +92,7 @@ async function start () {
   // bitcoin cli rpc https://developer.bitcoin.org/reference/rpc/ 
 
   function create_wallet (name) {
-    pipe.write(JSON.stringify({ type: 'wallet', data: `starting to create` }))
+    pipe.write(JSON.stringify({ type: 'wallet', data: `starting to create ${name}` }))
     if (!name) name = 'my wallet'
     const create_wallet = spawn('bitcoin-cli', ['-regtest', 'createwallet', `${name}`]) // create wallet  
     create_wallet.stdout.on('data', data => {

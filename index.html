@@ -18,14 +18,31 @@
 
     button {
       font-size: 20px;
-      cursor: pointer;
-      padding: 5%;
+      cursor: pointer;  
+      border-radius: 5%;
+      opacity: 1;
+      transition: opacity 0.5s ease-in-out;
     }
 
-    .refresh {
-      color: green;
+    button:hover {
+      opacity: 0.5;
     }
-    
+
+    .config > button {
+      width: 40%;
+      padding: 2%;
+    }
+
+    .config > button.refresh {
+      background-color: lightgreen;
+      width: 25%;
+    }
+
+    .config > button.wss {
+      background-color: lightblue;
+      width: 40%;
+    }
+
     .wallet {
       color: red;
     }
@@ -33,12 +50,28 @@
     select {
       font-size: 20px;
       cursor: pointer;
-      padding: 5%;
     }
 
     .wallets {
-      border-color: red;
-      height: 30px;
+      margin: 5% 0 5% 0;
+      border-color: pink;
+      font-size: 20px;
+    }
+
+    .wallets > button {
+      background-color: pink;
+      width: 40%;
+      padding: 4%;
+    }
+    
+    .wallets > .title {
+      color: white;
+    }
+
+    .wallets > input.new-wallet, input.load-wallet {
+      padding: 4%;
+      font-size: 20px;
+      width: 40%;
     }
 
     .wss {
@@ -72,15 +105,23 @@
 </head>
 <body>
   <div id="bar"><pear-ctrl></pear-ctrl></div>
-  <button class="refresh">Refresh page</button>
-  <button class="wss">Copy socket server address</button>
-  <br>
-  <form><select class="wallets"></select></form>
-  <br>
-  <input class="new-wallet" placeholder="wallet name"></input>
-  <button class="new-wallet">Create new wallet</button>
-  <br>
-  <input class="load-wallet" placeholder="wallet name"></input>
-  <button class="load-wallet">Load existing a wallet</button>
+  <div  class="config">
+    <button class="refresh">Refresh page</button>
+    <button class="wss">Copy socket server address</button>
+  </div>
+  <div class="wallets">
+    <div class="title">BTC wallets</div>
+    <form>
+      <select class="dropdown">
+        <option value="" disabled selected>Select your option</option>
+      </select>
+    </form>
+    <br>
+    <input class="new-wallet" placeholder="wallet name"></input>
+    <button class="new-wallet">Create new wallet</button>
+    <br>
+    <input class="load-wallet" placeholder="wallet name"></input>
+    <button class="load-wallet">Load existing wallet</button>
+  </div>
 </body>
 </html>

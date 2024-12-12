@@ -74,10 +74,25 @@ function parser (msg) {
   msg = JSON.parse(msg)
   console.log({type: msg.type})
   if (msg.type === 'new wallet') {
-    let wallets = document.querySelector('select.wallets')
+    let wallets_select = document.querySelector('select.dropdown')
     const el = document.createElement('option')
-    el.innerHTML = `<option>${msg.data}</option>`
-    wallets.appendChild(el)
+    msg.data = JSON.parse(msg.data)
+    el.innerHTML = `<option>${msg.data.name}</option>`
+    wallets_select.appendChild(el)
+  }
+  if (msg.type === 'load wallet') {
+    const options = document.querySelectorAll('select.dropdown')
+    const len = options.length
+    const data = JSON.parse(msg.data)
+    console.log({name: data.name, msg})
+    for (var i = 0; i < len; i++) {
+      if (options[i].value === data.name) return
+    }
+    let wallets_select = document.querySelector('select.dropdown')
+    const el = document.createElement('option')
+    msg.data = JSON.parse(msg.data)
+    el.innerHTML = `<option>${data.name}</option>`
+    wallets_select.appendChild(el)
   }
   // console.log({data})
 }
