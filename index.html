@@ -30,7 +30,7 @@
 
     .config > button {
       width: 40%;
-      padding: 2%;
+      padding: 0.5%;
     }
 
     .config > button.refresh {
@@ -47,31 +47,60 @@
       color: red;
     }
 
-    select {
+    select.dropdown {
       font-size: 20px;
       cursor: pointer;
+      color: red;
+      padding: 1%;
     }
 
-    .wallets {
+    .wallets, .lightning {
       margin: 5% 0 5% 0;
       border-color: pink;
       font-size: 20px;
+      border: 2px solid pink;
+      padding: 3%;
     }
 
     .wallets > button {
       background-color: pink;
-      width: 40%;
-      padding: 4%;
-    }
-    
-    .wallets > .title {
-      color: white;
+      width: 15%;
+      padding: 1%;
     }
 
-    .wallets > input.new-wallet, input.load-wallet {
-      padding: 4%;
+    .wallets > form {
+      margin: 20px 0 5px 0;
+    }
+    
+    .wallets > .title, 
+    .lightning > .title {
+      color: white;
+      font-size: 35px;
+      display: flex;
+      text-align: center;
+      margin-bottom: 5%;
+    }
+
+    .wallets > 
+    input.new-wallet, 
+    input.load-wallet {
+      padding: 1%;
       font-size: 20px;
-      width: 40%;
+      width: 10%;
+    }
+
+    .wallets > 
+    input.pay-amount-wallet,
+    input.pay-address-wallet {
+      padding: 1%;
+      font-size: 20px;
+      width: 15%;
+    }
+
+    .pay-title {
+      color: white;
+      font-size: 25px;
+      margin: 3% 0 1% 0; 
     }
 
     .wss {
@@ -111,17 +140,24 @@
   </div>
   <div class="wallets">
     <div class="title">BTC wallets</div>
-    <form>
-      <select class="dropdown">
-        <option value="" disabled selected>Select your option</option>
-      </select>
-    </form>
-    <br>
     <input class="new-wallet" placeholder="wallet name"></input>
     <button class="new-wallet">Create new wallet</button>
     <br>
     <input class="load-wallet" placeholder="wallet name"></input>
     <button class="load-wallet">Load existing wallet</button>
+    <br>
+    <div class="pay-title">Payment</div>
+    <form>
+      <select class="dropdown">
+        <option value="" disabled selected>Select your wallet</option>
+      </select>
+    </form>
+    <input class="pay-amount-wallet" placeholder="enter the amount"></input>
+    <input class="pay-address-wallet" placeholder="enter the address"></input>
+    <button class="pay-wallet">Send BTC</button>
+  </div>
+  <div class="lightning">
+    <div class="title">Lightning</div>
   </div>
 </body>
 </html>

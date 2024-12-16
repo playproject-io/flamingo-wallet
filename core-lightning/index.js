@@ -1,4 +1,5 @@
 const { spawn, spawnSync } = require('bare-subprocess')
+const fs = require('bare-fs')
 const Bare = require('bare')
 const b4a = require('b4a')
 
@@ -13,6 +14,8 @@ async function start () {
     if (msg.type === 'stop all') kill_processes(all_processes)
     else if (msg.type === 'new_wallet') create_wallet(msg.data)
     else if (msg.type === 'load_wallet') load_wallet(msg.data)
+    else if (msg.type === 'pay') pay(msg.data)
+    else if (msg.type === 'listwallets') listwallets()
   })
   pipe.on('close', (data) => {
     kill_processes(all_processes)
@@ -97,15 +100,13 @@ async function start () {
     const create_wallet = spawn('bitcoin-cli', ['-regtest', 'createwallet', `${name}`]) // create wallet  
     create_wallet.stdout.on('data', data => {
       pipe.write(JSON.stringify({ type: 'new wallet', data: `${data.toString()}` }))
+      // in test mode
+      const generate_blocks = spawn('bitcoin-cli', ['-regtest', `-rpcwallet=${name}`, '-generate', '101']) // generate blocks = creates test funds
+      generate_blocks.stdout.on('data', data => {
+        // pipe.write(JSON.stringify({ type: 'blocks', data: `${data.toString()}` }))
+        // pipe.write(JSON.stringify({ type: 'blocks', data: `blocks generated}` }))
     })
-
-    // in test mode
-
-    const generate_blocks = spawn('bitcoin-cli', ['-regtest', 'generate', '101']) // generate blocks = creates test funds
-    generate_blocks.stdout.on('data', data => {
-      pipe.write(JSON.stringify({ type: 'blocks', data: `${data.toString()}` }))
     })
-  
   }
 
   function load_wallet (name) {
@@ -119,16 +120,28 @@ async function start () {
     load_wallet.stdout.on('data', data => {
       pipe.write(JSON.stringify({ type: 'load wallet', data: `${data.toString()}` }))
     })
-
-    // in test mode
-
-    const generate_blocks = spawn('bitcoin-cli', ['-regtest', 'generate', '101']) // generate blocks = creates test funds
-    generate_blocks.stdout.on('data', data => {
-      pipe.write(JSON.stringify({ type: 'blocks', data: `${data.toString()}` }))
-    })
-  
   }
 
+  function pay (data) {
+    // pipe.write(JSON.stringify({ type: 'payment started', data: data.toString() }))
+    const { amount, address, wallet} = data
+    
+    // bitcoin-cli -regtest -rpcwallet=bar send '{"bcrt1qzne3d70ww6ezume3wpgfgpw4g3vwtsdfvlaka3":0.2}'
+    const pay_args = JSON.stringify({ [address]:Number(amount) })
+    const payment = spawn('bitcoin-cli', ['-regtest', `-rpcwallet=${wallet}`, 'send', pay_args])
+    payment.stdout.on('data', data => {
+      fs.writeFileSync('./logs', data)
+      pipe.write(JSON.stringify({ type: 'payment', data: `${data.toString()}` }))
+    })
+  }
+
+  function listwallets () {
+    pipe.write(JSON.stringify({ type: 'wallet', data: `getting wallets` }))
+    const listwallets = spawn('bitcoin-cli', ['-regtest', 'listwallets']) // list wallets  
+    listwallets.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'wallets', data: `${data.toString()}` }))
+    })
+  }
 
 // ------------ 2. LIGHTNING CLI -------------
 
@@ -163,18 +176,18 @@ async function start () {
   
   ///////////////////////////////////////////////////////////////////
   
-  setTimeout(async () => {
-    // const btc = spawn('bitcoin-cli', ['-regtest', 'getblockchaininfo'])
-    // all_processes.push(btc)
-    // btc.stdout.on('data', data => {
-    //   pipe.write(JSON.stringify({ type: 'response', data: `${data.toString()}` }))
-    // })
-    await get_nodeinfo(all_processes, pipe)
-    await make_newaddr(all_processes, pipe)
-    await get_balance(all_processes, pipe)
-    // await get_listaddresses(all_processes, pipe)
-    await get_funds(all_processes, pipe)
-  }, 3000)
+  // setTimeout(async () => {
+  //   // const btc = spawn('bitcoin-cli', ['-regtest', 'getblockchaininfo'])
+  //   // all_processes.push(btc)
+  //   // btc.stdout.on('data', data => {
+  //   //   pipe.write(JSON.stringify({ type: 'response', data: `${data.toString()}` }))
+  //   // })
+  //   await get_nodeinfo(all_processes, pipe)
+  //   await make_newaddr(all_processes, pipe)
+  //   await get_balance(all_processes, pipe)
+  //   // await get_listaddresses(all_processes, pipe)
+  //   await get_funds(all_processes, pipe)
+  // }, 3000)
 
   // TODO:  
   // API: https://docs.corelightning.org/reference/lightning-newaddr

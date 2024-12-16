@@ -15,6 +15,7 @@
   "dependencies": {
     "b4a": "^1.6.6",
     "bare": "^1.11.0",
+    "bare-fs": "^4.0.1",
     "bare-subprocess": "^4.0.1"
   }
 }

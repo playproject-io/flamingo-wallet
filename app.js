@@ -27,23 +27,39 @@ async function start () {
   });
   
   const wsUri = 'ws://localhost:8080'
+
+  // console.log('request list of wallets')
+  // pipe.write(JSON.stringify({ type: 'listwallets' }))
+
   const wss_btn = document.querySelector('button.wss')
   wss_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
     wss_btn.innerHTML = `Copied ${wsUri}`
     navigator.clipboard.writeText(wsUri);
   })
+
   const new_wallet_btn = document.querySelector('button.new-wallet')
   new_wallet_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
     const val = document.querySelector('input.new-wallet').value
     pipe.write(JSON.stringify({ type: 'new_wallet', data: `${val}` }))
   })
+  
   const load_wallet_btn = document.querySelector('button.load-wallet')
   load_wallet_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
     const val = document.querySelector('input.load-wallet').value
     pipe.write(JSON.stringify({ type: 'load_wallet', data: `${val}` }))
+  })
+  
+  const pay_wallet_btn = document.querySelector('button.pay-wallet')
+  pay_wallet_btn.addEventListener('click', (e) => { 
+    e.stopPropagation()
+    const amount = document.querySelector('input.pay-amount-wallet').value
+    const address = document.querySelector('input.pay-address-wallet').value
+    const wallet = document.querySelector('select.dropdown').selectedOptions[0].value
+    const data = { amount, address, wallet }
+    pipe.write(JSON.stringify({ type: 'pay', data }))
   })
 }
 
@@ -73,24 +89,33 @@ function parser (msg) {
   msg = b4a.toString(msg, 'utf-8')
   msg = JSON.parse(msg)
   console.log({type: msg.type})
-  if (msg.type === 'new wallet') {
+  if (msg.type === 'wallets') {
+    const data = JSON.parse(msg.data)
+    console.log('wallets list', data)
+    let wallets_select = document.querySelector('select.dropdown')
+    for (const wallet of data) {
+      const el = document.createElement('option')
+      el.innerHTML = `<option>${wallet}</option>`
+      wallets_select.appendChild(el)
+    }
+  }
+  else if (msg.type === 'new wallet') {
+    const data = JSON.parse(msg.data)
     let wallets_select = document.querySelector('select.dropdown')
     const el = document.createElement('option')
-    msg.data = JSON.parse(msg.data)
-    el.innerHTML = `<option>${msg.data.name}</option>`
+    el.innerHTML = `<option>${data.name}</option>`
     wallets_select.appendChild(el)
   }
-  if (msg.type === 'load wallet') {
+  else if (msg.type === 'load wallet') {
+    const data = JSON.parse(msg.data)
     const options = document.querySelectorAll('select.dropdown')
     const len = options.length
-    const data = JSON.parse(msg.data)
     console.log({name: data.name, msg})
     for (var i = 0; i < len; i++) {
       if (options[i].value === data.name) return
     }
     let wallets_select = document.querySelector('select.dropdown')
     const el = document.createElement('option')
-    msg.data = JSON.parse(msg.data)
     el.innerHTML = `<option>${data.name}</option>`
     wallets_select.appendChild(el)
   }
