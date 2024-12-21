@@ -52,15 +52,25 @@ async function start () {
     pipe.write(JSON.stringify({ type: 'load_wallet', data: `${val}` }))
   })
   
-  const pay_wallet_btn = document.querySelector('button.pay-wallet')
-  pay_wallet_btn.addEventListener('click', (e) => { 
+  const send_wallet_btn = document.querySelector('button.send-btc-wallet')
+  send_wallet_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
-    const amount = document.querySelector('input.pay-amount-wallet').value
-    const address = document.querySelector('input.pay-address-wallet').value
-    const wallet = document.querySelector('select.dropdown').selectedOptions[0].value
+    const amount = document.querySelector('input.send-btc-amount-wallet').value
+    const address = document.querySelector('input.send-btc-address-wallet').value
+    const wallet = document.querySelector('.send-btc-wallets').selectedOptions[0].value
     const data = { amount, address, wallet }
-    pipe.write(JSON.stringify({ type: 'pay', data }))
+    pipe.write(JSON.stringify({ type: 'send btc', data }))
   })
+
+  const receive_btc_wallets = document.querySelector('.receive-btc-wallets')
+  receive_btc_wallets.addEventListener('change', (e) => { 
+    e.stopPropagation()
+    const selection = document.querySelector('.receive-btc-wallets').selectedOptions[0].value
+    pipe.write(JSON.stringify({ type: 'selected', data: selection }))
+    const addr_dropdown = document.querySelector('.receive-dropdown-address')
+    addr_dropdown.style.display = 'inline'
+  })
+
 }
 
 start()
@@ -92,32 +102,64 @@ function parser (msg) {
   if (msg.type === 'wallets') {
     const data = JSON.parse(msg.data)
     console.log('wallets list', data)
-    let wallets_select = document.querySelector('select.dropdown')
+    let send_btc_wallets = document.querySelector('.send-btc-wallets')
+    let receive_btc_wallets = document.querySelector('.receive-btc-wallets')
+
     for (const wallet of data) {
-      const el = document.createElement('option')
-      el.innerHTML = `<option>${wallet}</option>`
-      wallets_select.appendChild(el)
+      const el_1 = document.createElement('option')
+      el_1.innerHTML = `<option>${wallet}</option>`
+      send_btc_wallets.appendChild(el_1)
+      const el_2 = document.createElement('option')
+      el_2.innerHTML = `<option>${wallet}</option>`
+      receive_btc_wallets.appendChild(el_2)
     }
   }
   else if (msg.type === 'new wallet') {
     const data = JSON.parse(msg.data)
-    let wallets_select = document.querySelector('select.dropdown')
-    const el = document.createElement('option')
-    el.innerHTML = `<option>${data.name}</option>`
-    wallets_select.appendChild(el)
+    // send
+    let send_btc_wallets = document.querySelector('.send-btc-wallets')
+    const el_1 = document.createElement('option')
+    el_1.innerHTML = `<option>${data.name}</option>`
+    send_btc_wallets.appendChild(el_1)
+    // receive
+    let receive_btc_wallets = document.querySelector('.receive-btc-wallets')
+    const el_2 = document.createElement('option')
+    el_2.innerHTML = `<option>${data.name}</option>`
+    receive_btc_wallets.appendChild(el_2)
   }
   else if (msg.type === 'load wallet') {
     const data = JSON.parse(msg.data)
-    const options = document.querySelectorAll('select.dropdown')
-    const len = options.length
-    console.log({name: data.name, msg})
-    for (var i = 0; i < len; i++) {
-      if (options[i].value === data.name) return
+    //send
+    const options_1 = document.querySelectorAll('.send-btc-wallets')
+    const len_1 = options_1.length
+    for (var i = 0; i < len_1; i++) {
+      if (options_1[i].value === data.name) return
     }
-    let wallets_select = document.querySelector('select.dropdown')
-    const el = document.createElement('option')
-    el.innerHTML = `<option>${data.name}</option>`
-    wallets_select.appendChild(el)
+    let send_btc_wallets = document.querySelector('.send-btc-wallets')
+    const el_1 = document.createElement('option')
+    el_1.innerHTML = `<option>${data.name}</option>`
+    send_btc_wallets.appendChild(el_1)
+    // receive
+    const options_2 = document.querySelectorAll('.receive-btc-wallets')
+    const len_2 = options_2.length
+    for (var i = 0; i < len_2; i++) {
+      if (options_2[i].value === data.name) return
+    }
+    let receive_btc_wallets = document.querySelector('.receive-btc-wallets')
+    const el_2 = document.createElement('option')
+    el_2.innerHTML = `<option>${data.name}</option>`
+    receive_btc_wallets.appendChild(el_2)
   }
-  // console.log({data})
+  else if (msg.type === 'addresses') {
+    const addr_dropdown = document.querySelector('.receive-dropdown-address')
+    const arr = []
+    for (const addr of JSON.parse(msg.data)[0]) {
+      const el = document.createElement('option')
+      el.innerHTML = `<option>${addr[0]}, (${addr[1]} BTC)</option>`
+      console.log({ addr: addr[0], balance: addr[1] })
+      arr.push(el)
+    }
+    addr_dropdown.replaceChildren(...arr)
+    // console.log({data})
+  }
 }

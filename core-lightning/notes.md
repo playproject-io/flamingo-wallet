@@ -109,3 +109,11 @@ bitcoin-cli -regtest -rpcwallet=foo getwalletinfo
 bitcoin-cli -regtest listwallets
 
 bitcoin-cli -regtest loadwallet foo
+
+bitcoin-cli -regtest -rpcwallet=foo listaddressgroupings 
+// get addresses associated with your wallet
+// shows addresses grouped by the transactions they are involved in, along with their associated balances.
+
+bitcoin-cli -regtest -rpcwallet=foo listreceivedbyaddress 0 true
+// addresses explicitly created in your wallet
+// the true flag includes addresses with a zero balance

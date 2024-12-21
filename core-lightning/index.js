@@ -14,8 +14,9 @@ async function start () {
     if (msg.type === 'stop all') kill_processes(all_processes)
     else if (msg.type === 'new_wallet') create_wallet(msg.data)
     else if (msg.type === 'load_wallet') load_wallet(msg.data)
-    else if (msg.type === 'pay') pay(msg.data)
+    else if (msg.type === 'send btc') send_btc(msg.data)
     else if (msg.type === 'listwallets') listwallets()
+      else if (msg.type === 'selected') show_addresses(msg.data)
   })
   pipe.on('close', (data) => {
     kill_processes(all_processes)
@@ -122,16 +123,16 @@ async function start () {
     })
   }
 
-  function pay (data) {
+  function send_btc (data) {
     // pipe.write(JSON.stringify({ type: 'payment started', data: data.toString() }))
     const { amount, address, wallet} = data
     
-    // bitcoin-cli -regtest -rpcwallet=bar send '{"bcrt1qzne3d70ww6ezume3wpgfgpw4g3vwtsdfvlaka3":0.2}'
-    const pay_args = JSON.stringify({ [address]:Number(amount) })
-    const payment = spawn('bitcoin-cli', ['-regtest', `-rpcwallet=${wallet}`, 'send', pay_args])
+    // bitcoin-cli -regtest -rpcwallet=bar send '{"bcrt1qneakqhrlz844leqdnahwtetgkdhz5eqtnhzyqu":0.2}'
+    const send_btc_args = JSON.stringify({ [address]:Number(amount) })
+    const payment = spawn('bitcoin-cli', ['-regtest', `-rpcwallet=${wallet}`, 'send', send_btc_args])
     payment.stdout.on('data', data => {
       fs.writeFileSync('./logs', data)
-      pipe.write(JSON.stringify({ type: 'payment', data: `${data.toString()}` }))
+      pipe.write(JSON.stringify({ type: 'btc sent', data: `${data.toString()}` }))
     })
   }
 
@@ -140,6 +141,13 @@ async function start () {
     const listwallets = spawn('bitcoin-cli', ['-regtest', 'listwallets']) // list wallets  
     listwallets.stdout.on('data', data => {
       pipe.write(JSON.stringify({ type: 'wallets', data: `${data.toString()}` }))
+    })
+  }
+
+  function show_addresses (wallet) {
+    const listwallets = spawn('bitcoin-cli', ['-regtest', `-rpcwallet=${wallet}`, 'listaddressgroupings']) // list wallets  
+    listwallets.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'addresses', data: `${data.toString()}` }))
     })
   }
 

@@ -30,7 +30,7 @@
 
     .config > button {
       width: 40%;
-      padding: 0.5%;
+      padding: 1vh;
     }
 
     .config > button.refresh {
@@ -47,28 +47,52 @@
       color: red;
     }
 
-    select.dropdown {
+    .forms {
+      display: flex;
+    }
+
+    .dropdown {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .send-btc-wallets,
+    .receive-btc-wallets {
       font-size: 20px;
       cursor: pointer;
       color: red;
-      padding: 1%;
+      padding: 1vh;
+    }
+
+    .receive-dropdown-address {
+      font-size: 20px;
+      cursor: pointer;
+      color: red;
+      padding: 1vh;
+      display: none;
     }
 
     .wallets, .lightning {
-      margin: 5% 0 5% 0;
+      margin: 5vh 0 5vh 0;
       border-color: pink;
       font-size: 20px;
       border: 2px solid pink;
-      padding: 3%;
+      padding: 3vh;
     }
 
     .wallets > button {
       background-color: pink;
       width: 15%;
-      padding: 1%;
+      padding: 1vh;
     }
 
-    .wallets > form {
+    .pay-lightning {
+      background-color: gold;
+      width: 15%;
+      padding: 1vh;
+    }
+
+    .dropdown {
       margin: 20px 0 5px 0;
     }
     
@@ -78,29 +102,37 @@
       font-size: 35px;
       display: flex;
       text-align: center;
-      margin-bottom: 5%;
+      margin-bottom: 5vh;
     }
 
     .wallets > 
     input.new-wallet, 
     input.load-wallet {
-      padding: 1%;
+      padding: 1vh;
       font-size: 20px;
       width: 10%;
     }
 
     .wallets > 
-    input.pay-amount-wallet,
-    input.pay-address-wallet {
-      padding: 1%;
+    input.send-amount-wallet,
+    input.send-address-wallet {
+      padding: 1vh;
       font-size: 20px;
       width: 15%;
     }
 
-    .pay-title {
+    .pay-amount-lightning,
+    .pay-address-lightning {
+      padding: 1vh;
+      font-size: 20px;
+      width: 15%;
+    }
+
+    .send-btc-title,
+    .receive-btc-title {
       color: white;
       font-size: 25px;
-      margin: 3% 0 1% 0; 
+      margin: 3vh 0 1vh 0; 
     }
 
     .wss {
@@ -146,18 +178,34 @@
     <input class="load-wallet" placeholder="wallet name"></input>
     <button class="load-wallet">Load existing wallet</button>
     <br>
-    <div class="pay-title">Payment</div>
+    <div class="send-btc-title">Send BTC</div>
     <form>
-      <select class="dropdown">
+      <select class="send-btc-wallets">
         <option value="" disabled selected>Select your wallet</option>
       </select>
     </form>
-    <input class="pay-amount-wallet" placeholder="enter the amount"></input>
-    <input class="pay-address-wallet" placeholder="enter the address"></input>
-    <button class="pay-wallet">Send BTC</button>
+    <input class="send-amount-wallet" placeholder="enter the amount (in btc)"></input>
+    <input class="send-address-wallet" placeholder="enter the address"></input>
+    <button class="send-btc-wallet">Send BTC</button>
+    <div class="receive-btc-title">Receive BTC</div>
+    <div class="forms">
+      <form>
+        <select class="receive-btc-wallets">
+          <option value="" disabled selected>Select your wallet</option>
+        </select>
+      </form>
+      <form>
+        <select class="receive-dropdown-address">
+          <option value="" disabled selected>Select the address</option>
+        </select>
+      </form>
+    </div>
   </div>
   <div class="lightning">
     <div class="title">Lightning</div>
+    <input class="pay-amount-lightning" placeholder="enter the amount (in sats)"></input>
+    <input class="pay-address-lightning" placeholder="enter the address"></input>
+    <button class="pay-lightning">Send SATS</button>
   </div>
 </body>
 </html>
