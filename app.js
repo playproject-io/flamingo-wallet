@@ -71,6 +71,14 @@ async function start () {
     addr_dropdown.style.display = 'inline'
   })
 
+  const addr_dropdown = document.querySelector('.receive-dropdown-address')
+  addr_dropdown.addEventListener('change', (e) => {
+    e.stopPropagation()
+    const selection = document.querySelector('.receive-dropdown-address').selectedOptions[0].value
+    const address = selection.split(',')[0]
+    navigator.clipboard.writeText(address)
+  })
+
 }
 
 start()
