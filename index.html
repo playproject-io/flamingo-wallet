@@ -86,7 +86,9 @@
       padding: 1vh;
     }
 
-    .pay-lightning {
+    .pay-invoice,
+    .create-invoice,
+    .create-lightning-address {
       background-color: gold;
       width: 15%;
       padding: 1vh;
@@ -114,22 +116,45 @@
     }
 
     .wallets > 
-    input.send-amount-wallet,
-    input.send-address-wallet {
+    input.send-btc-amount-wallet,
+    input.send-btc-address-wallet {
+      padding: 1vh;
+      font-size: 20px;
+      width: 15%;
+    }
+    .invoice-amount,
+    .invoice-label,
+    .invoice-desc {
+      display: flex;
       padding: 1vh;
       font-size: 20px;
       width: 15%;
     }
 
-    .pay-amount-lightning,
-    .pay-address-lightning {
+    .pay-invoice {
       padding: 1vh;
       font-size: 20px;
       width: 15%;
     }
 
-    .send-btc-title,
-    .receive-btc-title {
+    .lightning-addr-list,
+    .invoices {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .addr-list-item,
+    .invoices-item {
+      padding: .5vw;
+      border: pink 2px solid;
+      width: 25vw;
+      display: flex;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+    }
+
+    .subtitle {
       color: white;
       font-size: 25px;
       margin: 3vh 0 1vh 0; 
@@ -178,16 +203,16 @@
     <input class="load-wallet" placeholder="wallet name"></input>
     <button class="load-wallet">Load existing wallet</button>
     <br>
-    <div class="send-btc-title">Send BTC</div>
+    <div class="subtitle">Send BTC</div>
     <form>
       <select class="send-btc-wallets">
         <option value="" disabled selected>Select your wallet</option>
       </select>
     </form>
-    <input class="send-amount-wallet" placeholder="enter the amount (in btc)"></input>
-    <input class="send-address-wallet" placeholder="enter the address"></input>
+    <input class="send-btc-amount-wallet" placeholder="enter the amount (in btc)"></input>
+    <input class="send-btc-address-wallet" placeholder="enter the address"></input>
     <button class="send-btc-wallet">Send BTC</button>
-    <div class="receive-btc-title">Receive BTC</div>
+    <div class="subtitle">Receive BTC</div>
     <div class="forms">
       <form>
         <select class="receive-btc-wallets">
@@ -203,9 +228,18 @@
   </div>
   <div class="lightning">
     <div class="title">Lightning</div>
-    <input class="pay-amount-lightning" placeholder="enter the amount (in sats)"></input>
-    <input class="pay-address-lightning" placeholder="enter the address"></input>
-    <button class="pay-lightning">Send SATS</button>
+    <div class="subtitle">Create on-chain address (to receive BTC funds)</div>
+    <button class="create-lightning-address">Create address</button>
+    <div class="lightning-addr-list"></div>
+    <div class="subtitle">Request payment</div>
+    <input class="invoice-amount" placeholder="enter the amount (in sats)"></input>
+    <input class="invoice-label" placeholder="enter the invoice label"></input>
+    <input class="invoice-desc" placeholder="enter the invoice description"></input>
+    <button class="create-invoice">Create invoice</button>
+    <div class="invoices"></div>
+    <div class="subtitle">Send payment</div>
+    <input class="pay-invoice" placeholder="enter invoice"></input>
+    <button class="pay-invoice">Pay invoice</button>
   </div>
 </body>
 </html>

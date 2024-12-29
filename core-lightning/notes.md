@@ -100,7 +100,9 @@
 - backups
 - tools: thunderhub, terminal lightning engineering, 1ML, amboss.space  
 
-# API call examples
+# API calls 
+
+## bitcoin-cli
 
 BITCOIN CLI https://developer.bitcoin.org/reference/rpc/
 
@@ -114,6 +116,8 @@ bitcoin-cli -regtest -rpcwallet=foo listaddressgroupings
 // get addresses associated with your wallet
 // shows addresses grouped by the transactions they are involved in, along with their associated balances.
 
-bitcoin-cli -regtest -rpcwallet=foo listreceivedbyaddress 0 true
+bitcoin-cli -regtest -rpcwallet=sky listreceivedbyaddress 0 true
 // addresses explicitly created in your wallet
 // the true flag includes addresses with a zero balance
+
+## lightning-cli

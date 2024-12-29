@@ -12,11 +12,13 @@ async function start () {
   pipe.on('data', (msg) => {
     msg = JSON.parse(b4a.toString(msg, 'utf-8'))
     if (msg.type === 'stop all') kill_processes(all_processes)
-    else if (msg.type === 'new_wallet') create_wallet(msg.data)
-    else if (msg.type === 'load_wallet') load_wallet(msg.data)
+    else if (msg.type === 'new wallet') create_wallet(msg.data)
+    else if (msg.type === 'load wallet') load_wallet(msg.data)
     else if (msg.type === 'send btc') send_btc(msg.data)
     else if (msg.type === 'listwallets') listwallets()
-      else if (msg.type === 'selected') show_addresses(msg.data)
+    else if (msg.type === 'selected') show_addresses(msg.data)
+    else if (msg.type === 'create addr') create_addr() // lightning
+    else if (msg.type === 'create invoice') create_invoice(msg.data) // lightning
   })
   pipe.on('close', (data) => {
     kill_processes(all_processes)
@@ -125,7 +127,7 @@ async function start () {
 
   function send_btc (data) {
     // pipe.write(JSON.stringify({ type: 'payment started', data: data.toString() }))
-    const { amount, address, wallet} = data
+    const { amount, address, wallet } = data
     
     // bitcoin-cli -regtest -rpcwallet=bar send '{"bcrt1qneakqhrlz844leqdnahwtetgkdhz5eqtnhzyqu":0.2}'
     const send_btc_args = JSON.stringify({ [address]:Number(amount) })
@@ -147,9 +149,25 @@ async function start () {
   function show_addresses (wallet) {
     const listwallets = spawn('bitcoin-cli', ['-regtest', `-rpcwallet=${wallet}`, 'listaddressgroupings']) // list wallets  
     listwallets.stdout.on('data', data => {
-      pipe.write(JSON.stringify({ type: 'addresses', data: `${data.toString()}` }))
+      pipe.write(JSON.stringify({ type: 'addresses btc', data: `${data.toString()}` }))
     })
   }
+
+  async function create_addr () {
+    const addr = spawn('lightning-cli', ['newaddr'])
+    addr.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'address lightning', data: `${data.toString()}` }))
+    })
+  }
+
+  async function create_invoice (data) {
+    const { amount, label, desc } = data
+    const addr = spawn('lightning-cli', ['invoice', amount, label, desc ])
+    addr.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'new invoice', data: `${data.toString()}` }))
+    })
+  }
+
 
 // ------------ 2. LIGHTNING CLI -------------
 
@@ -227,18 +245,7 @@ async function get_nodeinfo (all_processes, pipe) {
     // pipe.write(`{ type: 'nodeinfo', data: ${raw_data.toString()} }`)
   })
 }
-async function make_newaddr (all_processes, pipe) {
-  const addr = spawn('lightning-cli', ['newaddr'])
-  addr.stdout.on('data', data => {
-    pipe.write(JSON.stringify({ type: 'address', data: `${data.toString()}` }))
-  })
-}
-async function get_listaddresses (all_processes, pipe) {
-  const list = spawn('lightning-cli', ['listaddresses'])
-  list.stdout.on('data', data => {
-    pipe.write(JSON.stringify({ type: 'list', data: `${data.toString()}` }))
-  })
-}
+
 async function get_funds (all_processes, pipe) {
   const funds = spawn('lightning-cli', ['listfunds'])
   funds.stdout.on('data', data => {

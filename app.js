@@ -28,9 +28,6 @@ async function start () {
   
   const wsUri = 'ws://localhost:8080'
 
-  // console.log('request list of wallets')
-  // pipe.write(JSON.stringify({ type: 'listwallets' }))
-
   const wss_btn = document.querySelector('button.wss')
   wss_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
@@ -42,14 +39,14 @@ async function start () {
   new_wallet_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
     const val = document.querySelector('input.new-wallet').value
-    pipe.write(JSON.stringify({ type: 'new_wallet', data: `${val}` }))
+    pipe.write(JSON.stringify({ type: 'new wallet', data: `${val}` }))
   })
   
   const load_wallet_btn = document.querySelector('button.load-wallet')
   load_wallet_btn.addEventListener('click', (e) => { 
     e.stopPropagation()
     const val = document.querySelector('input.load-wallet').value
-    pipe.write(JSON.stringify({ type: 'load_wallet', data: `${val}` }))
+    pipe.write(JSON.stringify({ type: 'load wallet', data: `${val}` }))
   })
   
   const send_wallet_btn = document.querySelector('button.send-btc-wallet')
@@ -74,11 +71,28 @@ async function start () {
   const addr_dropdown = document.querySelector('.receive-dropdown-address')
   addr_dropdown.addEventListener('change', (e) => {
     e.stopPropagation()
-    const selection = document.querySelector('.receive-dropdown-address').selectedOptions[0].value
-    const address = selection.split(',')[0]
+    const selection = document.querySelector('.receive-dropdown-address').selectedOptions[0]
+    const val = selection.value
+    const address = val.split(',')[0]
     navigator.clipboard.writeText(address)
   })
 
+  const create_addr = document.querySelector('.create-lightning-address')
+  create_addr.addEventListener('click', (e) => { 
+    e.stopPropagation()
+    pipe.write(JSON.stringify({ type: 'create addr' }))
+  })
+
+  const create_invoice = document.querySelector('.create-invoice')
+  create_invoice.addEventListener('click', (e) => { 
+    e.stopPropagation()
+    const amount = document.querySelector('input.invoice-amount').value
+    const label = document.querySelector('input.invoice-label').value
+    const desc = document.querySelector('input.invoice-desc').value
+    const data = { amount, label, desc }
+    console.log({data})
+    pipe.write(JSON.stringify({ type: 'create invoice', data }))
+  })
 }
 
 start()
@@ -158,16 +172,43 @@ function parser (msg) {
     el_2.innerHTML = `<option>${data.name}</option>`
     receive_btc_wallets.appendChild(el_2)
   }
-  else if (msg.type === 'addresses') {
+  else if (msg.type === 'addresses btc') {
     const addr_dropdown = document.querySelector('.receive-dropdown-address')
     const arr = []
     for (const addr of JSON.parse(msg.data)[0]) {
       const el = document.createElement('option')
-      el.innerHTML = `<option>${addr[0]}, (${addr[1]} BTC)</option>`
-      console.log({ addr: addr[0], balance: addr[1] })
+      el.innerHTML = `${addr[0]}, (${addr[1]} BTC)`
       arr.push(el)
     }
     addr_dropdown.replaceChildren(...arr)
     // console.log({data})
+  }
+  else if (msg.type === 'address lightning') {
+    const list = document.querySelector('.lightning-addr-list')
+    const el = document.createElement('div')
+    el.className = 'addr-list-item'
+    const data = JSON.parse(msg.data).bech32
+    el.innerHTML = data
+    el.addEventListener("click", e => {
+      e.stopPropagation()
+      navigator.clipboard.writeText(data)
+    })
+    list.appendChild(el)
+  }
+  else if (msg.type === 'new invoice') {
+    const data = JSON.parse(msg.data)
+    console.log('New invoice', data)
+    const list = document.querySelector('.invoices')
+    const el = document.createElement('div')
+    el.className = 'invoices-item'
+    const ln = data.bolt11
+    const len = ln.length
+    const show = ln.substring(0,15) + `...` + ln.substring(len-15,len)
+    el.addEventListener("click", e => {
+      e.stopPropagation()
+      navigator.clipboard.writeText(ln)
+    })
+    el.innerHTML = show
+    list.appendChild(el)
   }
 }
