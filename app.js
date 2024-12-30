@@ -93,6 +93,13 @@ async function start () {
     console.log({data})
     pipe.write(JSON.stringify({ type: 'create invoice', data }))
   })
+
+  const pay_invoice = document.querySelector('.pay-invoice')
+  pay_invoice.addEventListener('click', (e) => { 
+    e.stopPropagation()
+    const ln = document.querySelector('input.ln-invoice').value
+    pipe.write(JSON.stringify({ type: 'pay invoice', data: ln }))
+  })
 }
 
 start()
@@ -209,6 +216,15 @@ function parser (msg) {
       navigator.clipboard.writeText(ln)
     })
     el.innerHTML = show
+    list.appendChild(el)
+  }
+  else if (msg.type === 'invoice paid') {
+    const data = JSON.parse(msg.data)
+    console.log('Paid invoice', data)
+    const list = document.querySelector('.receipts')
+    const el = document.createElement('div')
+    el.className = 'receipts-item'
+    el.innerText = JSON.stringify(data, null, 2)
     list.appendChild(el)
   }
 }

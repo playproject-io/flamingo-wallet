@@ -121,3 +121,6 @@ bitcoin-cli -regtest -rpcwallet=sky listreceivedbyaddress 0 true
 // the true flag includes addresses with a zero balance
 
 ## lightning-cli
+
+// run this after you've sent some funds to your lightning address from btc wallet on testnet
+ bitcoin-cli -regtest generatetoaddress 1 <your_mining_address>

@@ -19,6 +19,7 @@ async function start () {
     else if (msg.type === 'selected') show_addresses(msg.data)
     else if (msg.type === 'create addr') create_addr() // lightning
     else if (msg.type === 'create invoice') create_invoice(msg.data) // lightning
+    else if (msg.type === 'pay invoice') pay_invoice(msg.data) // lightning
   })
   pipe.on('close', (data) => {
     kill_processes(all_processes)
@@ -165,6 +166,13 @@ async function start () {
     const addr = spawn('lightning-cli', ['invoice', amount, label, desc ])
     addr.stdout.on('data', data => {
       pipe.write(JSON.stringify({ type: 'new invoice', data: `${data.toString()}` }))
+    })
+  }
+
+  async function pay_invoice (data) {
+    const addr = spawn('lightning-cli', ['pay', data ])
+    addr.stdout.on('data', data => {
+      pipe.write(JSON.stringify({ type: 'invoice paid', data: `${data.toString()}` }))
     })
   }
 

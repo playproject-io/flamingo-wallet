@@ -130,6 +130,12 @@
       font-size: 20px;
       width: 15%;
     }
+    
+    .ln-invoice {
+      padding: 1vh;
+      font-size: 20px;
+      width: 15%;
+    }
 
     .pay-invoice {
       padding: 1vh;
@@ -138,13 +144,15 @@
     }
 
     .lightning-addr-list,
-    .invoices {
+    .invoices,
+    .receipts {
       display: flex;
       flex-direction: column;
     }
 
     .addr-list-item,
-    .invoices-item {
+    .invoices-item,
+    .receipts-item {
       padding: .5vw;
       border: pink 2px solid;
       width: 25vw;
@@ -238,8 +246,9 @@
     <button class="create-invoice">Create invoice</button>
     <div class="invoices"></div>
     <div class="subtitle">Send payment</div>
-    <input class="pay-invoice" placeholder="enter invoice"></input>
+    <input class="ln-invoice" placeholder="enter invoice"></input>
     <button class="pay-invoice">Pay invoice</button>
+    <div class="receipts"></div>
   </div>
 </body>
 </html>
