@@ -44,19 +44,40 @@ async function start () {
   sudo snap refresh --hold bitcoin-core	# To prevent automated update of bitcoin-core
   sudo ln -s /snap/bitcoin-core/current/bin/bitcoin{d,-cli} /usr/local/bin/
   
-  sudo tar -xvf clightning-v24.08-Ubuntu-20.04.tar.xz -C /usr/local --strip-components=2
+  // download c-lightning https://sourceforge.net/projects/c-lightning.mirror/
+  sudo tar -xvf clightning-v24.08.1-Ubuntu-20.04.tar.xz -C /usr/local --strip-components=2
   
   sudo apt-get install libpq-dev
   */
   
-  // spawn('rm /etc/apt/preferences.d/nosnap.pref')
-  // spawn('apt update')
-  // spawn('apt install snapd')
-  // spawn('apt-get', ['install', '-y', 'software-properties-common'])
-  // spawn('snap', ['install', 'bitcoin-core'])
-  // spawn('snap', ['refresh', '--hold', 'bitcoin-core'])
-  // spawn('ln', ['-s', '/snap/bitcoin-core/current/bin/bitcoin{d,-cli}', '/usr/local/bin/'])
-  // spawn('apt-get', ['install', 'libpq-dev'])
+  /*
+  spawn('rm /etc/apt/preferences.d/nosnap.pref')
+  spawn('apt update')
+  spawn('apt install snapd')
+  spawn('apt-get', ['install', '-y', 'software-properties-common'])
+  spawn('snap', ['install', 'bitcoin-core'])
+  spawn('snap', ['refresh', '--hold', 'bitcoin-core'])
+  spawn('ln', ['-s', '/snap/bitcoin-core/current/bin/bitcoin{d,-cli}', '/usr/local/bin/'])
+  spawn('apt-get', ['install', 'libpq-dev'])
+  
+  */
+
+
+  // -------------- CLBOSS plugin -------------
+
+  /*
+
+  -installation for Linux Mint
+
+  sudo apt update
+  sudo apt install -y git automake autoconf-archive libtool
+  
+  git clone https://github.com/ZmnSCPxj/clboss.git
+  cd clboss
+  
+
+
+  */
 
 
 ////////////////////////////////////////////////////////////////////
@@ -76,15 +97,23 @@ async function start () {
   /* 
   add $HOME/.bitcoin/bitcoin.conf file
 
-  network=regtest
-  log-level=debug
-  rpc-file=lightning-rpc
-  bitcoin-rpcuser=testuser
-  bitcoin-rpcpassword=testpassword
-  bitcoin-rpcconnect=127.0.0.1
-  bitcoin-rpcport=18443
+# Bitcoin Core configuration for regtest mode
+
+# Operate in regtest mode
+regtest=1
+
+# Global RPC settings
+server=1
+rpcuser=testuser
+rpcpassword=testpassword
+rpcallowip=127.0.0.1
+
+# [regtest] section for network-specific settings
+[regtest]
+rpcport=18443
+rpcbind=127.0.0.1
+
   */
-  // const btc_deamon = spawn('bitcoind', ['-regtest', '-deamon']) // creates .bitcoin in $HOME
   const btc_deamon = spawn('bitcoind', ['-regtest', '-daemon']) // creates .bitcoin in $HOME
 
   all_processes.push(btc_deamon)
@@ -181,22 +210,30 @@ async function start () {
 
 // -------------- bitcoin network -------------
 
+  // add $HOME/.lightning/bitcoin/config file
+
   // const lightning_deamon = spawn('lightningd', ['--network=bitcoin', '--log-level=debug'])
 
 // -------------- test network -----------------
   /*
   add $HOME/.lightning/config file
 
-  network=regtest
-  log-level=debug
-  rpc-file=lightning-rpc
-  bitcoin-rpcuser=testuser
-  bitcoin-rpcpassword=testpassword
-  bitcoin-rpcconnect=127.0.0.1
-  bitcoin-rpcport=18443
+log-level=debug
+log-file=/home/ninabreznik/.lightning/regtest/debug.log
+rpc-file=/home/ninabreznik/.lightning/regtest/lightning-rpc
+bitcoin-rpcuser=testuser
+bitcoin-rpcpassword=testpassword
+bitcoin-rpcconnect=127.0.0.1
+bitcoin-rpcport=18443
+
+plugin=/home/ninabreznik/.lightning/plugins/clboss
+
   */
 
-  const lightning_deamon = spawn('lightningd', ['--network=regtest'])
+  const lightning_deamon = spawn('lightningd', [
+    '--network=regtest',
+    '--daemon'
+  ])
 
   all_processes.push(lightning_deamon)
   lightning_deamon.stdout.on('data', data => {

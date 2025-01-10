@@ -124,3 +124,50 @@ bitcoin-cli -regtest -rpcwallet=sky listreceivedbyaddress 0 true
 
 // run this after you've sent some funds to your lightning address from btc wallet on testnet
  bitcoin-cli -regtest generatetoaddress 1 <your_mining_address>
+
+## regtest second node
+- make ~/.lightning/secondnode folder and add a config file
+- add this to config
+# Connect to the shared Bitcoin daemon
+bitcoin-rpcconnect=127.0.0.1
+bitcoin-rpcport=18443
+bitcoin-rpcuser=testuser
+bitcoin-rpcpassword=testpassword
+network=regtest
+
+# Node-specific settings
+alias=secondnode
+addr=127.0.0.1:9736 
+
+- run the second node with 
+ lightningd --lightning-dir=/home/ninabreznik/.lightning/secondnode --log-file=/home/ninabreznik/.lightning/secondnode/log --daemon
+
+- stop the node
+lightningd --lightning-dir=/home/ninabreznik/.lightning/secondnode --shutdown
+
+- test the connection of second node to bitcoind
+lightning-cli --lightning-dir=/home/ninabreznik/.lightning/secondnode getinfo
+
+- get info gives you a node id, which is used to connect
+lightning-cli --lightning-dir=~/.lightning/secondnode connect <NODE1_ID> 127.0.0.1 <NODE1_PORTlightning>
+
+- open channel from NODE1
+lightning-cli fundchannel <NODE2_ID> <AMOUNT> // we used 50000
+
+- if on regtest, we need to manually announce
+(not sure which one)
+lightning-cli dev-setchannel <channel-id> announce true
+or
+lightning-cli setchannelfee <peer-node-id> <base-fee> <ppm-fee>  //  This will set the fees for the channel
+or 
+lightningd --lightning-dir=/home/ninabreznik/.lightning --announce-addr=127.0.0.1:19846
+
+- pay invoice through the new channel
+lightning-cli pay <LN_INVOICE>
+
+- if payment fails, check if there is a route between you and the node
+lightning-cli getroute <NODE2_ID> <AMOUNT> 1
+
+- on regtest we need to generate blocks to make funds move
+bitcoin-cli -regtest -generate 30
+
