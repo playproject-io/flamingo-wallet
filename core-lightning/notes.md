@@ -122,28 +122,11 @@ bitcoin-cli -regtest -rpcwallet=sky listreceivedbyaddress 0 true
 
 ## lightning-cli
 
-// run this after you've sent some funds to your lightning address from btc wallet on testnet
- bitcoin-cli -regtest generatetoaddress 1 <your_mining_address>
-
-## regtest second node
-- make ~/.lightning/secondnode folder and add a config file
-- add this to config
-# Connect to the shared Bitcoin daemon
-bitcoin-rpcconnect=127.0.0.1
-bitcoin-rpcport=18443
-bitcoin-rpcuser=testuser
-bitcoin-rpcpassword=testpassword
-network=regtest
-
-# Node-specific settings
-alias=secondnode
-addr=127.0.0.1:9736 
-
 - run the second node with 
- lightningd --lightning-dir=/home/ninabreznik/.lightning/secondnode --log-file=/home/ninabreznik/.lightning/secondnode/log --daemon
+ lightningd --lightning-dir=/home/ninabreznik/.lightning/secondnode --log-file=/home/ninabreznik/.lightning/secondnode/log --network=regtest --daemon
 
 - stop the node
-lightningd --lightning-dir=/home/ninabreznik/.lightning/secondnode --shutdown
+lightning-cli --lightning-dir=/home/ninabreznik/.lightning/secondnode stop
 
 - test the connection of second node to bitcoind
 lightning-cli --lightning-dir=/home/ninabreznik/.lightning/secondnode getinfo
@@ -162,12 +145,64 @@ lightning-cli setchannelfee <peer-node-id> <base-fee> <ppm-fee>  //  This will s
 or 
 lightningd --lightning-dir=/home/ninabreznik/.lightning --announce-addr=127.0.0.1:19846
 
-- pay invoice through the new channel
+- pay invoice through the new channel (see note below for what to do after if on regtest)
 lightning-cli pay <LN_INVOICE>
 
 - if payment fails, check if there is a route between you and the node
 lightning-cli getroute <NODE2_ID> <AMOUNT> 1
 
-- on regtest we need to generate blocks to make funds move
+- after pay: on regtest we need to generate blocks to make funds move
+bitcoin-cli generatetoaddress 101 bcrt1qck0mtn4sv9zr9wmujxd4asud25cd37kkthfd2g
+or
 bitcoin-cli -regtest -generate 30
+
+// run this after you've sent some funds to your lightning address from btc wallet on testnet
+ bitcoin-cli -regtest generatetoaddress 1 <your_mining_address>
+
+## regtest second node
+- make ~/.lightning/secondnode folder and add a config file
+- add this to config
+# Connect to the shared Bitcoin daemon
+bitcoin-rpcconnect=127.0.0.1
+bitcoin-rpcport=18443
+bitcoin-rpcuser=testuser
+bitcoin-rpcpassword=testpassword
+network=regtest
+
+# Node-specific settings
+alias=secondnode
+addr=127.0.0.1:9736 
+
+
+----
+
+TESTING FLOW
+
+- run 
+pear run --dev .
+(this will run bitcoin and lightning node)
+
+- in another tab run a second lightning node 
+lightningd --lightning-dir=/home/ninabreznik/.lightning/secondnode --log-file=/home/ninabreznik/.lightning/secondnode/log --network=regtest --daemon
+
+- add funds from btc account to lightning account
+  - make new address
+  lightning-cli newaddr
+  - send BTC to it (through app interface or through a command)
+  bitcoin-cli -regtest -rpcwallet=bar send '{"bcrt1qneakqhrlz844leqdnahwtetgkdhz5eqtnhzyqu":0.2}
+  - if on regtest run
+  bitcoin-cli -regtest generatetoaddress 1 bcrt1qneakqhrlz844leqdnahwtetgkdhz5eqtnhzyqu
+  - see funds
+  lightning-cli listfunds
+
+- create invoice with second node
+lightning-cli --lightning-dir=/home/ninabreznik/.lightning/secondnode --network=regtest invoice 3000 yuna123 yesyes123
+
+- pay the invoice with first node (through app interface or through a command)
+lightning-cli pay <LN_INVOICE>
+
+- see funds
+lightning-cli --lightning-dir=/home/ninabreznik/.lightning/secondnode --network=regtest listfunds
+
+
 

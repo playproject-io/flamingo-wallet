@@ -146,12 +146,13 @@ rpcbind=127.0.0.1
     pipe.write(JSON.stringify({ type: 'wallet', data: `starting to load ${name}` }))
     const list = spawn('bitcoin-cli', ['-regtest', 'listwallets'])
     list.stdout.on('data', data => {
-      if (data.includes('name')) return pipe.write(JSON.stringify({ type: 'load wallet', data: `${name} wallet is already loaded` }))
+      const list = JSON.parse(data)
+      pipe.write(JSON.stringify({ type: 'wallets list', data }))
     })
     if (!name) name = 'my wallet'
     const load_wallet = spawn('bitcoin-cli', ['-regtest', 'loadwallet', `${name}`]) // load wallet  
     load_wallet.stdout.on('data', data => {
-      pipe.write(JSON.stringify({ type: 'load wallet', data: `${data.toString()}` }))
+      pipe.write(JSON.stringify({ type: 'load wallet', data: data.toString() }))
     })
   }
 

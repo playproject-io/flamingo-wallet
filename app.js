@@ -74,7 +74,10 @@ async function start () {
     const selection = document.querySelector('.receive-dropdown-address').selectedOptions[0]
     const val = selection.value
     const address = val.split(',')[0]
-    navigator.clipboard.writeText(address)
+    console.log({ address })
+    setTimeout(() => {
+      navigator.clipboard.writeText(address)
+    }, 0)
   })
 
   const create_addr = document.querySelector('.create-lightning-address')
@@ -111,7 +114,7 @@ function kill_processes (pipe) {
 function start_worker (path, name) {
   const pipe = Pear.worker.run(path)
   pipe.on('data', (data) => {
-    console.log(`data from ${name}:`, b4a.toString(data, 'utf-8'))
+    console.log(`${name}:`, b4a.toString(data, 'utf-8'))
     parser(data)
   })
   pipe.on('err', (err) => {
@@ -129,6 +132,9 @@ function parser (msg) {
   msg = JSON.parse(msg)
   console.log({type: msg.type})
   if (msg.type === 'wallets') {
+    console.log({ parser: msg.type, data: msg.data })
+  } 
+  if (msg.type === 'wallets') {
     const data = JSON.parse(msg.data)
     console.log('wallets list', data)
     let send_btc_wallets = document.querySelector('.send-btc-wallets')
@@ -136,10 +142,10 @@ function parser (msg) {
 
     for (const wallet of data) {
       const el_1 = document.createElement('option')
-      el_1.innerHTML = `<option>${wallet}</option>`
+      el_1.innerHTML = `${wallet}`
       send_btc_wallets.appendChild(el_1)
       const el_2 = document.createElement('option')
-      el_2.innerHTML = `<option>${wallet}</option>`
+      el_2.innerHTML = `${wallet}`
       receive_btc_wallets.appendChild(el_2)
     }
   }
@@ -148,12 +154,12 @@ function parser (msg) {
     // send
     let send_btc_wallets = document.querySelector('.send-btc-wallets')
     const el_1 = document.createElement('option')
-    el_1.innerHTML = `<option>${data.name}</option>`
+    el_1.innerHTML = `${data.name}`
     send_btc_wallets.appendChild(el_1)
     // receive
     let receive_btc_wallets = document.querySelector('.receive-btc-wallets')
     const el_2 = document.createElement('option')
-    el_2.innerHTML = `<option>${data.name}</option>`
+    el_2.innerHTML = `${data.name}`
     receive_btc_wallets.appendChild(el_2)
   }
   else if (msg.type === 'load wallet') {
@@ -166,7 +172,7 @@ function parser (msg) {
     }
     let send_btc_wallets = document.querySelector('.send-btc-wallets')
     const el_1 = document.createElement('option')
-    el_1.innerHTML = `<option>${data.name}</option>`
+    el_1.innerHTML = `${data.name}`
     send_btc_wallets.appendChild(el_1)
     // receive
     const options_2 = document.querySelectorAll('.receive-btc-wallets')
@@ -176,15 +182,15 @@ function parser (msg) {
     }
     let receive_btc_wallets = document.querySelector('.receive-btc-wallets')
     const el_2 = document.createElement('option')
-    el_2.innerHTML = `<option>${data.name}</option>`
+    el_2.innerHTML = `${data.name}`
     receive_btc_wallets.appendChild(el_2)
   }
   else if (msg.type === 'addresses btc') {
     const addr_dropdown = document.querySelector('.receive-dropdown-address')
     const arr = []
-    for (const addr of JSON.parse(msg.data)[0]) {
+    for (const addr of JSON.parse(msg.data)) {
       const el = document.createElement('option')
-      el.innerHTML = `${addr[0]}, (${addr[1]} BTC)`
+      el.innerHTML = `${addr[0][0]}, (${addr[0][1]} BTC)`
       arr.push(el)
     }
     addr_dropdown.replaceChildren(...arr)
