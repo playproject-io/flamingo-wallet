@@ -69,7 +69,7 @@ async function start () {
   })
 
   const addr_dropdown = document.querySelector('.receive-dropdown-address')
-  addr_dropdown.addEventListener('change', (e) => {
+  addr_dropdown.addEventListener('click', (e) => {
     e.stopPropagation()
     const selection = document.querySelector('.receive-dropdown-address').selectedOptions[0]
     const val = selection.value
