@@ -123,7 +123,7 @@ function start_worker (path, name) {
   process.on('SIGINT', () => kill_processes(pipe))
   process.on('SIGTERM', () => kill_processes(pipe))
   process.on('exit', () => kill_processes(pipe))
-
+  
   return pipe
 }
 
