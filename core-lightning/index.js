@@ -13,7 +13,7 @@ const arch = Bare.arch
 // pipe.write(`{ type: 'info', data: ${platform}/${arch} }`)
 pipe.on('data', (msg) => {
   msg = JSON.parse(b4a.toString(msg, 'utf-8'))
-  if (msg.type === 'stop all') kill_processes(all_processes)
+  if (msg.type === 'stop all') kill_processes(all_processes, network)
   else if (msg.type === 'new wallet') create_wallet(msg.data)
   else if (msg.type === 'load wallet') load_wallet(msg.data)
   else if (msg.type === 'send btc') send_btc(msg.data)
@@ -24,7 +24,7 @@ pipe.on('data', (msg) => {
   else if (msg.type === 'pay invoice') pay_invoice(msg.data) // lightning
 })
 pipe.on('close', (data) => {
-  kill_processes(all_processes)
+  kill_processes(all_processes, network)
 })
 
 
@@ -385,7 +385,7 @@ async function get_balance (all_processes, pipe) {
   })
 }
 
-function kill_processes (all_processes) {
+function kill_processes (all_processes, network) {
   if (network === 'regtest') {
     spawn('bitcoin-cli', [`-${network}`, 'stop'])
   } else {
@@ -414,10 +414,10 @@ const arch = Bare.arch
 pipe.write(JSON.stringify({ type: 'info', data: `${platform}/${arch}` }))
 pipe.on('data', (data) => {
   const msg = b4a.toString(data, 'utf-8')
-  if (msg === 'stop all') kill_processes(all_processes)
+  if (msg === 'stop all') kill_processes(all_processes, network)
 })
 pipe.on('close', (data) => {
-  kill_processes(all_processes)
+  kill_processes(all_processes, network)
 })
 
 // SETUP/INSTALLATION
