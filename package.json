@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "b4a": "^1.6.6",
-    "bare-subprocess": "^4.0.1",
+    "hypercore": "^10.38.2",
     "ws": "^8.18.0"
   },
   "optionalDependencies": {

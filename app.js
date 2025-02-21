@@ -1,7 +1,19 @@
 const { WebSocketServer } = require('ws')
 const b4a = require('b4a')
+const fs = require('fs')
+const Hypercore = require('hypercore')
+
+var btc_book
+var ln_book
 
 async function start () {
+  if (!btc_book && !ln_book) {
+    btc_book = new Hypercore('./books/btc_book')
+    ln_book = new Hypercore('./books/ln_book')
+    btc_book.append(b4a.from('abc'))
+    ln_book.append(b4a.from('abc'))
+  }
+
   document.querySelector('button.refresh').addEventListener('click', (e) => { 
     e.stopPropagation()
     location = location 
@@ -108,6 +120,13 @@ async function start () {
 start()
 
 function kill_processes (pipe) {
+  fs.rm('./books/btc_book', { recursive: true, force: true }, (err) => {
+    if (!err) btc_book = undefined
+    fs.writeFileSync('./logs', err.toString())
+  })
+  fs.rm('./books/ln_book', { recursive: true, force: true }, (err) => {
+    if (!err) ln_book = undefined
+  })
   pipe.destroy()
 }
 
@@ -120,6 +139,7 @@ function start_worker (path, name) {
   pipe.on('err', (err) => {
     console.log(`err from ${name}:`, err)
   })
+
   process.on('SIGINT', () => kill_processes(pipe))
   process.on('SIGTERM', () => kill_processes(pipe))
   process.on('exit', () => kill_processes(pipe))
