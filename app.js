@@ -1,17 +1,33 @@
 const { WebSocketServer } = require('ws')
 const b4a = require('b4a')
 const fs = require('fs')
+const Hyperdrive = require('hyperdrive')
+const Corestore = require('corestore')
+const Hyperbee = require('hyperbee')
 const Hypercore = require('hypercore')
+const Hyperswarm = require('hyperswarm')
+const RAM = require('random-access-memory')
 
-var btc_book
-var ln_book
+var swarm
+var store
+var drive 
+var db
 
 async function start () {
-  if (!btc_book && !ln_book) {
-    btc_book = new Hypercore('./books/btc_book')
-    ln_book = new Hypercore('./books/ln_book')
-    btc_book.append(b4a.from('abc'))
-    ln_book.append(b4a.from('abc'))
+  swarm = new Hyperswarm()
+  store = new Corestore('./storage')
+  drive = new Hyperdrive(store)
+  const file = await drive.get('/profile/name')
+  if (!file) {
+    await drive.put('/profile/name', b4a.from('Nina Breznik'))
+    const imageBuffer = fs.readFileSync('./assets/avatar.jpg');
+    await drive.put('/profile/avatar', imageBuffer)
+    const name = await drive.get('/profile/name')
+    const key = drive.core.key
+    await drive.put('/feedkey', key)
+    console.log('get profile/name', name.toString(), key.toString('hex'))
+    const feed = new Hypercore(RAM)
+    db = new Hyperbee(feed, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
   }
 
   document.querySelector('button.refresh').addEventListener('click', (e) => { 
@@ -39,6 +55,15 @@ async function start () {
   });
   
   const wsUri = 'ws://localhost:8080'
+
+  const avatar = document.querySelector('.avatar')
+  const imageBuffer = fs.readFileSync('./assets/avatar.jpg')
+  const blob = new Blob([imageBuffer])
+  const url = URL.createObjectURL(blob);
+  avatar.src = url
+  const name = document.querySelector('.name')
+  const my_name = await drive.get('/profile/name')
+  name.innerHTML = `${my_name.toString()}`
 
   const wss_btn = document.querySelector('button.wss')
   wss_btn.addEventListener('click', (e) => { 
@@ -115,18 +140,54 @@ async function start () {
     const ln = document.querySelector('input.ln-invoice').value
     pipe.write(JSON.stringify({ type: 'pay invoice', data: ln }))
   })
+
+  const add_contact = document.querySelector('.add-new-contact')
+  add_contact.addEventListener('click', async (e) => { 
+    e.stopPropagation()
+    const address = document.querySelector('input.new-contact').value
+    var contacts = await db.get('contacts')
+    if (!contacts) contacts = []
+    else contacts = JSON.parse(contacts.value.toString())
+    contacts.push(address)
+    await db.put('contacts', b4a.from(JSON.stringify(contacts)))
+    const list = document.querySelector('.contacts-list')
+
+    const store = new Corestore(RAM)
+    const drive = new Hyperdrive(store, address)
+    await drive.ready()
+    const done = drive.findingPeers()
+    swarm.join(drive.discoveryKey, { server: false, client: true})
+    swarm.on('connection', async (socket, info) => {
+      store.replicate(socket)
+      const imageBuffer = await drive.get('/profile/avatar')
+      const blob = new Blob([imageBuffer])
+      const url = URL.createObjectURL(blob);
+      const name = await drive.get('/profile/name')
+      const el = document.createElement('div')
+      el.innerHTML = `
+        <div class="contact">
+          <img class="avatar" src=${url}></img>
+          <div class="name">${name.toString()}</div>
+        </div>
+      `
+      list.append(el)
+    })
+    swarm.flush().then(done, done)
+  })
 }
 
 start()
 
 function kill_processes (pipe) {
-  fs.rm('./books/btc_book', { recursive: true, force: true }, (err) => {
-    if (!err) btc_book = undefined
+  fs.rm('./storage', { recursive: true, force: true }, (err) => {
+    if (!err) store = undefined
     fs.writeFileSync('./logs', err.toString())
   })
-  fs.rm('./books/ln_book', { recursive: true, force: true }, (err) => {
-    if (!err) ln_book = undefined
+  fs.rm('./foo_storage', { recursive: true, force: true }, (err) => {
+    if (!err) store = undefined
+    fs.writeFileSync('./logs', err.toString())
   })
+  store = undefined
   pipe.destroy()
 }
 

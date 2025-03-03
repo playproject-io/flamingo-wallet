@@ -72,12 +72,31 @@
       display: none;
     }
 
-    .wallets, .lightning {
+    .account, .wallets, .lightning, .contacts {
       margin: 5vh 0 5vh 0;
       border-color: pink;
       font-size: 20px;
       border: 2px solid pink;
       padding: 3vh;
+    }
+
+    .account {
+      display: flex;
+    }
+    
+    .contact {
+      display: flex;
+    }
+
+    .avatar {
+      width: 100px;
+    }
+
+    .name {
+      color: white;
+      background-color: pink;
+      align-content: center;
+      padding: 3vw;
     }
 
     .wallets > button {
@@ -162,6 +181,20 @@
       cursor: pointer;
     }
 
+    input.new-contact {
+      padding: 1vh;
+      font-size: 20px;
+      width: 40%;
+    }
+
+    .add-new-contact {
+      background-color: lightgreen;
+    }
+
+    .contacts-list {
+      color: white;
+    }
+
     .subtitle {
       color: white;
       font-size: 25px;
@@ -202,6 +235,10 @@
   <div  class="config">
     <button class="refresh">Refresh page</button>
     <button class="wss">Copy socket server address</button>
+  </div>
+  <div class="account">
+    <img class="avatar"></img>
+    <div class="name"></div>
   </div>
   <div class="wallets">
     <div class="title">Create or load a wallet</div>
@@ -249,6 +286,11 @@
     <input class="ln-invoice" placeholder="enter invoice"></input>
     <button class="pay-invoice">Pay invoice</button>
     <div class="receipts"></div>
+  </div>
+  <div class="contacts">
+    <input class="new-contact" placeholder="enter peer's hyperdrive"></input>
+    <button class="add-new-contact">Add contact</button>
+    <div class="contacts-list"></div>
   </div>
 </body>
 </html>
