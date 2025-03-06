@@ -7,6 +7,9 @@ const Hyperbee = require('hyperbee')
 const Hypercore = require('hypercore')
 const Hyperswarm = require('hyperswarm')
 const RAM = require('random-access-memory')
+const sodium = require('sodium-universal')
+const derive_seed = require('derive-key')
+const crypto = require("hypercore-crypto")
 
 var swarm
 var store
@@ -14,9 +17,18 @@ var drive
 var db
 
 async function start () {
-  swarm = new Hyperswarm()
+  const opts = { 
+    namespace: 'noisekeys', 
+    seed: crypto.randomBytes(32), 
+    name: 'noise' 
+   }
+  const { publicKey, secretKey } = create_noise_keypair (opts)
+  const keyPair = { publicKey, secretKey }
+  console.log('My profile', publicKey.toString('hex'))
+  swarm = new Hyperswarm({ keyPair })
   store = new Corestore('./storage')
   drive = new Hyperdrive(store)
+  await drive.ready()
   const file = await drive.get('/profile/name')
   if (!file) {
     await drive.put('/profile/name', b4a.from('Nina Breznik'))
@@ -26,10 +38,12 @@ async function start () {
     const key = drive.core.key
     await drive.put('/feedkey', key)
     console.log('get profile/name', name.toString(), key.toString('hex'))
-    const feed = new Hypercore(RAM)
-    db = new Hyperbee(feed, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
   }
 
+  if (!db) {
+    const feed = store.get({ name: 'feed-1' })
+    db = new Hyperbee(feed, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
+  }
   document.querySelector('button.refresh').addEventListener('click', (e) => { 
     e.stopPropagation()
     location = location 
@@ -64,6 +78,46 @@ async function start () {
   const name = document.querySelector('.name')
   const my_name = await drive.get('/profile/name')
   name.innerHTML = `${my_name.toString()}`
+
+  const add_contact = document.querySelector('.add-new-contact')
+  add_contact.addEventListener('click', async (e) => { 
+    e.stopPropagation()
+    const address = document.querySelector('input.new-contact').value
+    const key = document.querySelector('input.hyperdrive').value
+    var contacts = await db.get('contacts')
+    if (!contacts) contacts = []
+    else contacts = JSON.parse(contacts.value.toString())
+    contacts.push(address)
+    await db.put('contacts', b4a.from(JSON.stringify(contacts)))
+    const list = document.querySelector('.contact-list')
+
+    const store = new Corestore(RAM)
+    const drive = new Hyperdrive(store, b4a.from(key, 'hex'))
+    await drive.ready()
+    const done = drive.findingPeers()
+    
+    swarm.on('connection', async (socket, info) => {
+      socket.on('error', (err) => console.log('socket error', err))
+      console.log({conn: 'onconnection', pubkey: info.publicKey.toString('hex')})
+      if (info.publicKey.toString('hex') === address) {
+        store.replicate(socket)
+        const imageBuffer = await drive.get('/profile/avatar')
+        const blob = new Blob([imageBuffer])
+        const url = URL.createObjectURL(blob);
+        const name = await drive.get('/profile/name')
+        const el = document.createElement('div')
+        el.innerHTML = `
+          <div class="contact">
+            <img class="avatar" src=${url}></img>
+            <div class="name">${name.toString()}</div>
+          </div>
+        `
+        list.append(el)
+      }
+    })
+    await swarm.joinPeer(b4a.from(address, 'hex'))
+    await swarm.flush()
+  })
 
   const wss_btn = document.querySelector('button.wss')
   wss_btn.addEventListener('click', (e) => { 
@@ -141,39 +195,6 @@ async function start () {
     pipe.write(JSON.stringify({ type: 'pay invoice', data: ln }))
   })
 
-  const add_contact = document.querySelector('.add-new-contact')
-  add_contact.addEventListener('click', async (e) => { 
-    e.stopPropagation()
-    const address = document.querySelector('input.new-contact').value
-    var contacts = await db.get('contacts')
-    if (!contacts) contacts = []
-    else contacts = JSON.parse(contacts.value.toString())
-    contacts.push(address)
-    await db.put('contacts', b4a.from(JSON.stringify(contacts)))
-    const list = document.querySelector('.contacts-list')
-
-    const store = new Corestore(RAM)
-    const drive = new Hyperdrive(store, address)
-    await drive.ready()
-    const done = drive.findingPeers()
-    swarm.join(drive.discoveryKey, { server: false, client: true})
-    swarm.on('connection', async (socket, info) => {
-      store.replicate(socket)
-      const imageBuffer = await drive.get('/profile/avatar')
-      const blob = new Blob([imageBuffer])
-      const url = URL.createObjectURL(blob);
-      const name = await drive.get('/profile/name')
-      const el = document.createElement('div')
-      el.innerHTML = `
-        <div class="contact">
-          <img class="avatar" src=${url}></img>
-          <div class="name">${name.toString()}</div>
-        </div>
-      `
-      list.append(el)
-    })
-    swarm.flush().then(done, done)
-  })
 }
 
 start()
@@ -206,6 +227,15 @@ function start_worker (path, name) {
   process.on('exit', () => kill_processes(pipe))
   
   return pipe
+}
+
+function create_noise_keypair ({ namespace, seed, name }) {
+  const noiseSeed = derive_seed(namespace, seed, name)
+  const publicKey = b4a.alloc(32)
+  const secretKey = b4a.alloc(64)
+  if (noiseSeed) sodium.crypto_sign_seed_keypair(publicKey, secretKey, noiseSeed)
+  else sodium.crypto_sign_keypair(publicKey, secretKey)
+  return { publicKey, secretKey }
 }
 
 function parser (msg) {

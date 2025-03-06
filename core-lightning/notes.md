@@ -204,5 +204,33 @@ lightning-cli pay <LN_INVOICE>
 - see funds
 lightning-cli --lightning-dir=/home/ninabreznik/.lightning/secondnode --network=regtest listfunds
 
+---
+
+P2P stuff
+
+Invite/Handshake
+- need: peerkey + invite code
+- joinpeer and use protomax to verify invite and exchange hypercore addresses
+- hyperdrive to manage invites
+
+Chat
+- requests for payment (btc or lightning)
+- payment history with the peer (transactions)
+- messages
+
+Corestore
+- stores your own hypercores (get foo) 
+- stores hypercores you subscribe to (get b2a384b5bcd6efa338631c601f5145dd8b77d6a8114322b5f4df43566c8fe8b9) 
+- stores sub-corestores
+
+- these sub-corestores are passed as opts to hyperdrives (i.e.)
 
 
+Hyperbee DB (private/personalized)
+- uses a hypercore created through the corestore
+- contacts
+
+Hyperdrive (shared with others)
+- uses profile sub-corestore
+- avatar 
+- name
