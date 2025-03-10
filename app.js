@@ -10,6 +10,11 @@ const RAM = require('random-access-memory')
 const sodium = require('sodium-universal')
 const derive_seed = require('derive-key')
 const crypto = require("hypercore-crypto")
+const c = require('compact-encoding')
+const {
+  make_protocol,
+  create_and_open_channel
+} = require('./lib/mux-proto.js')
 
 var swarm
 var store
@@ -110,9 +115,20 @@ async function start () {
           <div class="contact">
             <img class="avatar" src=${url}></img>
             <div class="name">${name.toString()}</div>
-          </div>
-        `
+          </div>`
         list.append(el)
+        //protomux
+        const replicationStream = Hypercore.createProtocolStream(socket, { ondiscoverykey: () => {
+          // peer is a server
+          console.log('peer is a server')
+        } })
+        const mux = Hypercore.getProtocolMuxer(replicationStream)
+        make_protocol({ mux, opts: { protocol: 'flamingo/alpha' }, cb })
+        function cb () {
+          const channel = create_and_open_channel ({ mux, opts: { protocol: 'flamingo/alpha' } })
+          const one = channel.addMessage({ encoding: c.string, onmessage })
+          one.send(JSON.stringify({ type: 'invite', data: 'a3fdjkvn32em'}))
+        }
       }
     })
     await swarm.joinPeer(b4a.from(address, 'hex'))
@@ -195,6 +211,33 @@ async function start () {
     pipe.write(JSON.stringify({ type: 'pay invoice', data: ln }))
   })
 
+  const invite_codes_list = document.querySelector('.invite-codes-list')
+  var invites = await db.get('invites')
+  if (!invites) invites = []
+  else invites = JSON.parse(invites.value.toString())
+  const el = document.createElement('div')
+  for (const invite of invites) {
+    el.innerHTML = `
+      <div class="invite">
+        <div class="name">${invite}</div>
+      </div>`
+    invite_codes_list.append(el)
+  }
+
+  const add_invite = document.querySelector('.add-new-invite')
+  add_invite.addEventListener('click', async (e) => { 
+    e.stopPropagation()
+    // generate invite
+    const new_invite = crypto.randomBytes(8).toString('hex')
+    invites.push(new_invite)
+    await db.put('invites', b4a.from(JSON.stringify(invites)))
+    const el = document.createElement('div')
+    el.innerHTML = `
+    <div class="invite">
+      <div class="name">${new_invite}</div>
+    </div>`
+    invite_codes_list.append(el)
+  })
 }
 
 start()
@@ -236,6 +279,15 @@ function create_noise_keypair ({ namespace, seed, name }) {
   if (noiseSeed) sodium.crypto_sign_seed_keypair(publicKey, secretKey, noiseSeed)
   else sodium.crypto_sign_keypair(publicKey, secretKey)
   return { publicKey, secretKey }
+}
+
+function onmessage ({ message }) { //protomux
+  const { type, data } = JSON.parse(message)
+  if (type === 'invite') {
+
+  } else if (type === '') {
+  } else if (type === '') {
+  }
 }
 
 function parser (msg) {

@@ -229,6 +229,7 @@ Corestore
 Hyperbee DB (private/personalized)
 - uses a hypercore created through the corestore
 - contacts
+- invite codes
 
 Hyperdrive (shared with others)
 - uses profile sub-corestore
