@@ -24,6 +24,8 @@ async function start () {
   const keyPair = { publicKey, secretKey }
   swarm = new Hyperswarm({ keyPair })
   const store = new Corestore('./foo_storage')
+  var one
+  
   const drive = new Hyperdrive(store)
   await drive.ready()
   await drive.put('/profile/name', b4a.from('Yuna Sky Berlin'))
@@ -38,18 +40,27 @@ async function start () {
     store.replicate(socket)
     //protomux
     const replicationStream = Hypercore.createProtocolStream(socket, { ondiscoverykey: () => {
-      // peer is a server
       console.log('peer is a server')
     } })    
     const mux = Hypercore.getProtocolMuxer(replicationStream)
     make_protocol({ mux, opts: { protocol: 'flamingo/alpha' }, cb })
     function cb () {
       const channel = create_and_open_channel ({ mux, opts: { protocol: 'flamingo/alpha' } })
-      const one = channel.addMessage({ encoding: c.string, onmessage })
-      // one.send(JSON.stringify({ type: 'invite', data: 'a3fdjkvn32em'}))
+      one = channel.addMessage({ encoding: c.string, onmessage })
+      one.send(JSON.stringify({ type: 'invite', data: '6e39d2e116d3c48c'}))
     }
   })
   await swarm.listen()
+
+  async function onmessage (message) {
+    console.log({ message })
+    const { type, data } = JSON.parse(message)
+    if (type === 'invite') {
+    } else if (type === 'profile') {
+      one.send(JSON.stringify({ type: 'profile', data: drive.core.key.toString('hex') }))
+    } else if (type === '') {
+    }
+  }
 }
 
 start()
@@ -63,14 +74,4 @@ function create_noise_keypair ({ namespace, seed, name }) {
   if (noiseSeed) sodium.crypto_sign_seed_keypair(publicKey, secretKey, noiseSeed)
   else sodium.crypto_sign_keypair(publicKey, secretKey)
   return { publicKey, secretKey }
-}
-
-function onmessage (message ) {
-  console.log({ message })
-  const { type, data } = JSON.parse(message)
-  if (type === 'invite') {
-
-  } else if (type === '') {
-  } else if (type === '') {
-  }
 }

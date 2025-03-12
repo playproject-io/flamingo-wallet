@@ -16,17 +16,18 @@ const {
   create_and_open_channel
 } = require('./lib/mux-proto.js')
 
-var swarm
-var store
-var drive 
-var db
 
 async function start () {
+  var swarm
+  var store
+  var drive 
+  var db
+  var one
   const opts = { 
     namespace: 'noisekeys', 
     seed: crypto.randomBytes(32), 
     name: 'noise' 
-   }
+  }
   const { publicKey, secretKey } = create_noise_keypair (opts)
   const keyPair = { publicKey, secretKey }
   console.log('My profile', publicKey.toString('hex'))
@@ -88,46 +89,26 @@ async function start () {
   add_contact.addEventListener('click', async (e) => { 
     e.stopPropagation()
     const address = document.querySelector('input.new-contact').value
-    const key = document.querySelector('input.hyperdrive').value
     var contacts = await db.get('contacts')
     if (!contacts) contacts = []
     else contacts = JSON.parse(contacts.value.toString())
     contacts.push(address)
     await db.put('contacts', b4a.from(JSON.stringify(contacts)))
-    const list = document.querySelector('.contact-list')
-
-    const store = new Corestore(RAM)
-    const drive = new Hyperdrive(store, b4a.from(key, 'hex'))
-    await drive.ready()
-    const done = drive.findingPeers()
     
     swarm.on('connection', async (socket, info) => {
       socket.on('error', (err) => console.log('socket error', err))
       console.log({conn: 'onconnection', pubkey: info.publicKey.toString('hex')})
       if (info.publicKey.toString('hex') === address) {
-        store.replicate(socket)
-        const imageBuffer = await drive.get('/profile/avatar')
-        const blob = new Blob([imageBuffer])
-        const url = URL.createObjectURL(blob);
-        const name = await drive.get('/profile/name')
-        const el = document.createElement('div')
-        el.innerHTML = `
-          <div class="contact">
-            <img class="avatar" src=${url}></img>
-            <div class="name">${name.toString()}</div>
-          </div>`
-        list.append(el)
         //protomux
         const replicationStream = Hypercore.createProtocolStream(socket, { ondiscoverykey: () => {
-          // peer is a server
           console.log('peer is a server')
         } })
         const mux = Hypercore.getProtocolMuxer(replicationStream)
         make_protocol({ mux, opts: { protocol: 'flamingo/alpha' }, cb })
         function cb () {
           const channel = create_and_open_channel ({ mux, opts: { protocol: 'flamingo/alpha' } })
-          const one = channel.addMessage({ encoding: c.string, onmessage })
-          one.send(JSON.stringify({ type: 'invite', data: 'a3fdjkvn32em'}))
+          one = channel.addMessage({ encoding: c.string, onmessage: (message) => onmessage(message, socket) })
+          // one.send(JSON.stringify({ type: 'invite', data: 'a3fdjkvn32em'}))
         }
       }
     })
@@ -212,14 +193,14 @@ async function start () {
   })
 
   const invite_codes_list = document.querySelector('.invite-codes-list')
-  var invites = await db.get('invites')
-  if (!invites) invites = []
-  else invites = JSON.parse(invites.value.toString())
+  var codes = await db.get('codes')
+  if (!codes) codes = []
+  else codes = JSON.parse(codes.value.toString('utf8'))
   const el = document.createElement('div')
-  for (const invite of invites) {
+  for (const code of codes) {
     el.innerHTML = `
       <div class="invite">
-        <div class="name">${invite}</div>
+        <div class="name">${code}</div>
       </div>`
     invite_codes_list.append(el)
   }
@@ -229,8 +210,8 @@ async function start () {
     e.stopPropagation()
     // generate invite
     const new_invite = crypto.randomBytes(8).toString('hex')
-    invites.push(new_invite)
-    await db.put('invites', b4a.from(JSON.stringify(invites)))
+    codes.push(new_invite)
+    await db.put('codes', b4a.from(JSON.stringify(codes)))
     const el = document.createElement('div')
     el.innerHTML = `
     <div class="invite">
@@ -238,6 +219,41 @@ async function start () {
     </div>`
     invite_codes_list.append(el)
   })
+
+  async function onmessage (message, socket) { //protomux
+    console.log({ message })
+    const { type, data } = JSON.parse(message)
+    if (type === 'invite') {
+      var codes = await db.get('codes')
+      if (!codes) codes = []
+      else codes = JSON.parse(codes.value.toString('utf8'))
+      if (codes.includes(data)) {
+        console.log('invite codes match')
+        one.send(JSON.stringify({ type: 'profile', data: drive.core.key.toString('hex') }))
+      }
+    } else if (type === 'profile') {
+      const key = data
+      const store = new Corestore(RAM)
+      const drive = new Hyperdrive(store, b4a.from(key, 'hex'))
+      await drive.ready()
+      drive.findingPeers()
+      const list = document.querySelector('.contact-list')
+
+      store.replicate(socket)
+      const imageBuffer = await drive.get('/profile/avatar')
+      const blob = new Blob([imageBuffer])
+      const url = URL.createObjectURL(blob);
+      const name = await drive.get('/profile/name')
+      const el = document.createElement('div')
+      el.innerHTML = `
+        <div class="contact">
+          <img class="avatar" src=${url}></img>
+          <div class="name">${name.toString()}</div>
+        </div>`
+      list.append(el)
+    } else if (type === '') {
+    }
+  }
 }
 
 start()
@@ -279,15 +295,6 @@ function create_noise_keypair ({ namespace, seed, name }) {
   if (noiseSeed) sodium.crypto_sign_seed_keypair(publicKey, secretKey, noiseSeed)
   else sodium.crypto_sign_keypair(publicKey, secretKey)
   return { publicKey, secretKey }
-}
-
-function onmessage ({ message }) { //protomux
-  const { type, data } = JSON.parse(message)
-  if (type === 'invite') {
-
-  } else if (type === '') {
-  } else if (type === '') {
-  }
 }
 
 function parser (msg) {
