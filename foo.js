@@ -20,7 +20,10 @@ async function start () {
     name: 'noise' 
   }
   const { publicKey, secretKey } = create_noise_keypair (opts)
+  const new_invite = crypto.randomBytes(4).toString('hex') 
+                          + '?pk=' + publicKey.toString('hex')
   console.log({ publicKey: publicKey.toString('hex')})
+  console.log({ new_invite })
   const keyPair = { publicKey, secretKey }
   swarm = new Hyperswarm({ keyPair })
   const store = new Corestore('./foo_storage')
@@ -47,7 +50,7 @@ async function start () {
     function cb () {
       const channel = create_and_open_channel ({ mux, opts: { protocol: 'flamingo/alpha' } })
       one = channel.addMessage({ encoding: c.string, onmessage })
-      one.send(JSON.stringify({ type: 'invite', data: '6e39d2e116d3c48c'}))
+      one.send(JSON.stringify({ type: 'invite', data: '9de745be3f9b1207'}))
     }
   })
   await swarm.listen()
@@ -75,3 +78,4 @@ function create_noise_keypair ({ namespace, seed, name }) {
   else sodium.crypto_sign_keypair(publicKey, secretKey)
   return { publicKey, secretKey }
 }
+

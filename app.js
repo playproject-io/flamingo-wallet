@@ -20,9 +20,10 @@ const {
 async function start () {
   var swarm
   var store
-  var drive 
+  var mydrive 
   var db
   var one
+  var mux
   const opts = { 
     namespace: 'noisekeys', 
     seed: crypto.randomBytes(32), 
@@ -31,24 +32,54 @@ async function start () {
   const { publicKey, secretKey } = create_noise_keypair (opts)
   const keyPair = { publicKey, secretKey }
   console.log('My profile', publicKey.toString('hex'))
-  swarm = new Hyperswarm({ keyPair })
   store = new Corestore('./storage')
-  drive = new Hyperdrive(store)
-  await drive.ready()
-  const file = await drive.get('/profile/name')
+  swarm = new Hyperswarm({ keyPair })
+  swarm.on('connection', async (socket, info) => {
+    socket.on('error', (err) => console.log('socket error', err))
+    socket.on('close', () => console.log('Socket closed'))
+    console.log({conn: 'onconnection', pubkey: info.publicKey.toString('hex')})
+    //protomux
+    const replicationStream = Hypercore.createProtocolStream(socket, { ondiscoverykey: () => {
+      console.log('peer is a server')
+    } })
+    mux = Hypercore.getProtocolMuxer(replicationStream)
+    make_protocol({ mux, opts: { protocol: 'flamingo/alpha' }, cb })
+    console.log('🚀 Attempting to start store replication...')
+    store.replicate(replicationStream)
+    console.log('✅ Store replication started!')
+    async function cb () {
+      const channel = create_and_open_channel ({ mux, opts: { protocol: 'flamingo/alpha' } })
+      one = channel.addMessage({ encoding: c.string, onmessage: (message) => onmessage(message, socket, replicationStream) })
+      // var codes = await db.get('codes')
+      // if (!codes) codes = []
+      // else codes = JSON.parse(codes.value.toString('utf8'))
+      // if (codes.includes(code)) {
+      //   console.log('invite codes match')
+      // }
+    }
+  })
+  await swarm.listen()
+
+  mydrive = new Hyperdrive(store)
+  await mydrive.ready()
+  const file = await mydrive.get('/profile/name')
   if (!file) {
-    await drive.put('/profile/name', b4a.from('Nina Breznik'))
+    await mydrive.put('/profile/name', b4a.from('Nina Breznik'))
     const imageBuffer = fs.readFileSync('./assets/avatar.jpg');
-    await drive.put('/profile/avatar', imageBuffer)
-    const name = await drive.get('/profile/name')
-    const key = drive.core.key
-    await drive.put('/feedkey', key)
+    await mydrive.put('/profile/avatar', imageBuffer)
+    const name = await mydrive.get('/profile/name')
+    const key = mydrive.core.key
+    await mydrive.put('/feedkey', key)
     console.log('get profile/name', name.toString(), key.toString('hex'))
   }
+
+  swarm.join(mydrive.discoveryKey, { server: true, client: true })
+  await swarm.flush()
 
   if (!db) {
     const feed = store.get({ name: 'feed-1' })
     db = new Hyperbee(feed, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
+    window.db = db
   }
   document.querySelector('button.refresh').addEventListener('click', (e) => { 
     e.stopPropagation()
@@ -59,7 +90,7 @@ async function start () {
   // const pipe = Pear.worker.run(Pear.config.links.worker)
 
   // START CORE_LIGHTNING WORKER
-  const pipe = start_worker('./core-lightning/index.js', 'core lightning node')
+  // const pipe = start_worker('./core-lightning/index.js', 'core lightning node')
 
   const wss = new WebSocketServer({ port: 8080 });
   wss.on('connection', async (ws) => {
@@ -82,38 +113,23 @@ async function start () {
   const url = URL.createObjectURL(blob);
   avatar.src = url
   const name = document.querySelector('.name')
-  const my_name = await drive.get('/profile/name')
+  const my_name = await mydrive.get('/profile/name')
   name.innerHTML = `${my_name.toString()}`
 
   const add_contact = document.querySelector('.add-new-contact')
   add_contact.addEventListener('click', async (e) => { 
     e.stopPropagation()
-    const address = document.querySelector('input.new-contact').value
+    const invite_code = document.querySelector('input.new-contact').value
+    const pk = invite_code.split('?pk=')[1]
+    const code = invite_code.split('?pk=')[0]
     var contacts = await db.get('contacts')
     if (!contacts) contacts = []
     else contacts = JSON.parse(contacts.value.toString())
-    contacts.push(address)
+    contacts.push(pk)
     await db.put('contacts', b4a.from(JSON.stringify(contacts)))
-    
-    swarm.on('connection', async (socket, info) => {
-      socket.on('error', (err) => console.log('socket error', err))
-      console.log({conn: 'onconnection', pubkey: info.publicKey.toString('hex')})
-      if (info.publicKey.toString('hex') === address) {
-        //protomux
-        const replicationStream = Hypercore.createProtocolStream(socket, { ondiscoverykey: () => {
-          console.log('peer is a server')
-        } })
-        const mux = Hypercore.getProtocolMuxer(replicationStream)
-        make_protocol({ mux, opts: { protocol: 'flamingo/alpha' }, cb })
-        function cb () {
-          const channel = create_and_open_channel ({ mux, opts: { protocol: 'flamingo/alpha' } })
-          one = channel.addMessage({ encoding: c.string, onmessage: (message) => onmessage(message, socket) })
-          // one.send(JSON.stringify({ type: 'invite', data: 'a3fdjkvn32em'}))
-        }
-      }
-    })
-    await swarm.joinPeer(b4a.from(address, 'hex'))
+    swarm.joinPeer(b4a.from(pk, 'hex'))
     await swarm.flush()
+    one.send(JSON.stringify({ type: 'invite', data: code }))
   })
 
   const wss_btn = document.querySelector('button.wss')
@@ -209,8 +225,9 @@ async function start () {
   add_invite.addEventListener('click', async (e) => { 
     e.stopPropagation()
     // generate invite
-    const new_invite = crypto.randomBytes(8).toString('hex')
-    codes.push(new_invite)
+    const code = crypto.randomBytes(4).toString('hex') 
+    const new_invite = code + '?pk=' + publicKey.toString('hex')
+    codes.push(code)
     await db.put('codes', b4a.from(JSON.stringify(codes)))
     const el = document.createElement('div')
     el.innerHTML = `
@@ -220,7 +237,7 @@ async function start () {
     invite_codes_list.append(el)
   })
 
-  async function onmessage (message, socket) { //protomux
+  async function onmessage (message, socket, replicationStream) { //protomux
     console.log({ message })
     const { type, data } = JSON.parse(message)
     if (type === 'invite') {
@@ -229,34 +246,79 @@ async function start () {
       else codes = JSON.parse(codes.value.toString('utf8'))
       if (codes.includes(data)) {
         console.log('invite codes match')
-        one.send(JSON.stringify({ type: 'profile', data: drive.core.key.toString('hex') }))
+        one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
       }
-    } else if (type === 'profile') {
-      const key = data
-      const store = new Corestore(RAM)
-      const drive = new Hyperdrive(store, b4a.from(key, 'hex'))
-      await drive.ready()
-      drive.findingPeers()
-      const list = document.querySelector('.contact-list')
-
-      store.replicate(socket)
-      const imageBuffer = await drive.get('/profile/avatar')
-      const blob = new Blob([imageBuffer])
-      const url = URL.createObjectURL(blob);
-      const name = await drive.get('/profile/name')
-      const el = document.createElement('div')
-      el.innerHTML = `
-        <div class="contact">
-          <img class="avatar" src=${url}></img>
-          <div class="name">${name.toString()}</div>
-        </div>`
-      list.append(el)
-    } else if (type === '') {
+    } 
+    else if (type === 'accepted') {
+      one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
+      const clonedDrive = await replicate_drive(data, socket, replicationStream)
+      await get_and_append_profile(clonedDrive)
+    } 
+    else if (type === 'profile') {
+      const clonedDrive = await replicate_drive(data, socket, replicationStream)
+      await get_and_append_profile(clonedDrive)
     }
   }
+
+  async function replicate_drive(data, socket, replicationStream) {
+    const key = data;
+    console.log("📡 Attempting to replicate drive with key:", key);
+
+    // Create namespaced store
+    const clonedStore = store.namespace('profile');
+    const clonedDrive = new Hyperdrive(clonedStore, b4a.from(key, 'hex'));
+    await clonedDrive.ready();
+    
+    console.log("🔄 Joining swarm for", clonedDrive.discoveryKey.toString('hex'));
+    swarm.join(clonedDrive.discoveryKey, { server: true, client: true });
+
+    // Replicate the namespaced store (not the main store)
+    clonedStore.replicate(replicationStream);
+
+    console.log("⏳ Finding peers...");
+    const timeout = new Promise((resolve) => setTimeout(resolve, 10000)); // 10s timeout
+    await Promise.race([clonedDrive.findingPeers(), timeout]);
+
+    console.log("✅ Replication started!");
+    return clonedDrive;
+  }
+
+  async function get_and_append_profile(clonedDrive) {
+    await clonedDrive.ready();
+    console.log("🔄 Waiting for profile data...");
+
+    // Retry mechanism for slow replication
+    clonedDrive.core.on('append', async () => {
+        console.log("📥 New data received!");
+
+        const profileName = await clonedDrive.get('/profile/name');
+        if (profileName) {
+            console.log("✅ Successfully fetched profile:", profileName.toString());
+
+            const imageBuffer = await clonedDrive.get('/profile/avatar').catch((err) => console.log({ err }));
+            if (imageBuffer) {
+                const blob = new Blob([imageBuffer]);
+                const url = URL.createObjectURL(blob);
+
+                const el = document.createElement('div');
+                el.innerHTML = `
+                  <div class="contact">
+                    <img class="avatar" src=${url}></img>
+                    <div class="name">${profileName.toString()}</div>
+                  </div>`;
+                document.querySelector('.contact-list').append(el);
+            }
+        } else {
+            console.log("❌ Profile still missing...");
+        }
+    });
+  }
+
 }
 
 start()
+
+
 
 function kill_processes (pipe) {
   fs.rm('./storage', { recursive: true, force: true }, (err) => {
