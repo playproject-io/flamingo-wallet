@@ -20,6 +20,7 @@ const {
 async function start () {
   var swarm
   var store
+  var cores
   var mydrive 
   var db
   var one
@@ -49,7 +50,7 @@ async function start () {
     console.log('✅ Store replication started!')
     async function cb () {
       const channel = create_and_open_channel ({ mux, opts: { protocol: 'flamingo/alpha' } })
-      one = channel.addMessage({ encoding: c.string, onmessage: (message) => onmessage(message, socket, replicationStream) })
+      one = channel.addMessage({ encoding: c.string, onmessage: (message) => onmessage(message, replicationStream) })
       // var codes = await db.get('codes')
       // if (!codes) codes = []
       // else codes = JSON.parse(codes.value.toString('utf8'))
@@ -65,20 +66,25 @@ async function start () {
   const file = await mydrive.get('/profile/name')
   if (!file) {
     await mydrive.put('/profile/name', b4a.from('Nina Breznik'))
+    await mydrive.put('/profile/pubkey', b4a.from(publicKey.toString('hex')))
     const imageBuffer = fs.readFileSync('./assets/avatar.jpg');
     await mydrive.put('/profile/avatar', imageBuffer)
     const name = await mydrive.get('/profile/name')
+    const pubkey = await mydrive.get('/profile/pubkey')
     const key = mydrive.core.key
     await mydrive.put('/feedkey', key)
     console.log('get profile/name', name.toString(), key.toString('hex'))
+    console.log('get profile/pubkey', pubkey.toString())
   }
 
-  swarm.join(mydrive.discoveryKey, { server: true, client: true })
+  swarm.join(mydrive.discoveryKey, { server: true, client: false })
   await swarm.flush()
 
   if (!db) {
-    const feed = store.get({ name: 'feed-1' })
-    db = new Hyperbee(feed, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
+    cores = store.namespace('cores')
+    const core = cores.get({ name: 'bee-1' })
+    db = new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
+    await db.ready()
     window.db = db
   }
   document.querySelector('button.refresh').addEventListener('click', (e) => { 
@@ -237,7 +243,7 @@ async function start () {
     invite_codes_list.append(el)
   })
 
-  async function onmessage (message, socket, replicationStream) { //protomux
+  async function onmessage (message, replicationStream) { //protomux
     console.log({ message })
     const { type, data } = JSON.parse(message)
     if (type === 'invite') {
@@ -246,31 +252,51 @@ async function start () {
       else codes = JSON.parse(codes.value.toString('utf8'))
       if (codes.includes(data)) {
         console.log('invite codes match')
-        one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
+        one.send(JSON.stringify({ type: 'accepted', data: mydrive.core.key.toString('hex') }))
       }
     } 
     else if (type === 'accepted') {
+      const clonedDrive = await replicate_drive(data, replicationStream)
+      const { profileName, pubkey } = await get_and_append_profile(clonedDrive)
+      console.log({pubkey})
+      // const core = cores.get({ name: pubkey })
+      // console.log('core created')
+      // await core.ready()
+      // await core.append('hello world')
+      // one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
       one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
-      const clonedDrive = await replicate_drive(data, socket, replicationStream)
-      await get_and_append_profile(clonedDrive)
     } 
     else if (type === 'profile') {
-      const clonedDrive = await replicate_drive(data, socket, replicationStream)
-      await get_and_append_profile(clonedDrive)
+      // one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
+      const clonedDrive = await replicate_drive(data, replicationStream)
+      const { profileName, pubkey } = await get_and_append_profile(clonedDrive)
+      console.log({pubkey})
+      // const core = cores.get({ name: pubkey })
+      // console.log('core created')
+      // await core.ready()
+      // await core.append('hello world')
+      // one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
+    }
+    else if (type === 'core') {
+      const { pubkey, key } = data
+      const clonedCore = cores.get(b4a.from(key, 'hex'))
+      const block = await clonedCore.get(0)
+      console.log({block: block.toString()})
     }
   }
 
-  async function replicate_drive(data, socket, replicationStream) {
+  async function replicate_drive(data, replicationStream) {
     const key = data;
     console.log("📡 Attempting to replicate drive with key:", key);
 
     // Create namespaced store
     const clonedStore = store.namespace('profile');
     const clonedDrive = new Hyperdrive(clonedStore, b4a.from(key, 'hex'));
+    
     await clonedDrive.ready();
     
     console.log("🔄 Joining swarm for", clonedDrive.discoveryKey.toString('hex'));
-    swarm.join(clonedDrive.discoveryKey, { server: true, client: true });
+    swarm.join(clonedDrive.discoveryKey, { server: false, client: true });
 
     // Replicate the namespaced store (not the main store)
     clonedStore.replicate(replicationStream);
@@ -284,34 +310,39 @@ async function start () {
   }
 
   async function get_and_append_profile(clonedDrive) {
-    await clonedDrive.ready();
-    console.log("🔄 Waiting for profile data...");
-
-    // Retry mechanism for slow replication
-    clonedDrive.core.on('append', async () => {
+    return new Promise (async (resolve, reject) => {
+      await clonedDrive.ready();
+      console.log("🔄 Waiting for profile data...");
+  
+      // Retry mechanism for slow replication
+      clonedDrive.core.on('append', async () => {
         console.log("📥 New data received!");
-
+  
         const profileName = await clonedDrive.get('/profile/name');
         if (profileName) {
-            console.log("✅ Successfully fetched profile:", profileName.toString());
-
-            const imageBuffer = await clonedDrive.get('/profile/avatar').catch((err) => console.log({ err }));
-            if (imageBuffer) {
-                const blob = new Blob([imageBuffer]);
-                const url = URL.createObjectURL(blob);
-
-                const el = document.createElement('div');
-                el.innerHTML = `
-                  <div class="contact">
-                    <img class="avatar" src=${url}></img>
-                    <div class="name">${profileName.toString()}</div>
-                  </div>`;
-                document.querySelector('.contact-list').append(el);
-            }
+          console.log("✅ Successfully fetched profile:", profileName.toString());
+  
+          const imageBuffer = await clonedDrive.get('/profile/avatar').catch((err) => console.log({ err }));
+          if (imageBuffer) {
+            const blob = new Blob([imageBuffer]);
+            const url = URL.createObjectURL(blob);
+  
+            const el = document.createElement('div');
+            el.innerHTML = `
+              <div class="contact">
+                <img class="avatar" src=${url}></img>
+                <div class="name">${profileName.toString()}</div>
+              </div>`;
+            document.querySelector('.contact-list').append(el);
+          }
+          const pubkey = await clonedDrive.get('/profile/pubkey')
+          resolve({ profileName, pubkey: pubkey.toString('hex') })
         } else {
-            console.log("❌ Profile still missing...");
+          console.log("❌ Profile still missing...")
+          reject()
         }
-    });
+      });
+    })
   }
 
 }
