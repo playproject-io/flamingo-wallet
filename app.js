@@ -128,11 +128,6 @@ async function start () {
     const invite_code = document.querySelector('input.new-contact').value
     const pk = invite_code.split('?pk=')[1]
     const code = invite_code.split('?pk=')[0]
-    var contacts = await db.get('contacts')
-    if (!contacts) contacts = []
-    else contacts = JSON.parse(contacts.value.toString())
-    contacts.push(pk)
-    await db.put('contacts', b4a.from(JSON.stringify(contacts)))
     swarm.joinPeer(b4a.from(pk, 'hex'))
     await swarm.flush()
     one.send(JSON.stringify({ type: 'invite', data: code }))
@@ -259,23 +254,38 @@ async function start () {
       const clonedDrive = await replicate_drive(data, replicationStream)
       const { profileName, pubkey } = await get_and_append_profile(clonedDrive)
       console.log({pubkey})
-      // const core = cores.get({ name: pubkey })
-      // console.log('core created')
-      // await core.ready()
-      // await core.append('hello world')
-      // one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
+      var contacts = await db.get('contacts')
+      if (!contacts) contacts = []
+      else contacts = JSON.parse(contacts.value.toString())
+      contacts.push(pubkey)
+      await db.put('contacts', b4a.from(JSON.stringify(contacts)))
+
+      const core = cores.get({ name: pubkey })
+      console.log('core created')
+      await core.ready()
+      await core.append('hello world')
+      one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
       one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
+      
+      const all_contacts = await db.get('contacts')
+      console.log('all contacts', JSON.parse(all_contacts.value.toString()))
     } 
     else if (type === 'profile') {
       // one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
       const clonedDrive = await replicate_drive(data, replicationStream)
       const { profileName, pubkey } = await get_and_append_profile(clonedDrive)
       console.log({pubkey})
-      // const core = cores.get({ name: pubkey })
-      // console.log('core created')
-      // await core.ready()
-      // await core.append('hello world')
-      // one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
+      var contacts = await db.get('contacts')
+      if (!contacts) contacts = []
+      else contacts = JSON.parse(contacts.value.toString())
+      contacts.push(pubkey)
+      await db.put('contacts', b4a.from(JSON.stringify(contacts)))
+
+      const core = cores.get({ name: pubkey })
+      console.log('core created')
+      await core.ready()
+      await core.append('hello world')
+      one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
     }
     else if (type === 'core') {
       const { pubkey, key } = data
