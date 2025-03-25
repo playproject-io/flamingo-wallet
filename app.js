@@ -74,7 +74,7 @@ async function start () {
     const key = mydrive.core.key
     await mydrive.put('/feedkey', key)
     console.log('get profile/name', name.toString(), key.toString('hex'))
-    console.log('get profile/pubkey', pubkey.toString())
+    console.log('get profile/pubkey', pubkey.toString('utf-8'))
   }
 
   swarm.join(mydrive.discoveryKey, { server: true, client: false })
@@ -252,46 +252,103 @@ async function start () {
     } 
     else if (type === 'accepted') {
       const clonedDrive = await replicate_drive(data, replicationStream)
-      const { profileName, pubkey } = await get_and_append_profile(clonedDrive)
-      console.log({pubkey})
+      one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
+
+      const pubkey = await get_and_append_profile(clonedDrive).catch(err => {
+        if (err) console.log('Error')
+      })
+      console.log({pubkey})      
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
       else contacts = JSON.parse(contacts.value.toString())
-      contacts.push(pubkey)
+      contacts.push({ pubkey })
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
 
-      const core = cores.get({ name: pubkey })
-      console.log('core created')
-      await core.ready()
-      await core.append('hello world')
-      one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
-      one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
-      
-      const all_contacts = await db.get('contacts')
-      console.log('all contacts', JSON.parse(all_contacts.value.toString()))
+      setTimeout(async() => {
+        const core = cores.get({ name: pubkey })
+        console.log('core created')
+        await core.ready()
+        one.send(JSON.stringify({ type: 'core', data: { peerkey: publicKey.toString('hex'), corekey:core.key.toString('hex') } }))
+        
+        const payer = pubkey
+        const msg = JSON.stringify({ type: 'ln-invoice', data: { payer, invoice: 'ln123' } })
+        await core.append(msg)
+        console.log('sending my publicKey and corekey', publicKey.toString('hex'), core.key.toString('hex'))
+      }, 1500)
     } 
     else if (type === 'profile') {
       // one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
       const clonedDrive = await replicate_drive(data, replicationStream)
-      const { profileName, pubkey } = await get_and_append_profile(clonedDrive)
+      const pubkey = await get_and_append_profile(clonedDrive).catch(err => {
+        if (err) console.log('Error')
+      })
       console.log({pubkey})
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
       else contacts = JSON.parse(contacts.value.toString())
-      contacts.push(pubkey)
+      contacts.push({ pubkey })
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
 
-      const core = cores.get({ name: pubkey })
-      console.log('core created')
-      await core.ready()
-      await core.append('hello world')
-      one.send(JSON.stringify({ type: 'core', data: { name: profileName, key:core.key.toString('hex') } }))
+      setTimeout(async() => {
+        const core = cores.get({ name: pubkey })
+        console.log('core created')
+        await core.ready()
+        one.send(JSON.stringify({ type: 'core', data: { peerkey: publicKey.toString('hex'), corekey:core.key.toString('hex') } }))
+        
+        const payer = pubkey
+        const msg = JSON.stringify({ type: 'ln-invoice', data: { payer, invoice: 'ln123' } })
+        await core.append(msg)
+        console.log('sending my publicKey and corekey', publicKey.toString('hex'), core.key.toString('hex'))
+      }, 1500)
+      
     }
     else if (type === 'core') {
-      const { pubkey, key } = data
-      const clonedCore = cores.get(b4a.from(key, 'hex'))
-      const block = await clonedCore.get(0)
-      console.log({block: block.toString()})
+      const { peerkey, corekey } = data
+      const clonedCore = cores.get(b4a.from(corekey, 'hex'))
+      clonedCore.on('append', async() => {
+        onappend(clonedCore)
+      })
+
+      // const block = await clonedCore.get(0)
+      // console.log({block: block.toString()})
+
+      var contacts = await db.get('contacts')
+      contacts = JSON.parse(contacts.value.toString())
+      for (const contact of contacts) {
+        const { pubkey } = contact
+        if (peerkey === pubkey) contact.corekey = corekey
+        console.log({ contact })
+      }
+      await db.put('contacts', b4a.from(JSON.stringify(contacts)))
+    }
+  }
+
+  async function onappend (core) {
+    console.log('onappend')
+    const block = await core.get(core.length - 1)
+    const { type, data } = JSON.parse(block.toString())
+    if (type === 'ln-invoice') {
+      const { payer, invoice } = data
+      if (payer === publicKey.toString('hex')) { // is it for me
+        var payee
+        var contacts = await db.get('contacts')
+        if (!contacts) contacts = []
+        else contacts = JSON.parse(contacts.value.toString())
+        for (const contact of contacts) {
+          const { corekey, pubkey } = contact
+          if (corekey === core.key.toString('hex')) {
+            payee = pubkey
+            continue
+          }
+        } 
+        var text = `Lightning invoice request has been sent to you by ${payee}`
+        if (payee && confirm(text) === true) {
+          text = 'Invoice is being paid!'
+          pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
+        } else {
+          text = 'You canceled the invoice payment!'
+        }
+      }
     }
   }
 
@@ -330,7 +387,8 @@ async function start () {
   
         const profileName = await clonedDrive.get('/profile/name');
         if (profileName) {
-          console.log("✅ Successfully fetched profile:", profileName.toString());
+          const stringName = profileName.toString()
+          console.log("✅ Successfully fetched profile:", stringName);
   
           const imageBuffer = await clonedDrive.get('/profile/avatar').catch((err) => console.log({ err }));
           if (imageBuffer) {
@@ -341,12 +399,12 @@ async function start () {
             el.innerHTML = `
               <div class="contact">
                 <img class="avatar" src=${url}></img>
-                <div class="name">${profileName.toString()}</div>
+                <div class="name">${stringName}</div>
               </div>`;
             document.querySelector('.contact-list').append(el);
           }
           const pubkey = await clonedDrive.get('/profile/pubkey')
-          resolve({ profileName, pubkey: pubkey.toString('hex') })
+          resolve(pubkey.toString('utf-8'))
         } else {
           console.log("❌ Profile still missing...")
           reject()
