@@ -253,15 +253,16 @@ async function start () {
     else if (type === 'accepted') {
       const clonedDrive = await replicate_drive(data, replicationStream)
       one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
-
-      const pubkey = await get_and_append_profile(clonedDrive).catch(err => {
+      
+      const  {pubkey, profileName, avatar_url }  = await get_and_append_profile(clonedDrive).catch(err => {
         if (err) console.log('Error')
       })
+      append_profile({ avatar_url, profileName })
       console.log({pubkey})      
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
       else contacts = JSON.parse(contacts.value.toString())
-      contacts.push({ pubkey })
+      contacts.push({ pubkey, profileName })
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
 
       setTimeout(async() => {
@@ -279,14 +280,15 @@ async function start () {
     else if (type === 'profile') {
       // one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
       const clonedDrive = await replicate_drive(data, replicationStream)
-      const pubkey = await get_and_append_profile(clonedDrive).catch(err => {
+      const  {pubkey, profileName, avatar_url } = await get_and_append_profile(clonedDrive).catch(err => {
         if (err) console.log('Error')
       })
+      append_profile({ avatar_url, profileName })
       console.log({pubkey})
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
       else contacts = JSON.parse(contacts.value.toString())
-      contacts.push({ pubkey })
+      contacts.push({ pubkey, profileName })
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
 
       setTimeout(async() => {
@@ -341,7 +343,7 @@ async function start () {
             continue
           }
         } 
-        var text = `Lightning invoice request has been sent to you by ${payee}`
+        var text = `Lightning invoice request has been sent to you by ${payee}. Click OK if you want to pay the invoice.`
         if (payee && confirm(text) === true) {
           text = 'Invoice is being paid!'
           pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
@@ -391,20 +393,13 @@ async function start () {
           console.log("✅ Successfully fetched profile:", stringName);
   
           const imageBuffer = await clonedDrive.get('/profile/avatar').catch((err) => console.log({ err }));
+          var avatar_url
           if (imageBuffer) {
             const blob = new Blob([imageBuffer]);
-            const url = URL.createObjectURL(blob);
-  
-            const el = document.createElement('div');
-            el.innerHTML = `
-              <div class="contact">
-                <img class="avatar" src=${url}></img>
-                <div class="name">${stringName}</div>
-              </div>`;
-            document.querySelector('.contact-list').append(el);
+            avatar_url = URL.createObjectURL(blob);
           }
           const pubkey = await clonedDrive.get('/profile/pubkey')
-          resolve(pubkey.toString('utf-8'))
+          resolve({ pubkey: pubkey.toString('utf-8'), profileName, avatar_url })
         } else {
           console.log("❌ Profile still missing...")
           reject()
@@ -418,6 +413,15 @@ async function start () {
 start()
 
 
+function append_profile ({ avatar_url, profileName }) {
+  const el = document.createElement('div');
+  el.innerHTML = `
+    <div class="contact">
+      <img class="avatar" src=${avatar_url}></img>
+      <div class="name">${profileName}</div>
+    </div>`;
+  document.querySelector('.contact-list').append(el);
+}
 
 function kill_processes (pipe) {
   fs.rm('./storage', { recursive: true, force: true }, (err) => {
