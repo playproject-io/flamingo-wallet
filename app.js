@@ -262,7 +262,8 @@ async function start () {
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
       else contacts = JSON.parse(contacts.value.toString())
-      contacts.push({ pubkey, profileName })
+      contacts.push({ pubkey, name: profileName })
+      
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
 
       setTimeout(async() => {
@@ -288,7 +289,7 @@ async function start () {
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
       else contacts = JSON.parse(contacts.value.toString())
-      contacts.push({ pubkey, profileName })
+      contacts.push({ pubkey, name: profileName })
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
 
       setTimeout(async() => {
@@ -332,6 +333,31 @@ async function start () {
     if (type === 'ln-invoice') {
       const { payer, invoice } = data
       if (payer === publicKey.toString('hex')) { // is it for me
+        var payee_pubkey
+        var payee_name
+        var contacts = await db.get('contacts')
+        if (!contacts) contacts = []
+        else contacts = JSON.parse(contacts.value.toString())
+        for (const contact of contacts) {
+          const { corekey, pubkey, name } = contact
+          if (corekey === core.key.toString('hex')) {
+            payee_pubkey = pubkey
+            payee_name = name
+            continue
+          }
+        } 
+        var text = `Lightning invoice request has been sent to you by ${payee_name}(${payee_pubkey}). Click OK if you want to pay the invoice.`
+        if (payee_pubkey && confirm(text) === true) {
+          text = 'Invoice is being paid!'
+          pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
+        } else {
+          text = 'You canceled the invoice payment!'
+        }
+      }
+    }
+    else if (type === 'btc-pay-request') {
+      const { payer, amount } = data
+      if (payer === publicKey.toString('hex')) { // is it for me
         var payee
         var contacts = await db.get('contacts')
         if (!contacts) contacts = []
@@ -343,7 +369,7 @@ async function start () {
             continue
           }
         } 
-        var text = `Lightning invoice request has been sent to you by ${payee}. Click OK if you want to pay the invoice.`
+        var text = `Lightning invoice request has been sent to you by ${payee}. CLick OK if you want to pay the invoice.`
         if (payee && confirm(text) === true) {
           text = 'Invoice is being paid!'
           pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
@@ -399,7 +425,7 @@ async function start () {
             avatar_url = URL.createObjectURL(blob);
           }
           const pubkey = await clonedDrive.get('/profile/pubkey')
-          resolve({ pubkey: pubkey.toString('utf-8'), profileName, avatar_url })
+          resolve({ pubkey: pubkey.toString('utf-8'), profileName: stringName, avatar_url })
         } else {
           console.log("❌ Profile still missing...")
           reject()

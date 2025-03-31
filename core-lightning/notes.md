@@ -221,7 +221,7 @@ Chat
 Corestore
 - stores your own hypercores (get foo) 
 - stores hypercores you subscribe to (get b2a384b5bcd6efa338631c601f5145dd8b77d6a8114322b5f4df43566c8fe8b9) 
-- stores sub-corestores
+- stores sub-corestores (namespaces)
 
 - these sub-corestores are passed as opts to hyperdrives (i.e.)
 
