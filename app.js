@@ -257,7 +257,7 @@ async function start () {
       const  {pubkey, profileName, avatar_url }  = await get_and_append_profile(clonedDrive).catch(err => {
         if (err) console.log('Error')
       })
-      append_profile({ avatar_url, profileName })
+      append_profile({ avatar_url, profileName, cores })
       console.log({pubkey})      
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
@@ -284,7 +284,7 @@ async function start () {
       const  {pubkey, profileName, avatar_url } = await get_and_append_profile(clonedDrive).catch(err => {
         if (err) console.log('Error')
       })
-      append_profile({ avatar_url, profileName })
+      append_profile({ avatar_url, profileName, cores })
       console.log({pubkey})
       var contacts = await db.get('contacts')
       if (!contacts) contacts = []
@@ -349,7 +349,7 @@ async function start () {
         var text = `Lightning invoice request has been sent to you by ${payee_name}(${payee_pubkey}). Click OK if you want to pay the invoice.`
         if (payee_pubkey && confirm(text) === true) {
           text = 'Invoice is being paid!'
-          pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
+          // pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
         } else {
           text = 'You canceled the invoice payment!'
         }
@@ -372,7 +372,7 @@ async function start () {
         var text = `Lightning invoice request has been sent to you by ${payee}. CLick OK if you want to pay the invoice.`
         if (payee && confirm(text) === true) {
           text = 'Invoice is being paid!'
-          pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
+          // pipe.write(JSON.stringify({ type: 'pay invoice', data: invoice }))
         } else {
           text = 'You canceled the invoice payment!'
         }
@@ -439,14 +439,54 @@ async function start () {
 start()
 
 
-function append_profile ({ avatar_url, profileName }) {
-  const el = document.createElement('div');
+function append_profile ({ avatar_url, profileName, cores }) {
+  const el = document.createElement('div')
   el.innerHTML = `
-    <div class="contact">
-      <img class="avatar" src=${avatar_url}></img>
-      <div class="name">${profileName}</div>
-    </div>`;
-  document.querySelector('.contact-list').append(el);
+  <div class="contact">
+    <img class="avatar" src=${avatar_url}></img>
+    <div class="name">${profileName}</div>
+    <div class="txs-hidden"></div>
+  </div>`
+  document.querySelector('.contact-list').append(el)
+  el.addEventListener('click', (event) => toggleContactTxs({ event, profileName, cores }))
+}
+
+async function toggleContactTxs ({ event, profileName, cores }) {
+  var pubkey
+  var logs_promise = []  
+  var contactTxs = document.querySelector('.txs-hidden') 
+  if (!contactTxs) {
+    contactTxs = document.querySelector('.txs-visible') 
+    contactTxs.classList.remove('txs-visible')
+    contactTxs.innerHTML = `<div class="txs-hidden"></div>`
+    return
+  }
+  var contacts = await db.get('contacts')
+  contacts = JSON.parse(contacts.value.toString())
+  for (const contact of contacts) {
+    if (contact.name === profileName) pubkey = contact.pubkey
+  }
+  const core = cores.get({ name: pubkey })
+  await core.ready()
+  const len = core.length
+  for (var i = 0; i < len; i++) {
+    logs_promise.push(core.get(i))
+  }
+  const logs = await Promise.all(logs_promise)
+  for (const log of logs) {
+    const { type, data : { payer, invoice } } = JSON.parse(log.toString())
+    const tx = document.createElement('div')
+    tx.innerHTML = `
+      <div class="tx">
+        <div class="tx_desc">${type}</div>
+        <div class="tx_amount">invoice: ${invoice}</div>
+        <div class="tx_note">payer: ${payer}</div>
+      </div> 
+    `
+    contactTxs.append(tx)
+    contactTxs.classList.remove('txs-hidden')
+    contactTxs.classList.add('txs-visible')
+  }
 }
 
 function kill_processes (pipe) {
