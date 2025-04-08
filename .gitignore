@@ -3,3 +3,9 @@
 /npm-debug.log
 /client.crt
 /client-key.pem
+/core-lightning/node_modules/
+/core-lightning/usr/
+/core-lightning/logs/
+/core-lightning/clightning-v24.08-Ubuntu-20.04.tar.xz
+/storage/
+/logs/

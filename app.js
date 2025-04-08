@@ -254,7 +254,7 @@ async function start () {
       const clonedDrive = await replicate_drive(data, replicationStream)
       one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
       
-      const  {pubkey, profileName, avatar_url }  = await get_and_append_profile(clonedDrive).catch(err => {
+      const { pubkey, profileName, avatar_url }  = await get_and_append_profile(clonedDrive).catch(err => {
         if (err) console.log('Error')
       })
       append_profile({ avatar_url, profileName, cores })
@@ -263,25 +263,14 @@ async function start () {
       if (!contacts) contacts = []
       else contacts = JSON.parse(contacts.value.toString())
       contacts.push({ pubkey, name: profileName })
-      
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
+      one.send(JSON.stringify({ type: 'send-core', data: { peerkey: publicKey.toString('hex') } }))
 
-      setTimeout(async() => {
-        const core = cores.get({ name: pubkey })
-        console.log('core created')
-        await core.ready()
-        one.send(JSON.stringify({ type: 'core', data: { peerkey: publicKey.toString('hex'), corekey:core.key.toString('hex') } }))
-        
-        const payer = pubkey
-        const msg = JSON.stringify({ type: 'ln-invoice', data: { payer, invoice: 'ln123' } })
-        await core.append(msg)
-        console.log('sending my publicKey and corekey', publicKey.toString('hex'), core.key.toString('hex'))
-      }, 1500)
     } 
     else if (type === 'profile') {
       // one.send(JSON.stringify({ type: 'profile', data: mydrive.core.key.toString('hex') }))
       const clonedDrive = await replicate_drive(data, replicationStream)
-      const  {pubkey, profileName, avatar_url } = await get_and_append_profile(clonedDrive).catch(err => {
+      const { pubkey, profileName, avatar_url } = await get_and_append_profile(clonedDrive).catch(err => {
         if (err) console.log('Error')
       })
       append_profile({ avatar_url, profileName, cores })
@@ -291,23 +280,20 @@ async function start () {
       else contacts = JSON.parse(contacts.value.toString())
       contacts.push({ pubkey, name: profileName })
       await db.put('contacts', b4a.from(JSON.stringify(contacts)))
+      one.send(JSON.stringify({ type: 'send-core', data: { peerkey: publicKey.toString('hex') } }))
 
-      setTimeout(async() => {
-        const core = cores.get({ name: pubkey })
-        console.log('core created')
-        await core.ready()
-        one.send(JSON.stringify({ type: 'core', data: { peerkey: publicKey.toString('hex'), corekey:core.key.toString('hex') } }))
-        
-        const payer = pubkey
-        const msg = JSON.stringify({ type: 'ln-invoice', data: { payer, invoice: 'ln123' } })
-        await core.append(msg)
-        console.log('sending my publicKey and corekey', publicKey.toString('hex'), core.key.toString('hex'))
-      }, 1500)
-      
+    }
+    else if (type === 'send-core') {
+      const { peerkey } = data
+      const core = cores.get({ name: peerkey })
+      console.log('core created')
+      await core.ready()
+      one.send(JSON.stringify({ type: 'core', data: { peerkey: publicKey.toString('hex'), corekey:core.key.toString('hex') } }))
     }
     else if (type === 'core') {
       const { peerkey, corekey } = data
       const clonedCore = cores.get(b4a.from(corekey, 'hex'))
+      await clonedCore.ready()
       clonedCore.on('append', async() => {
         onappend(clonedCore)
       })
@@ -380,7 +366,7 @@ async function start () {
     }
   }
 
-  async function replicate_drive(data, replicationStream) {
+  async function replicate_drive (data, replicationStream) {
     const key = data;
     console.log("📡 Attempting to replicate drive with key:", key);
 
@@ -434,60 +420,134 @@ async function start () {
     })
   }
 
+  function append_profile ({ avatar_url, profileName, cores }) {
+    const el = document.createElement('div')
+    el.innerHTML = `
+    <div class="contact">
+      <img class="avatar" src=${avatar_url}></img>
+      <div class="name">${profileName}</div>
+      <div class="txs-hidden"></div>
+    </div>`
+    document.querySelector('.contact-list').append(el)
+    el.addEventListener('click', () => toggleContactTxs({ profileName, cores }))
+  }
+  
+  async function toggleContactTxs({ profileName, cores }) {
+    let pubkey;
+    let logs_promise = [];
+  
+    let contactTxs = document.querySelector('.txs-hidden');
+    if (!contactTxs) {
+      contactTxs = document.querySelector('.txs-visible');
+      contactTxs.classList.remove('txs-visible');
+      contactTxs.innerHTML = `<div class="txs-hidden"></div>`;
+      return;
+    }
+  
+    const contactsRaw = await db.get('contacts');
+    const contacts = JSON.parse(contactsRaw.value.toString());
+    for (const contact of contacts) {
+      if (contact.name === profileName) {
+        pubkey = contact.pubkey
+        break
+      }
+    }
+  
+    const core = cores.get({ name: pubkey });
+    await core.ready();
+    const len = core.length;
+    for (let i = 0; i < len; i++) {
+      logs_promise.push(core.get(i));
+    }
+  
+    const logs = await Promise.all(logs_promise);
+    const tx = document.createElement('div');
+  
+    if (!logs.length) {
+      const txsButtons = document.createElement('div');
+      txsButtons.classList.add('txs_buttons');
+  
+      const request = document.createElement('button');
+      request.classList.add('request_txs_button');
+      request.textContent = "Request";
+      request.addEventListener("click", e => request_payment(e, pubkey));
+  
+      const send = document.createElement('button');
+      send.classList.add('send_txs_button');
+      send.textContent = "Send";
+      send.addEventListener("click", e => send_payment(e, pubkey));
+  
+      txsButtons.appendChild(request);
+      txsButtons.appendChild(send);
+      tx.appendChild(txsButtons);
+    } else {
+      for (const log of logs) {
+        const { type, data: { payer, invoice } } = JSON.parse(log.toString());
+  
+        const txItem = document.createElement('div');
+        txItem.classList.add('tx');
+  
+        const desc = document.createElement('div');
+        desc.classList.add('tx_desc');
+        desc.textContent = type;
+  
+        const amount = document.createElement('div');
+        amount.classList.add('tx_amount');
+        amount.textContent = `invoice: ${invoice}`;
+  
+        const note = document.createElement('div');
+        note.classList.add('tx_note');
+        note.textContent = `payer: ${payer}`;
+  
+        const txsButtons = document.createElement('div');
+        txsButtons.classList.add('txs_buttons');
+  
+        const request = document.createElement('button');
+        request.classList.add('request_txs_button');
+        request.textContent = "Request";
+        request.addEventListener("click", e => request_payment(e, pubkey));
+  
+        const send = document.createElement('button');
+        send.classList.add('send_txs_button');
+        send.textContent = "Send";
+        send.addEventListener("click", e => send_payment(e, pubkey));
+  
+        txsButtons.appendChild(request);
+        txsButtons.appendChild(send);
+  
+        txItem.appendChild(desc);
+        txItem.appendChild(amount);
+        txItem.appendChild(note);
+        txItem.appendChild(txsButtons);
+  
+        tx.appendChild(txItem);
+      }
+    }
+  
+    contactTxs.append(tx);
+    contactTxs.classList.remove('txs-hidden');
+    contactTxs.classList.add('txs-visible');
+  }
+  
+  
+  async function request_payment (e, pubkey) {
+    e.stopPropagation()
+    const core = cores.get({ name: pubkey })
+    const payer = pubkey
+    const msg = JSON.stringify({ type: 'ln-invoice', data: { payer, invoice: 'ln123' } })
+    await core.append(msg)
+  }
+  
+  async function send_payment (e, pubkey) {
+    e.stopPropagation()
+  }
+
 }
 
 start()
 
 
-function append_profile ({ avatar_url, profileName, cores }) {
-  const el = document.createElement('div')
-  el.innerHTML = `
-  <div class="contact">
-    <img class="avatar" src=${avatar_url}></img>
-    <div class="name">${profileName}</div>
-    <div class="txs-hidden"></div>
-  </div>`
-  document.querySelector('.contact-list').append(el)
-  el.addEventListener('click', (event) => toggleContactTxs({ event, profileName, cores }))
-}
 
-async function toggleContactTxs ({ event, profileName, cores }) {
-  var pubkey
-  var logs_promise = []  
-  var contactTxs = document.querySelector('.txs-hidden') 
-  if (!contactTxs) {
-    contactTxs = document.querySelector('.txs-visible') 
-    contactTxs.classList.remove('txs-visible')
-    contactTxs.innerHTML = `<div class="txs-hidden"></div>`
-    return
-  }
-  var contacts = await db.get('contacts')
-  contacts = JSON.parse(contacts.value.toString())
-  for (const contact of contacts) {
-    if (contact.name === profileName) pubkey = contact.pubkey
-  }
-  const core = cores.get({ name: pubkey })
-  await core.ready()
-  const len = core.length
-  for (var i = 0; i < len; i++) {
-    logs_promise.push(core.get(i))
-  }
-  const logs = await Promise.all(logs_promise)
-  for (const log of logs) {
-    const { type, data : { payer, invoice } } = JSON.parse(log.toString())
-    const tx = document.createElement('div')
-    tx.innerHTML = `
-      <div class="tx">
-        <div class="tx_desc">${type}</div>
-        <div class="tx_amount">invoice: ${invoice}</div>
-        <div class="tx_note">payer: ${payer}</div>
-      </div> 
-    `
-    contactTxs.append(tx)
-    contactTxs.classList.remove('txs-hidden')
-    contactTxs.classList.add('txs-visible')
-  }
-}
 
 function kill_processes (pipe) {
   fs.rm('./storage', { recursive: true, force: true }, (err) => {
