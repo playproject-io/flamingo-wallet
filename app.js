@@ -295,7 +295,7 @@ async function start () {
       const clonedCore = cores.get(b4a.from(corekey, 'hex'))
       await clonedCore.ready()
       clonedCore.on('append', async() => {
-        onappend(clonedCore)
+        onappend(clonedCore, peerkey)
       })
 
       // const block = await clonedCore.get(0)
@@ -312,10 +312,11 @@ async function start () {
     }
   }
 
-  async function onappend (core) {
+  async function onappend (clonedCore, peerkey) {
     console.log('onappend')
-    const block = await core.get(core.length - 1)
+    const block = await clonedCore.get(clonedCore.length - 1)
     const { type, data } = JSON.parse(block.toString())
+    const core = cores.get({ name: peerkey })
     if (type === 'ln-invoice') {
       const { payer, invoice } = data
       if (payer === publicKey.toString('hex')) { // is it for me
@@ -326,12 +327,14 @@ async function start () {
         else contacts = JSON.parse(contacts.value.toString())
         for (const contact of contacts) {
           const { corekey, pubkey, name } = contact
-          if (corekey === core.key.toString('hex')) {
+          if (corekey === clonedCore.key.toString('hex')) {
             payee_pubkey = pubkey
             payee_name = name
             continue
           }
-        } 
+        }
+        const msg = JSON.stringify({ type: 'ln-invoice', data: { text: 'request received', payer, invoice: 'ln123' } })
+        await core.append(msg)
         var text = `Lightning invoice request has been sent to you by ${payee_name}(${payee_pubkey}). Click OK if you want to pay the invoice.`
         if (payee_pubkey && confirm(text) === true) {
           text = 'Invoice is being paid!'
@@ -350,11 +353,13 @@ async function start () {
         else contacts = JSON.parse(contacts.value.toString())
         for (const contact of contacts) {
           const { corekey, pubkey } = contact
-          if (corekey === core.key.toString('hex')) {
+          if (corekey === clonedCore.key.toString('hex')) {
             payee = pubkey
             continue
           }
         } 
+        const msg = JSON.stringify({ type: 'ln-invoice', data: { text: 'request received', payer, invoice: 'ln123' } })
+        await core.append(msg)
         var text = `Lightning invoice request has been sent to you by ${payee}. CLick OK if you want to pay the invoice.`
         if (payee && confirm(text) === true) {
           text = 'Invoice is being paid!'
@@ -463,8 +468,41 @@ async function start () {
     const logs = await Promise.all(logs_promise);
     const tx = document.createElement('div');
   
-    if (!logs.length) {
-      const txsButtons = document.createElement('div');
+    for (const log of logs) {
+      const { type, data: { text, payer, invoice } } = JSON.parse(log.toString());
+
+      const txItem = document.createElement('div');
+      txItem.classList.add('tx');
+
+      const desc = document.createElement('div');
+      desc.classList.add('tx_desc');
+      desc.textContent = type;
+
+      const initiator = document.createElement('div');
+      initiator.classList.add('tx_initiator');
+      initiator.textContent = text;
+
+      const amount = document.createElement('div');
+      amount.classList.add('tx_amount');
+      amount.textContent = `invoice: ${invoice}`;
+
+      const note = document.createElement('div');
+      note.classList.add('tx_note');
+      note.textContent = `payer: ${payer}`;
+
+      txItem.appendChild(desc);
+      txItem.appendChild(initiator);
+      txItem.appendChild(desc);
+      txItem.appendChild(amount);
+      txItem.appendChild(note);
+      tx.appendChild(txItem);
+    }
+    
+    contactTxs.append(tx);
+    
+    var txsButtons = document.querySelector('txs_buttons')
+    if (!txsButtons) {
+      txsButtons = document.createElement('div');
       txsButtons.classList.add('txs_buttons');
   
       const request = document.createElement('button');
@@ -479,52 +517,9 @@ async function start () {
   
       txsButtons.appendChild(request);
       txsButtons.appendChild(send);
-      tx.appendChild(txsButtons);
-    } else {
-      for (const log of logs) {
-        const { type, data: { payer, invoice } } = JSON.parse(log.toString());
-  
-        const txItem = document.createElement('div');
-        txItem.classList.add('tx');
-  
-        const desc = document.createElement('div');
-        desc.classList.add('tx_desc');
-        desc.textContent = type;
-  
-        const amount = document.createElement('div');
-        amount.classList.add('tx_amount');
-        amount.textContent = `invoice: ${invoice}`;
-  
-        const note = document.createElement('div');
-        note.classList.add('tx_note');
-        note.textContent = `payer: ${payer}`;
-  
-        const txsButtons = document.createElement('div');
-        txsButtons.classList.add('txs_buttons');
-  
-        const request = document.createElement('button');
-        request.classList.add('request_txs_button');
-        request.textContent = "Request";
-        request.addEventListener("click", e => request_payment(e, pubkey));
-  
-        const send = document.createElement('button');
-        send.classList.add('send_txs_button');
-        send.textContent = "Send";
-        send.addEventListener("click", e => send_payment(e, pubkey));
-  
-        txsButtons.appendChild(request);
-        txsButtons.appendChild(send);
-  
-        txItem.appendChild(desc);
-        txItem.appendChild(amount);
-        txItem.appendChild(note);
-        txItem.appendChild(txsButtons);
-  
-        tx.appendChild(txItem);
-      }
+
+      contactTxs.append(txsButtons);
     }
-  
-    contactTxs.append(tx);
     contactTxs.classList.remove('txs-hidden');
     contactTxs.classList.add('txs-visible');
   }
@@ -534,7 +529,7 @@ async function start () {
     e.stopPropagation()
     const core = cores.get({ name: pubkey })
     const payer = pubkey
-    const msg = JSON.stringify({ type: 'ln-invoice', data: { payer, invoice: 'ln123' } })
+    const msg = JSON.stringify({ type: 'ln-invoice', data: { text: 'request sent', payer, invoice: 'ln123' } })
     await core.append(msg)
   }
   
