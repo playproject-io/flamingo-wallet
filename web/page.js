@@ -2,7 +2,7 @@ const STATE = require('../src/node_modules/STATE')
 const statedb = STATE(__filename)
 const { sdb, get } = statedb(fallback_module)
 
-const totalWealth = require('../src/node_modules/total_wealth/total_wealth') // Imports src/index.js
+const totalWealth = require('../src/node_modules/total_wealth') // Imports src/index.js
 
 const state = {}
 
@@ -71,7 +71,7 @@ function fallback_module () {
   return {
     drive: {},
     _: {
-      '../src/node_modules/total_wealth/total_wealth': {
+      '../src/node_modules/total_wealth': {
         $: '',
         0: {
           value: {

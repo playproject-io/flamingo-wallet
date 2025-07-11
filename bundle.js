@@ -148,7 +148,7 @@ const STATE = require('../src/node_modules/STATE')
 const statedb = STATE(__filename)
 const { sdb, get } = statedb(fallback_module)
 
-const totalWealth = require('../src/node_modules/total_wealth/total_wealth') // Imports src/index.js
+const totalWealth = require('../src/node_modules/total_wealth') // Imports src/index.js
 
 const state = {}
 
@@ -217,7 +217,7 @@ function fallback_module () {
   return {
     drive: {},
     _: {
-      '../src/node_modules/total_wealth/total_wealth': {
+      '../src/node_modules/total_wealth': {
         $: '',
         0: {
           value: {
@@ -237,4 +237,4 @@ function fallback_module () {
 }
 
 }).call(this)}).call(this,"/web/page.js")
-},{"../src/node_modules/STATE":1,"../src/node_modules/total_wealth/total_wealth":2}]},{},[3]);
+},{"../src/node_modules/STATE":1,"../src/node_modules/total_wealth":2}]},{},[3]);

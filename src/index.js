@@ -1,1 +1,1 @@
-module.exports = require('./node_modules/total_wealth/total_wealth')
+module.exports.total_wealth= require('total_wealth')
