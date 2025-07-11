@@ -1,0 +1,27 @@
+{
+  "name": "flamingo-wallet",
+  "version": "0.0.1",
+  "description": "total wealth component",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "budo web/boot.js:bundle.js --dir ./ --live --open",
+    "build": "browserify web/boot.js > bundle.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/basim-12/flamingo-wallet.git"
+  },
+  "author": "Basim",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/basim-12/flamingo-wallet/issues"
+  },
+  "homepage": "https://github.com/basim-12/flamingo-wallet#readme",
+  "dependencies": {
+    "budo": "^11.8.4"
+  },
+  "devDependencies": {
+    "browserify": "^17.0.1"
+  }
+}

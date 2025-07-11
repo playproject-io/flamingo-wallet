@@ -1,0 +1,1 @@
+module.exports = require('./node_modules/total_wealth/total_wealth')
