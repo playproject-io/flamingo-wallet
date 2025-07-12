@@ -13,7 +13,7 @@ function protocol (message, notify) {
 }
 
 function listen (message) {
-  console.log('📨 Protocol message received:', message)
+  console.log('Protocol message received:', message)
 }
 
 const on = {
@@ -26,13 +26,13 @@ function injectStyle (data) {
 }
 
 function handleValue (data) {
-  console.log(`✅ "${data.id}" value:`, data.value)
+  console.log(`"${data.id}" value:`, data.value)
 }
 
 
 
 function onbatch (batch) {
-  console.log('📦 Watch triggered with batch:', batch)
+  console.log(' Watch triggered with batch:', batch)
   for (const { type, data } of batch) {
     if (on[type]) {
       on[type](data)
@@ -40,12 +40,12 @@ function onbatch (batch) {
   }
 }
 
-console.log("🟢 Before main()")
+console.log(" Before main()")
 
 
 
 async function main () {
-  console.log("⚙️ main() started")
+  console.log(" main() started")
 
   const subs = await sdb.watch(onbatch)
 
@@ -61,7 +61,7 @@ async function main () {
   page.querySelector('container').replaceWith(component)
   document.body.append(page)
 
-  console.log("✅ Page mounted")
+  console.log("Page mounted")
 }
 
 main()

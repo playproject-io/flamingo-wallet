@@ -9,57 +9,67 @@ const { sdb, get } = statedb(fallback_module)
 module.exports = total_wealth
 
 async function total_wealth (opts = {}, protocol) {
-  console.log("🔧 total_wealth called with opts:", opts)
   const { id, sdb } = await get(opts.sid)
-  console.log('sid:', opts.sid, '→ resolved id:', id)
+  
+  const {drive} = sdb
 
   const on = {
-    style: inject
+    style: inject,
+    data: ondata
   }
-  // Simple fallback approach - create element directly
+  
   const el = document.createElement('div')
+  const shadow =  el.attachShadow({ mode: 'closed' })
 
-  const config = await sdb.drive.get('data/opts.json')
-  console.log('test', config)
-  const { total = 0, usd = 1000, lightning = 0, bitcoin = 0 } = config?.raw?.value
-
-  el.innerHTML = `
-    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 16px; width: 260px; background: white; font-family: Arial, sans-serif; color: black;">
-      <div style="font-size: 13px; color: #555; margin-bottom: 6px;">Total wealth</div>
-      <div style="font-size: 24px; font-weight: bold;">
-        <span>₿ ${total.toFixed(4)}</span>
-        <div style="font-size: 14px; color: #888; margin-top: 2px;">= $${usd.toLocaleString()}</div>
+  shadow.innerHTML = `
+    <div class="total-wealth-container">
+      <div class="total-wealth-header">Total wealth</div>
+      <div class="total-wealth-value">
+        <span>₿ 0.0000</span>
+        <div class="total-wealth-usd">= $0</div>
       </div>
-      <div style="display: flex; align-items: center; margin-top: 12px; font-size: 14px;">
-        <!-- <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Lightning_Network.png/480px-Lightning_Network.png" width="16" style="margin-right: 8px;"> -->
-        Lightning Wallet <span style="margin-left: auto; font-weight: 500;">${lightning.toFixed(4)}</span>
+      <div class="wallet-row">
+        Lightning Wallet <span>0.0000</span>
       </div>
-      <div style="display: flex; align-items: center; margin-top: 12px; font-size: 14px;">
-        <!-- <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=029" width="16" style="margin-right: 8px;"> -->
-        Bitcoin Wallet <span style="margin-left: auto; font-weight: 500;">${bitcoin.toFixed(4)}</span>
+      <div class="wallet-row">
+        Bitcoin Wallet <span>0.0000</span>
       </div>
     </div>
-  `;
+    <style></style>
+  `
+
+  const style = shadow.querySelector('style')
   
   await sdb.watch(onbatch)
 
-  console.log("Returning element:", el)
   return el
 
-  function inject(data) {
-    console.log('Injecting style:', data)
-    const sheet = new CSSStyleSheet()
+  function fail(data, type) { throw new Error('invalid message', { cause: { data, type } }) }
 
-    if (data?.raw) {
-    sheet.replaceSync(data.raw || '') // ensure raw exists
-    shadow.adoptedStyleSheets = [sheet]
+  async function onbatch (batch) {
+    for (const { type, paths } of batch){
+      const data = await Promise.all(paths.map(path => drive.get(path).then(file => file.raw)))
+      const func = on[type] || fail
+      func(data, type)
     }
   }
 
-  function onbatch (batch) {
-    for (const { type, data } of batch) {
-      on[type] && on[type](data)
-    }
+  function inject (data) {
+    style.replaceChildren((() => {
+      return document.createElement('style').textContent = data[0]
+    })())
+  }
+
+  function ondata(data) {
+    renderValues(data[0]?.value || {})
+  }
+  
+
+  function renderValues({ total = 0, usd = 1000, lightning = 0, bitcoin = 0 }) {
+    shadow.querySelector('.total-wealth-value span').textContent = `₿ ${total.toFixed(4)}`
+    shadow.querySelector('.total-wealth-usd').textContent = `= $${usd.toLocaleString()}`
+    shadow.querySelectorAll('.wallet-row')[0].querySelector('span').textContent = lightning.toFixed(4)
+    shadow.querySelectorAll('.wallet-row')[1].querySelector('span').textContent = bitcoin.toFixed(4)
   }
 }
 
@@ -67,56 +77,15 @@ async function total_wealth (opts = {}, protocol) {
 
 function fallback_module () {
   return {
-    drive: {},
     api: fallback_instance
   }
 
   function fallback_instance (opts = {}) {
-    console.log('making opts--------------------', opts)
     return {
       drive: {
         'style/': {
-          'theme.css': {
-            raw: `
-              :host {
-                font-family: Arial, sans-serif;
-              }
-              .card {
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                padding: 16px;
-                width: 260px;
-                background: white;
-                color: black;
-              }
-              .label {
-                font-size: 13px;
-                color: #555;
-                margin-bottom: 6px;
-              }
-              .total {
-                font-size: 24px;
-                font-weight: bold;
-              }
-              .total .usd {
-                font-size: 14px;
-                color: #888;
-                margin-top: 2px;
-              }
-              .wallet {
-                display: flex;
-                align-items: center;
-                margin-top: 12px;
-                font-size: 14px;
-              }
-              .wallet img {
-                margin-right: 8px;
-              }
-              .wallet .amount {
-                margin-left: auto;
-                font-weight: 500;
-              }
-            `
+          'total_wealth.css': {
+           '$ref':'total_wealth.css'
           }
         },
         'data/': {
@@ -159,7 +128,7 @@ function protocol (message, notify) {
 }
 
 function listen (message) {
-  console.log('📨 Protocol message received:', message)
+  console.log('Protocol message received:', message)
 }
 
 const on = {
@@ -172,13 +141,13 @@ function injectStyle (data) {
 }
 
 function handleValue (data) {
-  console.log(`✅ "${data.id}" value:`, data.value)
+  console.log(`"${data.id}" value:`, data.value)
 }
 
 
 
 function onbatch (batch) {
-  console.log('📦 Watch triggered with batch:', batch)
+  console.log(' Watch triggered with batch:', batch)
   for (const { type, data } of batch) {
     if (on[type]) {
       on[type](data)
@@ -186,12 +155,12 @@ function onbatch (batch) {
   }
 }
 
-console.log("🟢 Before main()")
+console.log(" Before main()")
 
 
 
 async function main () {
-  console.log("⚙️ main() started")
+  console.log(" main() started")
 
   const subs = await sdb.watch(onbatch)
 
@@ -207,7 +176,7 @@ async function main () {
   page.querySelector('container').replaceWith(component)
   document.body.append(page)
 
-  console.log("✅ Page mounted")
+  console.log("Page mounted")
 }
 
 main()
