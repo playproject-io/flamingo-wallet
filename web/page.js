@@ -1,8 +1,8 @@
-const STATE = require('../src/node_modules/STATE')
+const STATE = require('../lib/node_modules/STATE')
 const statedb = STATE(__filename)
 const { sdb, get } = statedb(fallback_module)
 
-const totalWealth = require('../src/node_modules/total_wealth') // Imports src/index.js
+const totalWealth = require('../lib/node_modules/total_wealth') // Imports src/index.js
 
 const state = {}
 
@@ -53,9 +53,13 @@ async function main () {
   const component = await totalWealth(subs[0], protocol)
   console.log("🔧 totalWealth returned component:", component)
 
+ 
+
   const page = document.createElement('div')
   page.innerHTML = `
-    <container></container>
+    <div style="display: flex; flex-direction: column; gap: 20px; padding: 20px;">
+      <container></container>
+    </div>
   `
 
   page.querySelector('container').replaceWith(component)
@@ -71,7 +75,7 @@ function fallback_module () {
   return {
     drive: {},
     _: {
-      '../src/node_modules/total_wealth': {
+      '../lib/node_modules/total_wealth': {
         $: '',
         0: {
           value: {

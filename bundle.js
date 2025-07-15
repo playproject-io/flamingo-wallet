@@ -6,6 +6,107 @@ const STATE = require('STATE')
 const statedb = STATE(__filename)
 const { sdb, get } = statedb(fallback_module)
 
+module.exports = button
+
+async function button (opts = {}, protocol) {
+  const { id, sdb } = await get(opts.sid)
+
+  const {drive} = sdb
+
+  const on = {
+    style: inject,
+    data: ondata
+  }
+
+  const el = document.createElement('div')
+  const shadow =  el.attachShadow({ mode: 'closed' })
+
+  shadow.innerHTML = `
+    <button class="button-container">
+      <span class="button-text">${opts.text || 'Button'}</span>
+    </button>
+    <style></style>
+  `
+
+  const style = shadow.querySelector('style')
+  const buttonEl = shadow.querySelector('.button-container')
+
+  // Add click event listener
+  buttonEl.addEventListener('click', (event) => {
+    if (opts.onclick && typeof opts.onclick === 'function') {
+      opts.onclick(event)
+    }
+  })
+
+  await sdb.watch(onbatch)
+
+  return el
+
+  function fail(data, type) { throw new Error('invalid message', { cause: { data, type } }) }
+
+  async function onbatch (batch) {
+    for (const { type, paths } of batch){
+      const data = await Promise.all(paths.map(path => drive.get(path).then(file => file.raw)))
+      const func = on[type] || fail
+      func(data, type)
+    }
+  }
+
+  function inject (data) {
+    style.replaceChildren((() => {
+      return document.createElement('style').textContent = data[0]
+    })())
+  }
+
+  function ondata(data) {
+    updateButton(data[0]?.value || {})
+  }
+
+
+  function updateButton({ text, disabled = false }) {
+    if (text) {
+      shadow.querySelector('.button-text').textContent = text
+    }
+    buttonEl.disabled = disabled
+    if (disabled) {
+      buttonEl.classList.add('disabled')
+    } else {
+      buttonEl.classList.remove('disabled')
+    }
+  }
+}
+
+// ============ Fallback Setup for STATE ============
+
+function fallback_module () {
+  return {
+    api: fallback_instance
+  }
+
+  function fallback_instance (opts = {}) {
+    return {
+      drive: {
+        'style/': {
+          'button.css': {
+           '$ref':'button.css'
+          }
+        },
+        'data/': {
+          'opts.json': {
+            raw: opts
+          }
+        }
+      }
+    }
+  }
+}
+}).call(this)}).call(this,"/lib/node_modules/button/button.js")
+},{"STATE":1}],3:[function(require,module,exports){
+(function (__filename){(function (){
+const STATE = require('STATE')
+const statedb = STATE(__filename)
+const { sdb, get } = statedb(fallback_module)
+
 module.exports = total_wealth
 
 async function total_wealth (opts = {}, protocol) {
@@ -98,8 +199,8 @@ function fallback_module () {
   }
 }
 
-}).call(this)}).call(this,"/src/node_modules/total_wealth/total_wealth.js")
-},{"STATE":1}],3:[function(require,module,exports){
+}).call(this)}).call(this,"/lib/node_modules/total_wealth/total_wealth.js")
+},{"STATE":1}],4:[function(require,module,exports){
 const prefix = 'https://raw.githubusercontent.com/alyhxn/playproject/main/'
 const init_url = prefix + 'src/node_modules/init.js'
 
@@ -111,13 +212,14 @@ fetch(init_url, { cache: 'no-store' }).then(res => res.text()).then(async source
   await init(arguments, prefix)
   require('./page') // or whatever is otherwise the main entry of our project
 })
-},{"./page":4}],4:[function(require,module,exports){
+},{"./page":5}],5:[function(require,module,exports){
 (function (__filename){(function (){
-const STATE = require('../src/node_modules/STATE')
+const STATE = require('../lib/node_modules/STATE')
 const statedb = STATE(__filename)
 const { sdb, get } = statedb(fallback_module)
 
-const totalWealth = require('../src/node_modules/total_wealth') // Imports src/index.js
+const totalWealth = require('../lib/node_modules/total_wealth') // Imports src/index.js
+const button = require('../lib/node_modules/button') // Import button component
 
 const state = {}
 
@@ -168,12 +270,26 @@ async function main () {
   const component = await totalWealth(subs[0], protocol)
   console.log("🔧 totalWealth returned component:", component)
 
+  // Create button component with testing text and popup on click
+  const testButton = await button({
+    text: 'Test Button',
+    onclick: (event) => {
+      alert('Hello! This is a test button click popup!')
+      console.log('Button clicked!', event)
+    }
+  }, protocol)
+  console.log("🔧 button returned component:", testButton)
+
   const page = document.createElement('div')
   page.innerHTML = `
-    <container></container>
+    <div style="display: flex; flex-direction: column; gap: 20px; padding: 20px;">
+      <container></container>
+      <button-container></button-container>
+    </div>
   `
 
   page.querySelector('container').replaceWith(component)
+  page.querySelector('button-container').replaceWith(testButton)
   document.body.append(page)
 
   console.log("Page mounted")
@@ -186,7 +302,7 @@ function fallback_module () {
   return {
     drive: {},
     _: {
-      '../src/node_modules/total_wealth': {
+      '../lib/node_modules/total_wealth': {
         $: '',
         0: {
           value: {
@@ -200,10 +316,23 @@ function fallback_module () {
           style: 'style',
           data: 'data'
         }
+      },
+      '../lib/node_modules/button': {
+        $: '',
+        0: {
+          value: {
+            text: 'Test Button',
+            disabled: false
+          }
+        },
+        mapping: {
+          style: 'style',
+          data: 'data'
+        }
       }
     }
   }
 }
 
 }).call(this)}).call(this,"/web/page.js")
-},{"../src/node_modules/STATE":1,"../src/node_modules/total_wealth":2}]},{},[3]);
+},{"../lib/node_modules/STATE":1,"../lib/node_modules/button":2,"../lib/node_modules/total_wealth":3}]},{},[4]);
