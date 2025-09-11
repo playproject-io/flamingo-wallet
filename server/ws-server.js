@@ -35,7 +35,12 @@ wss.on('connection', (ws) => {
     Object.keys(subscribers).forEach((ev) => subscribers[ev].delete(ws));
   });
 
-  ws.send(JSON.stringify({ head: null, refs: null, type: 'welcome', data: { msg: 'connected' } }));
+  ws.send(JSON.stringify({ 
+    head: createMessageHead(SERVER_ID, '*'),
+    refs: {},
+    type: 'welcome', 
+    data: { msg: 'connected' } 
+  }));
 });
 
 
@@ -70,64 +75,145 @@ function persistMessage(m) {
 }
 
 
-async function handleMessage(ws, m) {
-  const { type, head, refs, data } = m;
+const SERVER_ID = 'ws_server';
+let messageCounter = 0;
 
-  try {
-    switch (type) {
-      case 'echo':
-        ws.send(JSON.stringify({ head, refs, type: 'echo-response', data }));
-        break;
+function createMessageHead(senderId, receiverId) {
+  return [senderId, receiverId, messageCounter++];
+}
 
-      case 'getinfo-lightning': {
-        const result = await wallet.getInfoLightning();
-        ws.send(JSON.stringify({ head, refs, type: 'getinfo-lightning-response', data: result }));
-        break;
-      }
+function createResponse(originalMessage) {
+  return {
+    head: createMessageHead(SERVER_ID, originalMessage.head[0]),
+    refs: { cause: originalMessage.head }
+  };
+}
 
-      case 'getinfo-bitcoin': {
-        const result = await wallet.getInfoBitcoin();
-        ws.send(JSON.stringify({ head, refs, type: 'getinfo-bitcoin-response', data: result }));
-        break;
-      }
+const on = {
+  echo: async (m, ws) => {
+    const { data } = m;
+    const response = createResponse(m);
+    ws.send(JSON.stringify({ 
+      ...response,
+      type: 'echo-response', 
+      data 
+    }));
+  },
 
-      case 'subscribe': {
-        const ev = data && data.event ? data.event : 'node-status';
-        subscribers[ev] = subscribers[ev] || new Set();
-        subscribers[ev].add(ws);
-        ws.send(JSON.stringify({ head, refs, type: 'subscribe-response', data: { subscribed: ev } }));
-        break;
-      }
-
-      case 'unsubscribe': {
-        const ev = data && data.event ? data.event : 'node-status';
-        if (subscribers[ev]) subscribers[ev].delete(ws);
-        ws.send(JSON.stringify({ head, refs, type: 'unsubscribe-response', data: { unsubscribed: ev } }));
-        break;
-      }
-
-      case 'resume': {
-        const sinceHead = data && data.sinceHead;
-        let toSend;
-        if (sinceHead) {
-          const sinceMsg = persisted.find((p) => p.head === sinceHead);
-          const sinceTs = sinceMsg ? sinceMsg.ts : 0;
-          toSend = persisted.filter((p) => p.ts > sinceTs);
-        } else {
-          toSend = persisted;
-        }
-        toSend.forEach((item) => {
-          ws.send(JSON.stringify({ head: item.head, refs: item.refs, type: 'resume-item', data: item.data || item }));
-        });
-        ws.send(JSON.stringify({ head, refs, type: 'resume-complete', data: { count: toSend.length } }));
-        break;
-      }
-
-      default:
-        ws.send(JSON.stringify({ head, refs, type: 'error', data: { error: 'unknown type: ' + type } }));
+  'getinfo-lightning': async (m, ws) => {
+    try {
+      const result = await wallet.getInfoLightning();
+      const response = createResponse(m);
+      ws.send(JSON.stringify({ 
+        ...response,
+        type: 'getinfo-lightning-response', 
+        data: result 
+      }));
+    } catch (err) {
+      const response = createResponse(m);
+      ws.send(JSON.stringify({ 
+        ...response,
+        type: 'error', 
+        data: { error: err.message || String(err) } 
+      }));
     }
+  },
+
+  'getinfo-bitcoin': async (m, ws) => {
+    try {
+      const result = await wallet.getInfoBitcoin();
+      const response = createResponse(m);
+      ws.send(JSON.stringify({ 
+        ...response,
+        type: 'getinfo-bitcoin-response', 
+        data: result 
+      }));
+    } catch (err) {
+      const response = createResponse(m);
+      ws.send(JSON.stringify({ 
+        ...response,
+        type: 'error', 
+        data: { error: err.message || String(err) } 
+      }));
+    }
+  },
+
+  subscribe: async (m, ws) => {
+    const { data } = m;
+    const ev = data && data.event ? data.event : 'node-status';
+    subscribers[ev] = subscribers[ev] || new Set();
+    subscribers[ev].add(ws);
+    const response = createResponse(m);
+    ws.send(JSON.stringify({ 
+      ...response,
+      type: 'subscribe-response', 
+      data: { subscribed: ev } 
+    }));
+  },
+
+  unsubscribe: async (m, ws) => {
+    const { data } = m;
+    const ev = data && data.event ? data.event : 'node-status';
+    if (subscribers[ev]) subscribers[ev].delete(ws);
+    const response = createResponse(m);
+    ws.send(JSON.stringify({ 
+      ...response,
+      type: 'unsubscribe-response', 
+      data: { unsubscribed: ev } 
+    }));
+  },
+
+  resume: async (m, ws) => {
+    const { data } = m;
+    const sinceHead = data && data.sinceHead;
+    let toSend;
+    if (sinceHead) {
+      const sinceMsg = persisted.find((p) => p.head[2] === sinceHead[2]);
+      const sinceTs = sinceMsg ? sinceMsg.ts : 0;
+      toSend = persisted.filter((p) => p.ts > sinceTs);
+    } else {
+      toSend = persisted;
+    }
+    
+    // Send each item with a new message ID
+    toSend.forEach((item) => {
+      const response = createResponse(m);
+      ws.send(JSON.stringify({ 
+        ...response,
+        type: 'resume-item', 
+        data: item.data || item 
+      }));
+    });
+
+    // Send completion message
+    const finalResponse = createResponse(m);
+    ws.send(JSON.stringify({ 
+      ...finalResponse,
+      type: 'resume-complete', 
+      data: { count: toSend.length } 
+    }));
+  }
+};
+
+function fail(m, ws) {
+  const response = createResponse(m);
+  ws.send(JSON.stringify({ 
+    ...response,
+    type: 'fail', 
+    data: { error: 'unknown type: ' + m.type } 
+  }));
+}
+
+function handleMessage(ws, m) {
+  try {
+    (on[m.type] || fail)(m, ws);
   } catch (err) {
-    ws.send(JSON.stringify({ head, refs, type: 'error', data: { error: err.message || String(err) } }));
+    const response = createResponse(m);
+    ws.send(JSON.stringify({ 
+      ...response,
+      type: 'error', 
+      data: { error: err.message || String(err) } 
+    }));
   }
 }
 
@@ -146,8 +232,13 @@ setInterval(async () => {
     const s = Array.from(subscribers['node-status'] || []);
     s.forEach((ws) => {
       if (ws.readyState === WebSocket.OPEN) {
-        const head = 'srv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-        const msg = { head, refs: null, type: 'node-status', data: payload };
+        // For broadcasts, we set receiverId as '*'
+        const msg = { 
+          head: createMessageHead(SERVER_ID, '*', messageCounter++),
+          refs: {},  // no cause for broadcast messages
+          type: 'node-status', 
+          data: payload 
+        };
         ws.send(JSON.stringify(msg));
         persistMessage(msg);
       }

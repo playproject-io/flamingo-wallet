@@ -842,5 +842,73 @@
     },
     "ts": 1757177682497,
     "status": "stored"
+  },
+  {
+    "head": "cli-1757613256874-k1z8ud",
+    "refs": null,
+    "type": "getinfo-bitcoin",
+    "data": {},
+    "ts": 1757613256884,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757613261145-z06wtp",
+    "refs": null,
+    "type": "getinfo-lightning",
+    "data": {},
+    "ts": 1757613261147,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757613267675-02u0xv",
+    "refs": null,
+    "type": "subscribe",
+    "data": {
+      "event": "node-status"
+    },
+    "ts": 1757613267676,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757613270937-v18xpx",
+    "refs": null,
+    "type": "unsubscribe",
+    "data": {
+      "event": "node-status"
+    },
+    "ts": 1757613270937,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757613272836-t8il9u",
+    "refs": null,
+    "type": "resume",
+    "data": {},
+    "ts": 1757613272837,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757613436967-0j91mw",
+    "refs": null,
+    "type": "getinfo-bitcoin",
+    "data": {},
+    "ts": 1757613436969,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757613445366-jnqpnm",
+    "refs": null,
+    "type": "getinfo-lightning",
+    "data": {},
+    "ts": 1757613445367,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757613457822-2un87j",
+    "refs": null,
+    "type": "resume",
+    "data": {},
+    "ts": 1757613457827,
+    "status": "stored"
   }
 ]
