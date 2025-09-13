@@ -1953,5 +1953,48 @@
     "data": {},
     "ts": 1757776813621,
     "status": "stored"
+  },
+  {
+    "head": "cli-1757778640607-9j4ehb",
+    "refs": null,
+    "type": "getinfo-bitcoin",
+    "data": {},
+    "ts": 1757778640611,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757778652518-hfel05",
+    "refs": null,
+    "type": "getinfo-lightning",
+    "data": {},
+    "ts": 1757778652528,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757778665596-jpztwq",
+    "refs": null,
+    "type": "new-lightning-address",
+    "data": {},
+    "ts": 1757778665597,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757778674583-lwbgv2",
+    "refs": null,
+    "type": "fund-lightning-node",
+    "data": {
+      "address": "bcrt1qeezu2hptvnmahcdqhqvf894ej7vtk3hhydkm3t",
+      "blocks": 1
+    },
+    "ts": 1757778674585,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757778687745-bwdsuv",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757778687748,
+    "status": "stored"
   }
 ]
