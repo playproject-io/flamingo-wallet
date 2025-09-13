@@ -23,6 +23,9 @@ document.getElementById('connect').addEventListener('click', () => {
     try {
       const msg = JSON.parse(evt.data);
       log('RECV', msg);
+      if (msg.type === 'new-lightning-address-response' && msg.data && msg.data.bech32) {
+        document.getElementById('funding-address').value = msg.data.bech32;
+      }
     } catch (e) {
       log('RECV (raw)', evt.data);
     }
@@ -74,6 +77,27 @@ document.getElementById('getinfo-bitcoin').addEventListener('click', () => {
 });
 document.getElementById('getinfo-lightning').addEventListener('click', () => {
   sendRaw({ type: 'getinfo-lightning', data: {} });
+});
+document.getElementById('new-lightning-address').addEventListener('click', () => {
+  sendRaw({ type: 'new-lightning-address', data: {} });
+});
+
+document.getElementById('fund-node').addEventListener('click', () => {
+  const address = document.getElementById('funding-address').value.trim();
+  const blocks = document.getElementById('funding-blocks').value.trim();
+  if (!address) {
+    log('Please generate an address first.');
+    return;
+  }
+  if (!blocks || isNaN(parseInt(blocks, 10))) {
+    log('Please enter a valid number of blocks.');
+    return;
+  }
+  sendRaw({ type: 'fund-lightning-node', data: { address, blocks: parseInt(blocks, 10) } });
+});
+
+document.getElementById('list-funds').addEventListener('click', () => {
+  sendRaw({ type: 'list-lightning-funds', data: {} });
 });
 
 function sendRaw({ type, data }) {

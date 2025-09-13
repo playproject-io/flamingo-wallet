@@ -910,5 +910,1048 @@
     "data": {},
     "ts": 1757613457827,
     "status": "stored"
+  },
+  {
+    "head": "cli-1757771250954-a8w7eu",
+    "refs": null,
+    "type": "subscribe",
+    "data": {
+      "event": "node-status"
+    },
+    "ts": 1757771250960,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757771253414-80dz9a",
+    "refs": null,
+    "type": "getinfo-bitcoin",
+    "data": {},
+    "ts": 1757771253419,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757771255410-kjyhjr",
+    "refs": null,
+    "type": "getinfo-lightning",
+    "data": {},
+    "ts": 1757771255414,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      5
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757771258163,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 310,
+        "headers": 310,
+        "bestblockhash": "46abedaa9b724e9437102c7bddc387f6efd7cee0223cd7d9f9c47f0d8d85300d",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1756410157,
+        "mediantime": 1756410156,
+        "verificationprogress": 0.1869660193739804,
+        "initialblockdownload": true,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000026e",
+        "size_on_disk": 93364,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 310,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "warning_bitcoind_sync": "Bitcoind is not up-to-date with network.",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757771258164,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757771261311-nl94ur",
+    "refs": null,
+    "type": "unsubscribe",
+    "data": {
+      "event": "node-status"
+    },
+    "ts": 1757771261312,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757771263408-qiuif1",
+    "refs": null,
+    "type": "resume",
+    "data": {},
+    "ts": 1757771263410,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772036607-u3alin",
+    "refs": null,
+    "type": "subscribe",
+    "data": {
+      "event": "node-status"
+    },
+    "ts": 1757772036610,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      3
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772036759,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 310,
+        "headers": 310,
+        "bestblockhash": "46abedaa9b724e9437102c7bddc387f6efd7cee0223cd7d9f9c47f0d8d85300d",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1756410157,
+        "mediantime": 1756410156,
+        "verificationprogress": 0.1868791715700059,
+        "initialblockdownload": true,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000026e",
+        "size_on_disk": 93364,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 310,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "warning_bitcoind_sync": "Bitcoind is not up-to-date with network.",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772036759,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772043873-c0vd33",
+    "refs": null,
+    "type": "getinfo-bitcoin",
+    "data": {},
+    "ts": 1757772043876,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      6
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772046758,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 310,
+        "headers": 310,
+        "bestblockhash": "46abedaa9b724e9437102c7bddc387f6efd7cee0223cd7d9f9c47f0d8d85300d",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1756410157,
+        "mediantime": 1756410156,
+        "verificationprogress": 0.1868780557995186,
+        "initialblockdownload": true,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000026e",
+        "size_on_disk": 93364,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 310,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "warning_bitcoind_sync": "Bitcoind is not up-to-date with network.",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772046759,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772049733-baefrk",
+    "refs": null,
+    "type": "new-lightning-address",
+    "data": {},
+    "ts": 1757772049734,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      9
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772056758,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 310,
+        "headers": 310,
+        "bestblockhash": "46abedaa9b724e9437102c7bddc387f6efd7cee0223cd7d9f9c47f0d8d85300d",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1756410157,
+        "mediantime": 1756410156,
+        "verificationprogress": 0.1868769400423548,
+        "initialblockdownload": true,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000026e",
+        "size_on_disk": 93364,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 310,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "warning_bitcoind_sync": "Bitcoind is not up-to-date with network.",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772056758,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772065664-mkbr69",
+    "refs": null,
+    "type": "fund-lightning-node",
+    "data": {
+      "address": "bcrt1qxa8a7fhd73mur50s44j7tq5xtwwyj6uu3ulnke",
+      "blocks": 104
+    },
+    "ts": 1757772065665,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      12
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772066758,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 310,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "warning_bitcoind_sync": "Bitcoind is not up-to-date with network.",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772066758,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772074201-h4orva",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772074206,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      15
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772076764,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772076764,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      17
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772086763,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772086763,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      19
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772096767,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772096767,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      21
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772106764,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772106764,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      23
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772116765,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772116765,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      25
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772126766,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772126766,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772134300-yse5qj",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772134303,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      28
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772136767,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772136767,
+    "status": "stored"
+  },
+  {
+    "head": [
+      "ws_server",
+      "*",
+      30
+    ],
+    "refs": {},
+    "type": "node-status",
+    "data": {
+      "timestamp": 1757772146769,
+      "bitcoin": {
+        "chain": "regtest",
+        "blocks": 414,
+        "headers": 414,
+        "bestblockhash": "11441a3120f71a090af31fab8a1cc37e8b844372d1abb1a3127989ec51d8db86",
+        "bits": "207fffff",
+        "target": "7fffff0000000000000000000000000000000000000000000000000000000000",
+        "difficulty": 4.656542373906925e-10,
+        "time": 1757772082,
+        "mediantime": 1757772081,
+        "verificationprogress": 1,
+        "initialblockdownload": false,
+        "chainwork": "000000000000000000000000000000000000000000000000000000000000033e",
+        "size_on_disk": 124460,
+        "pruned": false,
+        "warnings": [
+          "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+        ]
+      },
+      "lightning": {
+        "id": "02a267389ea597642eb0bad6dd6d9307e032c9ce1681e12b48fd01efeb576f66c7",
+        "alias": "SLEEPYTRINITY",
+        "color": "02a267",
+        "num_peers": 1,
+        "num_pending_channels": 0,
+        "num_active_channels": 1,
+        "num_inactive_channels": 0,
+        "address": [],
+        "binding": [
+          {
+            "type": "ipv6",
+            "address": "::",
+            "port": 19846
+          }
+        ],
+        "version": "v24.05",
+        "blockheight": 414,
+        "network": "regtest",
+        "fees_collected_msat": 0,
+        "lightning-dir": "/Users/a1707/.lightning/regtest",
+        "our_features": {
+          "init": "08a0000a8a59a1",
+          "node": "88a0000a8a59a1",
+          "channel": "",
+          "invoice": "02000002024100"
+        }
+      }
+    },
+    "ts": 1757772146770,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772190305-nreu48",
+    "refs": null,
+    "type": "new-lightning-address",
+    "data": {},
+    "ts": 1757772190305,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772213804-n6y2s6",
+    "refs": null,
+    "type": "fund-lightning-node",
+    "data": {
+      "address": "bcrt1qfy3vt5z3nmph0m9pd5a4evqx276erm2xg93e4h",
+      "blocks": 999
+    },
+    "ts": 1757772213806,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772254881-qpq3dv",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772254885,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772703232-8cbmqx",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772703234,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772769765-gqvbzm",
+    "refs": null,
+    "type": "withdraw-lightning-funds",
+    "data": {
+      "destination": "d051825197ace7014b76d1917016089734311ec6d6cfd1410ff90b8153fdfvr4",
+      "satoshi": "413"
+    },
+    "ts": 1757772769765,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772799345-ibgb4q",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772799352,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772827716-vh8mdx",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772827720,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772899593-zdwgbt",
+    "refs": null,
+    "type": "withdraw-lightning-funds",
+    "data": {
+      "destination": "bcrt1qfy3vt5z3nmph0m9pd5a4evqx276erm2xg93e2d",
+      "satoshi": "all"
+    },
+    "ts": 1757772899594,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772927796-ijdf7w",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772927797,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772940424-aybgtn",
+    "refs": null,
+    "type": "new-lightning-address",
+    "data": {},
+    "ts": 1757772940425,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772944914-apnwup",
+    "refs": null,
+    "type": "fund-lightning-node",
+    "data": {
+      "address": "bcrt1qrr5n4saxunla7n7jqhev6rk4kv5s4n38rfg7md",
+      "blocks": 1
+    },
+    "ts": 1757772944915,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757772947511-rwcurf",
+    "refs": null,
+    "type": "list-lightning-funds",
+    "data": {},
+    "ts": 1757772947521,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757775954652-0vlwey",
+    "refs": null,
+    "type": "getinfo-bitcoin",
+    "data": {},
+    "ts": 1757775954662,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757775961886-29lsx2",
+    "refs": null,
+    "type": "getinfo-lightning",
+    "data": {},
+    "ts": 1757775961887,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757776530638-x74zo2",
+    "refs": null,
+    "type": "getinfo-bitcoin",
+    "data": {},
+    "ts": 1757776530644,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757776534648-dsekve",
+    "refs": null,
+    "type": "getinfo-lightning",
+    "data": {},
+    "ts": 1757776534652,
+    "status": "stored"
+  },
+  {
+    "head": "cli-1757776813617-7fgjzy",
+    "refs": null,
+    "type": "getinfo-lightning",
+    "data": {},
+    "ts": 1757776813621,
+    "status": "stored"
   }
 ]

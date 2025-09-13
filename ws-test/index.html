@@ -37,6 +37,20 @@
     <button id="getinfo-lightning">Get Lightning Info</button>
   </div>
 
+  <hr />
+  <h3>Fund Lightning Node</h3>
+  <div class="row">
+    <button id="new-lightning-address">1. Get New Address</button>
+    <input id="funding-address" placeholder="address will appear here" readonly />
+  </div>
+  <div class="row">
+    <input id="funding-blocks" type="number" value="101" placeholder="blocks to generate" />
+    <button id="fund-node">2. Fund Address</button>
+  </div>
+  <div style="margin-top:10px">
+    <button id="list-funds">3. Verify Balance (List Funds)</button>
+  </div>
+
   <h3>Log</h3>
   <div id="log"></div>
 

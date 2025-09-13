@@ -13,6 +13,52 @@ const wss = new WebSocket.Server({ port: PORT }, () => {
   console.log(` WS server running on ws://localhost:${PORT}`);
 });
 
+// Start daemons automatically
+(async () => {
+  try {
+    console.log('Attempting to start Bitcoin daemon...');
+    await wallet.startBitcoin();
+    console.log('Bitcoin daemon started or was already running.');
+  } catch (e) {
+    // Ignore errors, it might be already running
+    console.log('Could not start Bitcoin daemon (maybe already running).');
+  }
+
+  try {
+    console.log('Attempting to start Lightning daemon...');
+    await wallet.startLightning();
+    console.log('Lightning daemon started or was already running.');
+  } catch (e) {
+    // Ignore errors, it might be already running
+    console.log('Could not start Lightning daemon (maybe already running).');
+  }
+})();
+
+async function gracefulShutdown() {
+  console.log('\nGracefully shutting down...');
+
+  try {
+    console.log('Attempting to stop Lightning daemon...');
+    await wallet.stopLightning();
+    console.log('Lightning daemon stopped.');
+  } catch (e) {
+    console.log('Could not stop Lightning daemon (maybe not running or error).');
+  }
+
+  try {
+    console.log('Attempting to stop Bitcoin daemon...');
+    await wallet.stopBitcoin();
+    console.log('Bitcoin daemon stopped.');
+  } catch (e) {
+    console.log('Could not stop Bitcoin daemon (maybe not running or error).');
+  }
+
+  process.exit(0);
+}
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
+
 wss.on('connection', (ws) => {
   console.log('🔌 client connected');
   ws.isAlive = true;
@@ -98,6 +144,67 @@ const on = {
       type: 'echo-response', 
       data 
     }));
+  },
+
+  'new-lightning-address': async (m, ws) => {
+    try {
+      const result = await wallet.newLightningAddress();
+      const response = createResponse(m);
+      ws.send(JSON.stringify({
+        ...response,
+        type: 'new-lightning-address-response',
+        data: result
+      }));
+    } catch (err) {
+      const response = createResponse(m);
+      ws.send(JSON.stringify({
+        ...response,
+        type: 'error',
+        data: { error: err.message || String(err) }
+      }));
+    }
+  },
+
+  'fund-lightning-node': async (m, ws) => {
+    try {
+      const { address, blocks } = m.data;
+      if (!address || !blocks) {
+        throw new Error('address and blocks are required');
+      }
+      const result = await wallet.fundLightningNode(address, blocks);
+      const response = createResponse(m);
+      ws.send(JSON.stringify({
+        ...response,
+        type: 'fund-lightning-node-response',
+        data: result
+      }));
+    } catch (err) {
+      const response = createResponse(m);
+      ws.send(JSON.stringify({
+        ...response,
+        type: 'error',
+        data: { error: err.message || String(err) }
+      }));
+    }
+  },
+
+  'list-lightning-funds': async (m, ws) => {
+    try {
+      const result = await wallet.listLightningFunds();
+      const response = createResponse(m);
+      ws.send(JSON.stringify({
+        ...response,
+        type: 'list-lightning-funds-response',
+        data: result
+      }));
+    } catch (err) {
+      const response = createResponse(m);
+      ws.send(JSON.stringify({
+        ...response,
+        type: 'error',
+        data: { error: err.message || String(err) }
+      }));
+    }
   },
 
   'getinfo-lightning': async (m, ws) => {
